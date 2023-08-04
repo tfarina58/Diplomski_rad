@@ -7,6 +7,7 @@ class StringField extends StatefulWidget {
   final String? presetText;
   final int multiline;
   final bool readOnly;
+  final bool osbcure;
 
   StringField({
     Key? key,
@@ -15,6 +16,7 @@ class StringField extends StatefulWidget {
     this.presetText = "",
     this.multiline = 1,
     this.readOnly = false,
+    this.osbcure = false,
   }) : super(key: key);
 
   @override
@@ -30,6 +32,7 @@ class _StringFieldState extends State<StringField> {
         maxWidth: 400,
       ),
       child: TextFormField(
+        // obscureText: widget.osbcure,
         readOnly: widget.readOnly,
         textInputAction: TextInputAction.next,
         onChanged: (value) {

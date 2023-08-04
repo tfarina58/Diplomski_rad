@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 abstract class User {}
 
 class Company extends User {
@@ -11,6 +13,7 @@ class Company extends User {
   String zip;
   String city;
   String country;
+  LatLng coordinates;
   String phone;
   String password;
   String bio;
@@ -26,6 +29,7 @@ class Company extends User {
     this.zip = "",
     this.city = "",
     this.country = "",
+    this.coordinates = const LatLng(0, 0),
     this.phone = "",
     this.password = "",
     this.bio = "",
@@ -43,6 +47,7 @@ class Individual extends User {
   String zip;
   String city;
   String country;
+  LatLng coordinates;
   String phone;
   String password;
   String bio;
@@ -58,6 +63,7 @@ class Individual extends User {
     this.zip = "",
     this.city = "",
     this.country = "",
+    this.coordinates = const LatLng(0, 0),
     this.phone = "",
     this.password = "",
     this.bio = "",

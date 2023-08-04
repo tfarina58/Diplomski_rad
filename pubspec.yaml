@@ -47,6 +47,10 @@ dependencies:
   intl: ^0.18.1
   flutter_dropzone: ^3.0.6
   file_picker: ^5.3.3
+  url_launcher: ^6.1.12
+  geocoding: ^2.1.0
+  flutter_map: ^5.0.0
+  latlong2: ^0.9.0
 
 dev_dependencies:
   flutter_test:

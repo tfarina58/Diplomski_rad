@@ -8,11 +8,13 @@ class CalendarField extends StatelessWidget {
   DateTime selectedDate = DateTime.now();
   DateTime tmpDate = DateTime.now();
   final Function callback;
+  final String presetText;
 
   CalendarField({
     Key? key,
     required this.labelText,
     required this.callback,
+    this.presetText = "",
   }) : super(key: key);
 
   @override
@@ -20,6 +22,7 @@ class CalendarField extends StatelessWidget {
     final double width = MediaQuery.of(context).size.width * 0.3;
     final double height = MediaQuery.of(context).size.height * 0.55;
     final textController = TextEditingController();
+    textController.text = presetText;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(
@@ -79,7 +82,6 @@ class CalendarField extends StatelessWidget {
                       textController.text =
                           DateFormat('yyyy-MM-dd').format(tmpDate);
                       Navigator.pop(context);
-                      print('calendar: ${tmpDate}');
                     },
                   ),
                 ],

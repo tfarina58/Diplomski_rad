@@ -4,21 +4,25 @@ import 'package:diplomski_rad/other/pallete.dart';
 class GradientButton extends StatelessWidget {
   final String buttonText;
   final Function callback;
+  final List<Color> colors;
 
-  const GradientButton(
-      {Key? key, required this.buttonText, required this.callback})
-      : super(key: key);
+  const GradientButton({
+    Key? key,
+    required this.buttonText,
+    required this.callback,
+    this.colors = const [
+      Pallete.gradient1,
+      Pallete.gradient2,
+      Pallete.gradient3,
+    ],
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Pallete.gradient1,
-            Pallete.gradient2,
-            Pallete.gradient3,
-          ],
+        gradient: LinearGradient(
+          colors: colors,
           begin: Alignment.bottomLeft,
           end: Alignment.topRight,
         ),
