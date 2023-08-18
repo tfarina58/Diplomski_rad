@@ -71,13 +71,14 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Checkbox(
-                      activeColor: Pallete.gradient2,
-                      value: keepLoggedIn,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          keepLoggedIn = value!;
-                        });
-                      }),
+                    activeColor: PalleteCommon.gradient2,
+                    value: keepLoggedIn,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        keepLoggedIn = value!;
+                      });
+                    },
+                  ),
                   const Text("Keep me logged in."),
                 ],
               ),

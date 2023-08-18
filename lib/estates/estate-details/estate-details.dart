@@ -7,11 +7,9 @@ import 'package:diplomski_rad/interfaces/estate/estate.dart';
 import 'dart:math';
 
 class EstateDetailsPage extends StatefulWidget {
-  CompanyEstate? companyEstate;
-  IndividualEstate? individualEstate;
+  Estate estate;
 
-  EstateDetailsPage({Key? key, this.companyEstate, this.individualEstate})
-      : super(key: key);
+  EstateDetailsPage({Key? key, required this.estate}) : super(key: key);
 
   @override
   State<EstateDetailsPage> createState() => _EstateDetailsPageState();
@@ -27,8 +25,8 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       const Color.fromARGB(255, 78, 129, 235)
     ],
     [
-      Pallete.gradient1,
-      Pallete.gradient3,
+      PalleteCommon.gradient1,
+      PalleteCommon.gradient3,
     ],
     [
       const Color.fromARGB(255, 254, 81, 1),
@@ -58,7 +56,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double size = MediaQuery.of(context).size.width;
+    final double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: HeaderComponent(currentPage: 'EstateDetailsPage'),
       body: Center(
@@ -77,7 +75,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                   }),
                   child: Stack(
                     children: [
-                      ...getImages(size),
+                      ...getImages(width),
                       if (isHovering)
                         Padding(
                           // padding: EdgeInsets.fromLTRB(300, 100, 0, 100),
@@ -88,7 +86,8 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                               onTap: () => showDialog(
                                 context: context,
                                 builder: (BuildContext context) => const Dialog(
-                                  backgroundColor: Pallete.backgroundColor,
+                                  backgroundColor:
+                                      PalleteCommon.backgroundColor,
                                   alignment: Alignment.center,
                                   child: Center(
                                     child: Text("Text"),
@@ -112,7 +111,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                                       Icons.manage_search,
                                       color: Colors.white,
                                     ),
-                                    Text("Manage photos and templates"),
+                                    Text("Manage presentation"),
                                   ],
                                 ),
                               ),
@@ -128,100 +127,49 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 child: Center(
                   child: Column(
                     children: [
-                      const SizedBox(height: 60),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "General information",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       StringField(
                         labelText: 'Street',
-                        callback: (value) => widget.individualEstate != null
-                            ? widget.individualEstate!.street = value
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.street = value
-                                : null,
-                        presetText: widget.individualEstate != null
-                            ? widget.individualEstate!.street
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.street
-                                : null,
+                        callback: (value) => widget.estate.street = value,
+                        presetText: widget.estate.street,
                       ),
                       const SizedBox(height: 15),
                       StringField(
                         labelText: 'Zip',
-                        callback: (value) => widget.individualEstate != null
-                            ? widget.individualEstate!.zip = value
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.zip = value
-                                : null,
-                        presetText: widget.individualEstate != null
-                            ? widget.individualEstate!.zip
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.zip
-                                : null,
+                        callback: (value) => widget.estate.zip = value,
+                        presetText: widget.estate.zip,
                       ),
                       const SizedBox(height: 15),
                       StringField(
                         labelText: 'City',
-                        callback: (value) => widget.individualEstate != null
-                            ? widget.individualEstate!.city = value
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.city = value
-                                : null,
-                        presetText: widget.individualEstate != null
-                            ? widget.individualEstate!.city
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.city
-                                : null,
+                        callback: (value) => widget.estate.city = value,
+                        presetText: widget.estate.city,
                       ),
                       const SizedBox(height: 15),
                       StringField(
                         labelText: 'Country',
-                        callback: (value) => widget.individualEstate != null
-                            ? widget.individualEstate!.country = value
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.country = value
-                                : null,
-                        presetText: widget.individualEstate != null
-                            ? widget.individualEstate!.country
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.country
-                                : null,
-                      ),
-                      const SizedBox(height: 15),
-                      StringField(
-                        labelText: 'Coordinates',
-                        callback: (value) => widget.individualEstate != null
-                            ? widget.individualEstate!.coordinates = value
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.coordinates = value
-                                : null,
-                        presetText: coorToStr(),
-                        readOnly: true,
+                        callback: (value) => widget.estate.country = value,
+                        presetText: widget.estate.country,
                       ),
                       const SizedBox(height: 15),
                       StringField(
                         labelText: 'Phone',
-                        callback: (value) => widget.individualEstate != null
-                            ? widget.individualEstate!.phone = value
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.phone = value
-                                : null,
-                        presetText: widget.individualEstate != null
-                            ? widget.individualEstate!.phone
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.phone
-                                : null,
+                        callback: (value) => widget.estate.phone = value,
+                        presetText: widget.estate.phone,
                       ),
                       const SizedBox(height: 15),
                       StringField(
                         labelText: 'Description',
-                        callback: (value) => widget.individualEstate != null
-                            ? widget.individualEstate!.description = value
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.description = value
-                                : null,
-                        presetText: widget.individualEstate != null
-                            ? widget.individualEstate!.description
-                            : widget.companyEstate != null
-                                ? widget.companyEstate!.description
-                                : null,
+                        callback: (value) => widget.estate.description = value,
+                        presetText: widget.estate.description,
                         multiline: 5,
                       ),
                       const SizedBox(height: 30),
@@ -243,22 +191,14 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
   @override
   void initState() {
-    print("Init 2");
-
     super.initState();
   }
 
-  String coorToStr() {
-    return '45.083333, 13.6333308';
-  }
-
-  List<Widget> getImages(double size) {
+  List<Widget> getImages(double width) {
     List<Widget> res = [];
 
-    if (widget.individualEstate != null) {
-      for (int i = 0;
-          i < widget.individualEstate!.images.length && i < 3;
-          ++i) {
+    if (widget.estate.images.isNotEmpty) {
+      for (int i = 0; i < widget.estate.images.length && i < 3; ++i) {
         res.add(
           Padding(
             padding: EdgeInsets.fromLTRB(
@@ -268,18 +208,16 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 Radius.circular(16),
               ),
               child: Hero(
-                tag: widget.individualEstate!.images[
-                    widget.individualEstate!.images.length > 3
-                        ? 2 - i
-                        : widget.individualEstate!.images.length - 1 - i],
+                tag: widget.estate!.images[widget.estate!.images.length > 3
+                    ? 2 - i
+                    : widget.estate!.images.length - 1 - i],
                 child: Image(
-                  width: size,
-                  height: size * 0.5625,
+                  width: width,
+                  height: width * 0.5625,
                   image: AssetImage(
-                    widget.individualEstate!.images[
-                        widget.individualEstate!.images.length > 3
-                            ? 2 - i
-                            : widget.individualEstate!.images.length - 1 - i],
+                    widget.estate!.images[widget.estate!.images.length > 3
+                        ? 2 - i
+                        : widget.estate!.images.length - 1 - i],
                   ),
                 ),
               ),
@@ -287,59 +225,38 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
           ),
         );
       }
-    } else if (widget.companyEstate != null) {
-      for (int i = 0; i < widget.companyEstate!.images.length && i < 3; ++i) {
-        res.add(
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-                i * 100 + 100, 300 - i * 100, 300 - i * 100, i * 100 + 100),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(
-                Radius.circular(16),
-              ),
-              child: Hero(
-                tag: widget.companyEstate!.images[
-                    widget.companyEstate!.images.length > 3
-                        ? 2 - i
-                        : widget.companyEstate!.images.length - 1 - i],
-                child: Image(
-                  width: size,
-                  height: size * 0.5625,
-                  image: AssetImage(
-                    widget.companyEstate!.images[
-                        widget.companyEstate!.images.length > 3
-                            ? 2 - i
-                            : widget.companyEstate!.images.length - 1 - i],
-                  ),
+      return res;
+    }
+
+    for (int i = 0; i < widget.estate.images.length && i < 3; ++i) {
+      res.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+              i * 100 + 100, 300 - i * 100, 300 - i * 100, i * 100 + 100),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(
+              Radius.circular(16),
+            ),
+            child: Hero(
+              tag: widget.estate!.images[widget.estate!.images.length > 3
+                  ? 2 - i
+                  : widget.estate!.images.length - 1 - i],
+              child: Image(
+                width: width,
+                height: width * 0.5625,
+                image: AssetImage(
+                  widget.estate!.images[widget.estate!.images.length > 3
+                      ? 2 - i
+                      : widget.estate!.images.length - 1 - i],
                 ),
               ),
             ),
           ),
-        );
-      }
+        ),
+      );
     }
     return res;
   }
 
-  void saveChanges() {
-    if (widget.companyEstate != null) {
-      print(widget.companyEstate!.name);
-      print(widget.companyEstate!.street);
-      print(widget.companyEstate!.zip);
-      print(widget.companyEstate!.city);
-      print(widget.companyEstate!.country);
-      print(widget.companyEstate!.coordinates);
-      print(widget.companyEstate!.phone);
-      print(widget.companyEstate!.description);
-    } else if (widget.individualEstate != null) {
-      print(widget.individualEstate!.name);
-      print(widget.individualEstate!.street);
-      print(widget.individualEstate!.zip);
-      print(widget.individualEstate!.city);
-      print(widget.individualEstate!.country);
-      print(widget.individualEstate!.coordinates);
-      print(widget.individualEstate!.phone);
-      print(widget.individualEstate!.description);
-    }
-  }
+  void saveChanges() {}
 }

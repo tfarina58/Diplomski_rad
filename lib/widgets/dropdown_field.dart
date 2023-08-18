@@ -3,14 +3,19 @@ import 'package:diplomski_rad/other/pallete.dart';
 
 class DropdownField extends StatefulWidget {
   final String labelText;
-  String selectedType = "ind";
   final Function callback;
+  final List<dynamic> choices;
+  dynamic selected;
 
   DropdownField({
     Key? key,
     required this.labelText,
     required this.callback,
-  }) : super(key: key);
+    required this.choices,
+    this.selected,
+  }) : super(key: key) {
+    selected ??= choices[0];
+  }
 
   @override
   State<DropdownField> createState() => _DropdownFieldState();
@@ -31,43 +36,43 @@ class _DropdownFieldState extends State<DropdownField> {
           contentPadding: const EdgeInsets.all(27),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(
-              color: Pallete.borderColor,
+              color: PalleteCommon.borderColor,
               width: 3,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: const BorderSide(
-              color: Pallete.gradient2,
+              color: PalleteCommon.gradient2,
               width: 3,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
         ),
         child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
+          child: DropdownButton<dynamic>(
             isDense: true,
-            dropdownColor: Pallete.backgroundColor,
-            focusColor: Pallete.backgroundColor,
-            value: widget.selectedType,
-            onChanged: (String? value) {
+            dropdownColor: PalleteCommon.backgroundColor,
+            focusColor: PalleteCommon.backgroundColor,
+            value: widget.selected,
+            onChanged: (dynamic value) {
               if (value == null) return;
               setState(() {
-                widget.selectedType = value;
+                widget.selected = value;
               });
               widget.callback(value);
             },
-            items: const [
-              DropdownMenuItem<String>(
-                alignment: Alignment.centerLeft,
-                value: "ind",
-                child: Text("Individual"),
-              ),
-              DropdownMenuItem<String>(
-                alignment: Alignment.centerLeft,
-                value: "com",
-                child: Text("Company"),
-              ),
+            items: [
+              for (int i = 0; i < widget.choices.length; ++i)
+                DropdownMenuItem<dynamic>(
+                  alignment: Alignment.centerLeft,
+                  value: widget.choices[i],
+                  child: Text(
+                    widget.choices[i] is String
+                        ? widget.choices[i]
+                        : widget.choices[i].toString(),
+                  ),
+                ),
             ],
           ),
         ),

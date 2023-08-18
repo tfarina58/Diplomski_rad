@@ -150,7 +150,7 @@ class _ActionsRow extends StatelessWidget {
 class FeedItem {
   final String? content;
   final String? imageUrl;
-  final User user;
+  final LocalUser user;
   final int commentsCount;
   final int likesCount;
   final int retweetsCount;
@@ -164,35 +164,35 @@ class FeedItem {
       this.retweetsCount = 0});
 }
 
-class User {
+class LocalUser {
   final String fullName;
   final String imageUrl;
   final String userName;
 
-  User(
+  LocalUser(
     this.fullName,
     this.userName,
     this.imageUrl,
   );
 }
 
-final List<User> _users = [
-  User(
+final List<LocalUser> _users = [
+  LocalUser(
     "John Doe",
     "john_doe",
     "https://picsum.photos/id/1062/80/80",
   ),
-  User(
+  LocalUser(
     "Jane Doe",
     "jane_doe",
     "https://picsum.photos/id/1066/80/80",
   ),
-  User(
+  LocalUser(
     "Jack Doe",
     "jack_doe",
     "https://picsum.photos/id/1072/80/80",
   ),
-  User(
+  LocalUser(
     "Jill Doe",
     "jill_doe",
     "https://picsum.photos/id/133/80/80",

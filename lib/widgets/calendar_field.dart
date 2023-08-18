@@ -34,7 +34,7 @@ class CalendarField extends StatelessWidget {
         onTap: () => showDialog<String>(
           context: context,
           builder: (BuildContext context) => Dialog(
-            backgroundColor: Pallete.backgroundColor,
+            backgroundColor: PalleteCommon.backgroundColor,
             alignment: Alignment.center,
             child: SizedBox(
               width: width + 20,
@@ -53,7 +53,7 @@ class CalendarField extends StatelessWidget {
                           child: GestureDetector(
                             child: const Icon(
                               Icons.close,
-                              color: Pallete.gradient2,
+                              color: PalleteCommon.gradient2,
                             ),
                             onTap: () => Navigator.pop(context),
                           ),
@@ -63,7 +63,7 @@ class CalendarField extends StatelessWidget {
                   ),
                   Container(
                     decoration: BoxDecoration(
-                        border: Border.all(color: Pallete.borderColor)),
+                        border: Border.all(color: PalleteCommon.borderColor)),
                     width: MediaQuery.of(context).size.width * 0.3,
                     height: MediaQuery.of(context).size.height * 0.4,
                     padding: const EdgeInsets.all(16),
@@ -80,7 +80,7 @@ class CalendarField extends StatelessWidget {
                     callback: () {
                       selectedDate = tmpDate;
                       textController.text =
-                          DateFormat('yyyy-MM-dd').format(tmpDate);
+                          DateFormat('dd.MM.yyyy').format(tmpDate);
                       Navigator.pop(context);
                     },
                   ),
@@ -94,14 +94,14 @@ class CalendarField extends StatelessWidget {
           contentPadding: const EdgeInsets.all(27),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(
-              color: Pallete.borderColor,
+              color: PalleteCommon.borderColor,
               width: 3,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: const BorderSide(
-              color: Pallete.gradient2,
+              color: PalleteCommon.gradient2,
               width: 3,
             ),
             borderRadius: BorderRadius.circular(10),

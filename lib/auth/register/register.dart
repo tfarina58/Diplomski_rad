@@ -61,6 +61,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 15),
               DropdownField(
                 labelText: 'Type of customer',
+                choices: const ["Individual", "Company"],
                 callback: (value) => widget.typeOfUser = value,
               ),
               // const SizedBox(height: 15),
@@ -69,7 +70,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 thickness: 3,
                 indent: MediaQuery.of(context).size.width * 0.5 - 200,
                 endIndent: MediaQuery.of(context).size.width * 0.5 - 200,
-                color: Pallete.gradient2,
+                color: PalleteCommon.gradient2,
               ),
               StringField(
                 labelText: 'Email',
@@ -93,7 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Checkbox(
-                      activeColor: Pallete.gradient2,
+                      activeColor: PalleteCommon.gradient2,
                       value: widget.keepLoggedIn,
                       onChanged: (bool? value) {
                         setState(() {
@@ -119,12 +120,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void signUp() async {
-    print(widget.firstName);
-    print(widget.lastName);
-    print(widget.typeOfUser);
-    print(widget.email);
-    print(widget.password);
-    print(widget.repeatPassword);
     Navigator.push(
       context,
       MaterialPageRoute(

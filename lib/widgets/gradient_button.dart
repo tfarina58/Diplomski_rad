@@ -11,9 +11,9 @@ class GradientButton extends StatelessWidget {
     required this.buttonText,
     required this.callback,
     this.colors = const [
-      Pallete.gradient1,
-      Pallete.gradient2,
-      Pallete.gradient3,
+      PalleteCommon.gradient1,
+      PalleteCommon.gradient2,
+      PalleteCommon.gradient3,
     ],
   }) : super(key: key);
 

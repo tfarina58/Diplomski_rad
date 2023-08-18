@@ -19,7 +19,7 @@ class SocialButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton.icon(
       onPressed: () {
-        print("Log in with $method!");
+        // print("Log in with $method!");
       },
       icon: SvgPicture.asset(
         iconPath,
@@ -38,7 +38,7 @@ class SocialButton extends StatelessWidget {
             EdgeInsets.symmetric(vertical: 30, horizontal: horizontalPadding),
         shape: RoundedRectangleBorder(
           side: const BorderSide(
-            color: Pallete.borderColor,
+            color: PalleteCommon.borderColor,
             width: 3,
           ),
           borderRadius: BorderRadius.circular(10),

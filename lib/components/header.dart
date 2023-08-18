@@ -1,32 +1,32 @@
 import 'package:diplomski_rad/auth/login/login.dart';
 import 'package:diplomski_rad/home/home.dart';
-import 'package:diplomski_rad/interfaces/headerpages/headerpages.dart';
 import 'package:diplomski_rad/settings/settings.dart';
 import 'package:diplomski_rad/estates/estates.dart';
 import 'package:diplomski_rad/users/users.dart';
 import 'package:diplomski_rad/profile/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/other/pallete.dart';
+import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
   String? currentPage;
-  String typeOfUser = "ind";
-  List<HeaderPages> listOfPages = [];
+  User user = Individual.getUser1();
+  // List<HeaderPages> listOfPages = []; TODO
 
   HeaderComponent({Key? key, this.currentPage}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Pallete.backgroundColor,
+      backgroundColor: PalleteCommon.backgroundColor,
       automaticallyImplyLeading: false,
       elevation: 0,
       titleSpacing: 0,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(4.0),
         child: Container(
-          color: Pallete.borderColor,
+          color: PalleteCommon.borderColor,
           height: 4.0,
         ),
       ),
@@ -48,13 +48,13 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                     builder: (context) => const HomePage(),
                   ),
                 ),
-                child: SizedBox(
+                child: const SizedBox(
                   width: 150,
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: Text(
                       "Diplomski rad",
-                      style: GoogleFonts.caveat(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -70,7 +70,7 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const UsersPage(),
+                          builder: (context) => UsersPage(),
                         ),
                       );
                     },
@@ -101,7 +101,7 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     ),
                   ),
-                  InkWell(
+                  /*InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
@@ -118,10 +118,9 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                         style: TextStyle(fontSize: 18),
                       ),
                     ),
-                  ),
+                  ),*/
                   InkWell(
                     onTap: () {
-                      print(getCurrentPage(context));
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -172,13 +171,6 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
 }
 
 getCurrentPage(BuildContext context) {
-  print(ModalRoute.of(context)!.settings);
+  // print(ModalRoute.of(context)!.settings);
   ModalRoute.of(context)!.settings.name;
 }
-
-final List<String> _menuItems = <String>[
-  'About',
-  'Contact',
-  'Settings',
-  'Sign Out',
-];

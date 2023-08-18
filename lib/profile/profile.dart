@@ -1,3 +1,4 @@
+import 'package:diplomski_rad/interfaces/preferences/user-preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/components/header.dart';
@@ -9,24 +10,39 @@ import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/calendar_field.dart';
 import 'package:diplomski_rad/widgets/maps.dart';
+import 'package:diplomski_rad/widgets/dropdown_field.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'dart:async';
 
 class ProfilePage extends StatefulWidget {
-  User individualUser = Individual(
-    images: ['images/background.jpg'],
+  User user = Individual.getUser1();
+
+  /*
+  User user = Admin(
     firstname: "Toni",
-    lastname: "Farina",
+    email: "tfarina58@gmail.com",
+    phone: "+385 99 471 6110",
+  );
+
+  User user = Company(
+    backgroundImage: 'images/background.jpg',
+    avatarImage: 'images/chick.jpg',
+    ownerFirstname: "Toni",
+    ownerLastname: "Farina",
+    companyName: "Farina Industries",
+    phone: "+385 99 471 6110",
     email: "tfarina58@gmail.com",
     street: "Farini 10A",
     zip: "52463",
     city: "Višnjan",
     country: "Croatia",
+    bio: "Farina Industries' bio",
   );
+  */
 
-  String password = "", repeatPassword = "";
-  LatLng coordinates = LatLng(0, 0);
+  String oldPassword = "", newPassword = "", repeatNewPassword = "";
+  LatLng coordinates = const LatLng(0, 0);
 
   ProfilePage({Key? key}) : super(key: key);
 
@@ -46,22 +62,64 @@ class _ProfilePageState extends State<ProfilePage> {
         scrollDirection: Axis.vertical,
         child: Column(
           children: [
-            ImagesDisplay(user: widget.individualUser),
+            ImagesDisplay(user: widget.user),
             Padding(
-              padding: const EdgeInsets.fromLTRB(400, 0, 0, 0),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  (widget.individualUser as Individual).email,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 22),
-                ),
+              padding: EdgeInsets.fromLTRB(width * 0.2, 0, 0, 0),
+              child: Row(
+                children: [
+                  Text(
+                    (widget.user is Individual)
+                        ? (widget.user as Individual).email
+                        : (widget.user is Company)
+                            ? (widget.user as Company).email
+                            : (widget.user as Admin).email,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 22),
+                  ),
+                  SizedBox(width: width * 0.4),
+                  GradientButton(
+                    buttonText: "Save changes",
+                    callback: () {},
+                    colors: PalleteSuccess.getGradients(),
+                  ),
+                ],
               ),
             ),
             SizedBox(
               width: width,
               height: height * 0.1,
             ),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "Preferences",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  "Your address",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  "Personal information",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              width: width,
+              height: height * 0.04,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -72,150 +130,457 @@ class _ProfilePageState extends State<ProfilePage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       StringField(
+                        presetText: (widget.user as Individual).firstname,
                         labelText: 'First name',
                         callback: (value) =>
-                            (widget.individualUser as Individual).firstname =
-                                value,
+                            (widget.user as Individual).firstname = value,
                       ),
                       const SizedBox(height: 30),
                       StringField(
+                        presetText: (widget.user as Individual).lastname,
                         labelText: 'Last name',
                         callback: (value) =>
-                            (widget.individualUser as Individual).lastname =
-                                value,
+                            (widget.user as Individual).lastname = value,
                       ),
                       const SizedBox(height: 30),
                       CalendarField(
-                        presetText: "12.03.1998.",
+                        presetText: (widget.user as Individual).birthday,
                         labelText: 'Date of birth',
                         callback: (value) =>
-                            (widget.individualUser as Individual).birthday =
-                                value,
+                            (widget.user as Individual).birthday = value,
                       ),
                       const SizedBox(height: 30),
                       StringField(
+                        presetText: (widget.user as Individual).phone,
                         labelText: 'Phone number',
                         callback: (value) =>
-                            (widget.individualUser as Individual).phone = value,
+                            (widget.user as Individual).phone = value,
                       ),
                     ],
                   ),
                 ),
                 Expanded(
                   flex: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      StringField(
+                        presetText: (widget.user as Individual).street,
+                        labelText: 'Street',
+                        callback: (value) =>
+                            (widget.user as Individual).street = value,
+                      ),
+                      const SizedBox(height: 30),
+                      StringField(
+                        presetText: (widget.user as Individual).zip,
+                        labelText: 'Zip',
+                        callback: (value) =>
+                            (widget.user as Individual).zip = value,
+                      ),
+                      const SizedBox(height: 30),
+                      StringField(
+                        presetText: (widget.user as Individual).city,
+                        labelText: 'City',
+                        callback: (value) =>
+                            (widget.user as Individual).city = value,
+                      ),
+                      const SizedBox(height: 30),
+                      StringField(
+                        presetText: (widget.user as Individual).country,
+                        labelText: 'Country',
+                        callback: (value) =>
+                            (widget.user as Individual).country = value,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      DropdownField(
+                        labelText: 'Distance units',
+                        choices: const ["Kilometers", "Miles"],
+                        callback: (value) {
+                          if ((widget.user as Individual).preferences == null) {
+                            (widget.user as Individual).preferences =
+                                UserPreferences();
+                          }
+                          if (value == "Kilometers") {
+                            (widget.user as Individual).preferences!.distance =
+                                Length.kilometers;
+                          } else {
+                            (widget.user as Individual).preferences!.distance =
+                                Length.miles;
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      DropdownField(
+                        choices: const ["°C", "°F"],
+                        labelText: 'Temperature units',
+                        callback: (value) {
+                          if ((widget.user as Individual).preferences == null) {
+                            (widget.user as Individual).preferences =
+                                UserPreferences();
+                          }
+                          if (value == "°C") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .temperature = Temperature.celsius;
+                          } else {
+                            (widget.user as Individual)
+                                .preferences!
+                                .temperature = Temperature.fahrenheit;
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      DropdownField(
+                        choices: const [
+                          "24.07.2021.",
+                          "24.7.21.",
+                          "24. Jul, 2021.",
+                          "07/24/2021",
+                          "7/24/21",
+                          "2021-07-24",
+                        ],
+                        labelText: 'Date format',
+                        callback: (value) {
+                          if ((widget.user as Individual).preferences == null) {
+                            (widget.user as Individual).preferences =
+                                UserPreferences();
+                          }
+                          if (value == "24.07.2021.") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .dateFormat = "dd.MM.yyyy.";
+                          } else if (value == "24.7.21.") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .dateFormat = "d.M.yy.";
+                          } else if (value == "24. Jul, 2021.") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .dateFormat = "dd. MMM, yyyy.";
+                          } else if (value == "07/24/2021") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .dateFormat = "MM/dd/yyyy";
+                          } else if (value == "7/24/21") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .dateFormat = "M/d/yy";
+                          } else if (value == "2021-07-24") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .dateFormat = "yyyy-MM-dd";
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      DropdownField(
+                        choices: const ["English", "German"],
+                        labelText: 'Daltonism',
+                        callback: (value) {
+                          if ((widget.user as Individual).preferences == null) {
+                            (widget.user as Individual).preferences =
+                                UserPreferences();
+                          }
+                          if (value == "°C") {
+                            (widget.user as Individual)
+                                .preferences!
+                                .temperature = Temperature.celsius;
+                          } else {
+                            (widget.user as Individual)
+                                .preferences!
+                                .temperature = Temperature.fahrenheit;
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Divider(
+              color: Colors.white,
+              thickness: 2,
+              height: 100,
+              indent: width * 0.1,
+              endIndent: width * 0.1,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding:
+                        EdgeInsets.fromLTRB(width * 0.15, 0, width * 0.15, 0),
+                    child: GradientButton(
+                      colors: PalleteCommon.getGradients(),
+                      buttonText: "Change password",
+                      callback: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) =>
+                              changePasswordDialog(width, height),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding:
+                        EdgeInsets.fromLTRB(width * 0.15, 0, width * 0.15, 0),
+                    child: GradientButton(
+                      buttonText: "Delete account",
+                      callback: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) =>
+                              deleteAccountDialog(width, height),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 100),
+          ],
+        ),
+      ),
+    );
+  }
+
+  dynamic getValue(int index) {
+    switch (index) {
+      case 0:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).firstname;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).ownerFirstname;
+        } else {
+          return (widget.user as Admin).firstname;
+        }
+      case 1:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).lastname;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).ownerLastname;
+        } else {
+          return null;
+        }
+      case 2:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).birthday;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).companyName;
+        } else {
+          return null;
+        }
+      case 3:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).phone;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).phone;
+        } else {
+          return (widget.user as Admin).phone;
+        }
+      case 4:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).street;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).street;
+        } else {
+          return null;
+        }
+
+      case 5:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).zip;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).zip;
+        } else {
+          return null;
+        }
+      case 6:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).city;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).city;
+        } else {
+          return null;
+        }
+      case 7:
+        if (widget.user is Individual) {
+          return (widget.user as Individual).country;
+        } else if (widget.user is Company) {
+          return (widget.user as Company).country;
+        } else {
+          return null;
+        }
+      case 8:
+        if (widget.user is Individual &&
+            (widget.user as Individual).preferences != null) {
+          return (widget.user as Individual).preferences!.distance;
+        } else if (widget.user is Company &&
+            (widget.user as Company).preferences != null) {
+          return (widget.user as Company).preferences!.distance;
+        } else {
+          return null;
+        }
+      case 9:
+        if (widget.user is Individual &&
+            (widget.user as Individual).preferences != null) {
+          return (widget.user as Individual).preferences!.temperature;
+        } else if (widget.user is Company &&
+            (widget.user as Company).preferences != null) {
+          return (widget.user as Company).preferences!.temperature;
+        } else {
+          return null;
+        }
+      case 10:
+        if (widget.user is Individual &&
+            (widget.user as Individual).preferences != null) {
+          return (widget.user as Individual).preferences!.dateFormat;
+        } else if (widget.user is Company &&
+            (widget.user as Company).preferences != null) {
+          return (widget.user as Company).preferences!.dateFormat;
+        } else {
+          return null;
+        }
+    }
+  }
+
+  Widget changePasswordDialog(double width, double height) {
+    return Dialog(
+      insetPadding: EdgeInsets.fromLTRB(
+        width * 0.25,
+        height * 0.25,
+        width * 0.25,
+        height * 0.25,
+      ),
+      backgroundColor: PalleteCommon.backgroundColor,
+      alignment: Alignment.center,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            StringField(
+              osbcure: true,
+              labelText: "Old password",
+              callback: (String value) => widget.oldPassword = value,
+            ),
+            const SizedBox(
+              height: 22,
+            ),
+            StringField(
+              osbcure: true,
+              labelText: "New password",
+              callback: (String value) => widget.newPassword = value,
+            ),
+            const SizedBox(
+              height: 22,
+            ),
+            StringField(
+              osbcure: true,
+              labelText: "Repeat new password",
+              callback: (String value) => widget.repeatNewPassword = value,
+            ),
+            const SizedBox(
+              height: 28,
+            ),
+            GradientButton(
+              buttonText: "Change password",
+              callback: () {
+                Navigator.pop(context);
+                print("Password changed!");
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget deleteAccountDialog(double width, double height) {
+    return Dialog(
+      insetPadding: EdgeInsets.fromLTRB(
+        width * 0.25,
+        height * 0.25,
+        width * 0.25,
+        height * 0.25,
+      ),
+      backgroundColor: PalleteCommon.backgroundColor,
+      alignment: Alignment.center,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: height * 0.15,
+            ),
+            const Text(
+              "Are you sure you want to delete your account?",
+              style: TextStyle(
+                fontSize: 18,
+                color: PalleteCommon.gradient2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(
+              height: height * 0.15,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(
+                  flex: 2,
+                  child: SizedBox(),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: GradientButton(
+                    colors: [...PalleteDanger.getGradients()],
+                    buttonText: "Yes",
+                    callback: () {
+                      Navigator.pop(context);
+                      print("Account deleted!");
+                    },
+                  ),
+                ),
+                const Expanded(
+                  flex: 1,
+                  child: SizedBox(),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: GradientButton(
+                    buttonText: "No",
+                    callback: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+                const Expanded(
+                  flex: 2,
                   child: SizedBox(),
                 ),
               ],
             ),
-            Divider(
-              color: Colors.white,
-              thickness: 2,
-              height: 100,
-              indent: width * 0.1,
-              endIndent: width * 0.1,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      StringField(
-                        labelText: 'Street',
-                        callback: (value) =>
-                            (widget.individualUser as Individual).street =
-                                value,
-                      ),
-                      const SizedBox(height: 30),
-                      StringField(
-                        labelText: 'Zip',
-                        callback: (value) =>
-                            (widget.individualUser as Individual).zip = value,
-                      ),
-                      const SizedBox(height: 30),
-                      StringField(
-                        // presetText: ,
-                        labelText: 'City',
-                        callback: (value) =>
-                            (widget.individualUser as Individual).city = value,
-                      ),
-                      const SizedBox(height: 30),
-                      StringField(
-                        labelText: 'Country',
-                        callback: (value) =>
-                            (widget.individualUser as Individual).country =
-                                value,
-                      ),
-                      const SizedBox(height: 30),
-                      StringField(
-                        labelText: 'Coordinates',
-                        callback: () {},
-                        readOnly: true,
-                      ),
-                      const SizedBox(height: 30),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: SizedBox(
-                    height: height * 0.5,
-                    child: Padding(
-                      padding:
-                          EdgeInsets.fromLTRB(20, 20, width * 0.1 + 20, 20),
-                      child: MapsWidget(),
-                    ),
-                  ),
-                )
-              ],
-            ),
-            Divider(
-              color: Colors.white,
-              thickness: 2,
-              height: 100,
-              indent: width * 0.1,
-              endIndent: width * 0.1,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      StringField(
-                        osbcure: true,
-                        labelText: 'Password',
-                        callback: (value) => widget.password = value,
-                      ),
-                      const SizedBox(height: 30),
-                      StringField(
-                        osbcure: true,
-                        labelText: 'Repeat password',
-                        callback: (value) => widget.repeatPassword = value,
-                      ),
-                      const SizedBox(height: 30),
-                      GradientButton(
-                        buttonText: 'Change password',
-                        callback: emptyFunction,
-                      ),
-                      const SizedBox(height: 30),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: SizedBox(
-                    width: width * 0.4,
-                    height: height * 0.4,
-                  ),
-                ),
-              ],
+            SizedBox(
+              height: height * 0.05,
             ),
           ],
         ),
@@ -227,13 +592,18 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    /*WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<Location> locations =
           await locationFromAddress("Gronausestraat 710, Enschede");
       widget.coordinates =
           LatLng(locations[0].latitude, locations[0].longitude);
       print(widget.coordinates);
-    });
+    });*/
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   void emptyFunction() {}
@@ -272,7 +642,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
         children: [
           backgroundImage(context, widget.user),
           Padding(
-            padding: EdgeInsets.fromLTRB(250, 0, 0, 0),
+            padding: EdgeInsets.fromLTRB(width * 0.12, 0, 0, 0),
             child: Align(
               alignment: Alignment.bottomLeft,
               child: MouseRegion(
@@ -295,9 +665,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                             shape: BoxShape.circle,
                             image: DecorationImage(
                               fit: BoxFit.cover,
-                              image: profileImage != null
-                                  ? Image.memory(profileImage!).image
-                                  : Image.asset('images/chick.jpg').image,
+                              image: getAvatarImage(),
                             ),
                           ),
                         ),
@@ -330,6 +698,20 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     );
   }
 
+  ImageProvider<Object> getAvatarImage() {
+    if (profileImage != null) {
+      return Image.memory(profileImage!).image;
+    } else if (widget.user is Individual &&
+        (widget.user as Individual).avatarImage.isNotEmpty) {
+      return Image.asset((widget.user as Individual).avatarImage).image;
+    } else if (widget.user is Company &&
+        (widget.user as Company).avatarImage.isNotEmpty) {
+      return Image.asset((widget.user as Individual).avatarImage).image;
+    } else {
+      return Image.asset('images/chick.jpg').image;
+    }
+  }
+
   Widget backgroundImage(BuildContext context, User user) {
     if (user is Admin) {
       return Container(
@@ -351,8 +733,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
             image: Image(
               fit: BoxFit.fitWidth,
               image: user is Individual
-                  ? AssetImage((user).images[0])
-                  : AssetImage((user as Company).images[0]),
+                  ? AssetImage(user.backgroundImage)
+                  : AssetImage((user as Company).backgroundImage),
             ).image,
           ),
         ),
@@ -367,13 +749,14 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
       height: height * 0.05,
       child: ElevatedButton(
         style: const ButtonStyle(
-          backgroundColor: MaterialStatePropertyAll(Pallete.backgroundColor),
+          backgroundColor:
+              MaterialStatePropertyAll(PalleteCommon.backgroundColor),
         ),
         onPressed: () => onPressed(),
         child: Text(
           title,
           style: const TextStyle(
-            color: Pallete.gradient2,
+            color: PalleteCommon.gradient2,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -386,7 +769,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     double height = MediaQuery.of(context).size.height;
 
     return Dialog(
-      backgroundColor: Pallete.backgroundColor,
+      backgroundColor: PalleteCommon.backgroundColor,
       alignment: Alignment.center,
       child: StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
@@ -445,22 +828,22 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                               border: Border(
                                 left: BorderSide(
                                     color: isHovering
-                                        ? Pallete.gradient2
+                                        ? PalleteCommon.gradient2
                                         : Colors.white),
                                 top: BorderSide(
                                     color: isHovering
-                                        ? Pallete.gradient2
+                                        ? PalleteCommon.gradient2
                                         : Colors.white),
                                 right: BorderSide(
                                     color: isHovering
-                                        ? Pallete.gradient2
+                                        ? PalleteCommon.gradient2
                                         : Colors.white),
                                 bottom: BorderSide(
                                     color: isHovering
-                                        ? Pallete.gradient2
+                                        ? PalleteCommon.gradient2
                                         : Colors.white),
                               ),
-                              color: Pallete.backgroundColor,
+                              color: PalleteCommon.backgroundColor,
                             ),
                             width: width * 0.7,
                             height: height * 0.6,
@@ -540,17 +923,6 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                   height: 20,
                 ),
                 GradientButton(
-                  buttonText: 'Save image',
-                  callback: () {
-                    profileImage = selectedImage;
-                    selectedImage = null;
-                  },
-                ),
-                const SizedBox(
-                  width: 100,
-                  height: 20,
-                ),
-                GradientButton(
                   buttonText: 'Discard image',
                   colors: const [
                     Color.fromARGB(255, 224, 40, 0),
@@ -577,7 +949,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
         Icon(
           Icons.cloud_upload,
           size: 80,
-          color: Pallete.gradient2,
+          color: PalleteCommon.gradient2,
         ),
         Text(
           "Drop images here or browse through files",
@@ -598,15 +970,16 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
   }
 
   Future<void> acceptFile(dynamic event) async {
-    final name = event.name;
-    final mime = await dvController.getFileMIME(event);
-    final bytes = await dvController.getFileSize(event);
-    final url = await dvController.createFileUrl(event);
     setState(() {
       selectedImage = event;
     });
 
-    /*print(event.runtimeType);
+    /*final name = event.name;
+    final mime = await dvController.getFileMIME(event);
+    final bytes = await dvController.getFileSize(event);
+    final url = await dvController.createFileUrl(event);
+
+    print(event.runtimeType);
     print(name);
     print(mime);
     print(bytes);

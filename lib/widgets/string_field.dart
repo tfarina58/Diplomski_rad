@@ -8,6 +8,7 @@ class StringField extends StatefulWidget {
   final int multiline;
   final bool readOnly;
   final bool osbcure;
+  final double maxWidth;
 
   StringField({
     Key? key,
@@ -17,6 +18,7 @@ class StringField extends StatefulWidget {
     this.multiline = 1,
     this.readOnly = false,
     this.osbcure = false,
+    this.maxWidth = 400,
   }) : super(key: key);
 
   @override
@@ -27,12 +29,11 @@ class _StringFieldState extends State<StringField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // ConstrainedBox
       constraints: BoxConstraints(
-        maxWidth: 400,
+        maxWidth: widget.maxWidth,
       ),
       child: TextFormField(
-        // obscureText: widget.osbcure,
+        obscureText: widget.osbcure,
         readOnly: widget.readOnly,
         textInputAction: TextInputAction.next,
         onChanged: (value) {
@@ -45,7 +46,7 @@ class _StringFieldState extends State<StringField> {
           contentPadding: const EdgeInsets.all(27),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(
-              color: Pallete.borderColor,
+              color: PalleteCommon.borderColor,
               width: 3,
             ),
             borderRadius: BorderRadius.circular(10),
@@ -53,7 +54,7 @@ class _StringFieldState extends State<StringField> {
           labelText: widget.labelText,
           focusedBorder: OutlineInputBorder(
             borderSide: const BorderSide(
-              color: Pallete.gradient2,
+              color: PalleteCommon.gradient2,
               width: 3,
             ),
             borderRadius: BorderRadius.circular(10),
@@ -63,6 +64,4 @@ class _StringFieldState extends State<StringField> {
       ),
     );
   }
-
-  // BoxConstraints setConstraints() {}
 }

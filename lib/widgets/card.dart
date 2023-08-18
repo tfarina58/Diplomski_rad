@@ -7,9 +7,10 @@ class CardWidget extends StatelessWidget {
   final String? city;
   final String? country;
   final String? name;
-  final double? height;
-  final double? width;
+  final double height;
+  final double width;
   final Image? backgroundImage;
+  final bool isEmptyCard;
 
   final List<List<Color>> colorPairs = [
     [
@@ -17,8 +18,8 @@ class CardWidget extends StatelessWidget {
       const Color.fromARGB(255, 78, 129, 235)
     ],
     [
-      Pallete.gradient1,
-      Pallete.gradient3,
+      PalleteCommon.gradient1,
+      PalleteCommon.gradient3,
     ],
     [
       const Color.fromARGB(255, 254, 81, 1),
@@ -46,22 +47,23 @@ class CardWidget extends StatelessWidget {
     "windy.svg",
   ];
 
-  CardWidget({
-    Key? key,
-    this.city,
-    this.country,
-    this.name,
-    this.height,
-    this.width,
-    this.backgroundImage,
-  }) : super(key: key);
+  CardWidget(
+      {Key? key,
+      this.city,
+      this.country,
+      this.name,
+      required this.height,
+      required this.width,
+      this.backgroundImage,
+      this.isEmptyCard = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: setDecoration(),
       child: SizedBox(
-        height: height,
+        height: height * (isEmptyCard == false ? 1 : 0.75),
         width: width,
         child: Padding(
           padding: EdgeInsets.only(
@@ -71,7 +73,9 @@ class CardWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${city!}, ${country!}',
+                isEmptyCard
+                    ? "Add a new estate"
+                    : '${city != null ? "$city, " : ""}${country ?? ""}',
                 style: TextStyle(
                     fontSize: width! * 0.036,
                     fontWeight: FontWeight.bold,
@@ -92,12 +96,13 @@ class CardWidget extends StatelessWidget {
               Expanded(
                 child: Container(),
               ),
-              SvgPicture.asset(
-                randomSvg(),
-                height: height! * 0.2,
-                width: width! * 0.2,
-                color: Colors.white,
-              )
+              if (!isEmptyCard)
+                SvgPicture.asset(
+                  randomSvg(),
+                  height: height! * 0.2,
+                  width: width! * 0.2,
+                  color: Colors.white,
+                )
             ],
           ),
         ),
