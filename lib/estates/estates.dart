@@ -14,6 +14,7 @@ enum UserChoice { list, map }
 
 class EstatesPage extends StatefulWidget {
   final double cardSize = 800;
+  final bool showEmptyCard;
   UserChoice choice = UserChoice.list;
 
   User user = Individual.getUser1();
@@ -24,7 +25,10 @@ class EstatesPage extends StatefulWidget {
     IndividualEstate.getEstate3(),
   ];
 
-  EstatesPage({Key? key}) : super(key: key);
+  EstatesPage({
+    Key? key,
+    this.showEmptyCard = true,
+  }) : super(key: key);
 
   @override
   State<EstatesPage> createState() => _EstatesPageState();
@@ -113,7 +117,7 @@ class _EstatesPageState extends State<EstatesPage> {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: CardWidget(
-            isEmptyCard: true,
+            isEmptyCard: widget.showEmptyCard,
             width: widget.cardSize,
             height: widget.cardSize * 0.5625,
           ),

@@ -10,19 +10,25 @@ import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
-  String? currentPage;
+  String currentPage;
+  bool drawer;
   User user = Individual.getUser1();
   // List<HeaderPages> listOfPages = []; TODO
 
-  HeaderComponent({Key? key, this.currentPage}) : super(key: key);
+  HeaderComponent({
+    Key? key,
+    required this.currentPage,
+    this.drawer = false,
+  }) : super(key: key);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: PalleteCommon.backgroundColor,
-      automaticallyImplyLeading: false,
-      elevation: 0,
-      titleSpacing: 0,
+      automaticallyImplyLeading: drawer,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(4.0),
         child: Container(
@@ -165,9 +171,6 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 getCurrentPage(BuildContext context) {

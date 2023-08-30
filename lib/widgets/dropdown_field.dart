@@ -6,6 +6,7 @@ class DropdownField extends StatefulWidget {
   final Function callback;
   final List<dynamic> choices;
   dynamic selected;
+  double maxWidth;
 
   DropdownField({
     Key? key,
@@ -13,6 +14,7 @@ class DropdownField extends StatefulWidget {
     required this.callback,
     required this.choices,
     this.selected,
+    this.maxWidth = 400,
   }) : super(key: key) {
     selected ??= choices[0];
   }
@@ -25,8 +27,8 @@ class _DropdownFieldState extends State<DropdownField> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(
-        maxWidth: 400,
+      constraints: BoxConstraints(
+        maxWidth: widget.maxWidth,
       ),
       child: InputDecorator(
         decoration: InputDecoration(

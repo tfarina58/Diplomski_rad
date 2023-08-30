@@ -9,6 +9,7 @@ class StringField extends StatefulWidget {
   final bool readOnly;
   final bool osbcure;
   final double maxWidth;
+  final TextInputType inputType;
 
   StringField({
     Key? key,
@@ -19,6 +20,7 @@ class StringField extends StatefulWidget {
     this.readOnly = false,
     this.osbcure = false,
     this.maxWidth = 400,
+    this.inputType = TextInputType.multiline,
   }) : super(key: key);
 
   @override
@@ -36,10 +38,10 @@ class _StringFieldState extends State<StringField> {
         obscureText: widget.osbcure,
         readOnly: widget.readOnly,
         textInputAction: TextInputAction.next,
-        onChanged: (value) {
+        onChanged: (dynamic value) {
           widget.callback(value);
         },
-        keyboardType: TextInputType.multiline,
+        keyboardType: widget.inputType,
         maxLines: widget.multiline,
         maxLength: null,
         decoration: InputDecoration(

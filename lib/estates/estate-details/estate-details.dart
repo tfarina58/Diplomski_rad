@@ -4,6 +4,7 @@ import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/interfaces/estate/estate.dart';
+import 'package:diplomski_rad/estates/estate-details/manage-presentation/manage-presentation.dart';
 import 'dart:math';
 
 class EstateDetailsPage extends StatefulWidget {
@@ -83,14 +84,11 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                           child: MouseRegion(
                             cursor: SystemMouseCursors.click,
                             child: GestureDetector(
-                              onTap: () => showDialog(
-                                context: context,
-                                builder: (BuildContext context) => const Dialog(
-                                  backgroundColor:
-                                      PalleteCommon.backgroundColor,
-                                  alignment: Alignment.center,
-                                  child: Center(
-                                    child: Text("Text"),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ManagePresentationPage(
+                                    estate: widget.estate,
                                   ),
                                 ),
                               ),

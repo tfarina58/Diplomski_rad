@@ -11,6 +11,8 @@ class UserPreferences {
   Temperature temperature;
   String dateFormat;
   Language language;
+  int usersPerPage;
+  int estatesPerPage;
   // FontSize fontSize;
 
   UserPreferences({
@@ -18,6 +20,8 @@ class UserPreferences {
     this.temperature = Temperature.celsius,
     this.dateFormat = "yyyy-MM-dd",
     this.language = Language.english,
+    this.usersPerPage = 10,
+    this.estatesPerPage = 5,
     // this.fontSize = FontSize.medium,
   });
 }

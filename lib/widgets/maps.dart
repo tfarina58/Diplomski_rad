@@ -137,17 +137,32 @@ class _MapsWidgetState extends State<MapsWidget> {
                       EstateDetailsPage(estate: widget.estates[i]),
                 ),
               ),
-              child: Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
+              child: Tooltip(
+                decoration: const BoxDecoration(
+                  color: PalleteCommon.backgroundColor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(3),
+                  ),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: PalleteCommon.gradient2,
+                ),
+                message: widget.estates[i].name,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(3),
-                    color: PalleteCommon.backgroundColor),
-                child: const Center(
-                  child: Icon(
-                    Icons.house,
-                    color: PalleteCommon.gradient3,
-                    size: 20,
+                    color: PalleteCommon.backgroundColor,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.house,
+                      color: PalleteCommon.gradient3,
+                      size: 20,
+                    ),
                   ),
                 ),
               ),
