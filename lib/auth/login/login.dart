@@ -1,26 +1,34 @@
 import 'package:diplomski_rad/auth/register/register.dart';
+import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/social_button.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/home/home.dart';
+import 'package:diplomski_rad/services/firebase.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
 
+  bool keepLoggedIn = false;
+  String email = "tfarina58@gmail.com";
+  String password = "password";
+
   @override
   State<LoginPage> createState() => _LoginPageState();
+
+  final _key = GlobalKey<ScaffoldState>();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool keepLoggedIn = false;
-  String email = "";
-  String password = "";
-
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
     return Scaffold(
+      key: widget._key,
       body: SingleChildScrollView(
         child: Center(
           child: Column(
@@ -59,12 +67,34 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 15),
               StringField(
-                  labelText: 'Email', callback: (value) => email = value),
+                presetText: widget.email,
+                labelText: 'Email',
+                callback: (value) => setState(() {
+                  widget.email = value;
+                }),
+              ),
               const SizedBox(height: 15),
               StringField(
-                  labelText: 'Password', callback: (value) => password = value),
+                osbcure: true,
+                presetText: widget.password,
+                labelText: 'Password',
+                callback: (value) => setState(() {
+                  widget.password = value;
+                }),
+              ),
               const SizedBox(height: 20),
-              GradientButton(buttonText: 'Sign in', callback: signIn),
+              GradientButton(
+                buttonText: 'Sign in',
+                callback: () => setState(() {
+                  signIn(
+                    width,
+                    height,
+                    widget.email,
+                    widget.password,
+                    widget.keepLoggedIn,
+                  );
+                }),
+              ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -72,10 +102,10 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Checkbox(
                     activeColor: PalleteCommon.gradient2,
-                    value: keepLoggedIn,
+                    value: widget.keepLoggedIn,
                     onChanged: (bool? value) {
                       setState(() {
-                        keepLoggedIn = value!;
+                        widget.keepLoggedIn = value!;
                       });
                     },
                   ),
@@ -97,7 +127,32 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void signIn() async {
+  void signIn(double width, double height, String email, String password,
+      bool keepLoggedIn) async {
+    User? user = await UserRepository.readUser(email, password);
+    if (user == null) {
+      // TODO: fix colors!
+      final snackBar = SnackBar(
+        content: const Text(
+            'There was an error while logging in. Please try again (later)...'),
+        backgroundColor: (Colors.white),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: height * 0.85,
+          left: width * 0.8,
+          right: width * 0.02,
+          top: height * 0.02,
+        ),
+        closeIconColor: PalleteCommon.gradient2,
+        action: SnackBarAction(
+          label: 'Dismiss',
+          onPressed: () {},
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(

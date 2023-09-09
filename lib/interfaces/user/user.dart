@@ -1,11 +1,159 @@
 import 'package:latlong2/latlong.dart';
 import 'package:diplomski_rad/interfaces/preferences/user-preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 abstract class User {
   abstract String id;
   abstract String email;
   abstract String phone;
   abstract UserPreferences? preferences;
+
+  static User? toUser(Map<String, dynamic> user) {
+    if (user['typeOfUser'] == "ind") {
+      Individual res = Individual();
+
+      res.banned = user['banned'] ?? false;
+      res.bio = user['bio'] ?? "";
+      res.blocked = user['blocked'] ?? false;
+      res.city = user['city'] ?? "";
+      if (user['coordinates'] != null) {
+        res.coordinates = LatLng((user['coordinates'] as GeoPoint).latitude,
+            (user['coordinates'] as GeoPoint).longitude);
+      }
+      res.country = user['country'] ?? "";
+      res.email = user['email'] ?? "";
+      res.firstname = user['firstname'] ?? "";
+      res.id = user['id'] ?? "";
+      res.lastname = user['lastname'] ?? "";
+      res.phone = user['phone'] ?? "";
+      res.preferences = UserPreferences(
+        distance: user['distance'] != null
+            ? UserPreferences.toLength(user['distance'])
+            : Length.kilometers,
+        temperature: user['temperature'] != null
+            ? UserPreferences.toTemperature(user['temperature'])
+            : Temperature.celsius,
+        dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
+        language: user['language'] != null
+            ? UserPreferences.toLanguage(user['language'])
+            : Language.english,
+      );
+      res.birthday = DateFormat(res.preferences!.dateFormat)
+          .format((user['birthday'] as Timestamp).toDate());
+      res.street = user['street'] ?? "";
+      res.zip = user['zip'] ?? "";
+
+      return res;
+    } else if (user["typeOfUser"] == "com") {
+      Company res = Company();
+
+      res.banned = user['banned'] ?? false;
+      res.bio = user['bio'] ?? "";
+      res.blocked = user['blocked'] ?? false;
+      res.city = user['city'] ?? "";
+      if (user['coordinates'] != null) {
+        res.coordinates = LatLng((user['coordinates'] as GeoPoint).latitude,
+            (user['coordinates'] as GeoPoint).longitude);
+      }
+      res.country = user['country'] ?? "";
+      res.email = user['email'] ?? "";
+      res.ownerFirstname = user['ownerFirstname'] ?? "";
+      res.id = user['id'] ?? "";
+      res.ownerLastname = user['ownerLastname'] ?? "";
+      res.phone = user['phone'] ?? "";
+      res.preferences = UserPreferences(
+        distance: user['distance'] != null
+            ? UserPreferences.toLength(user['distance'])
+            : Length.kilometers,
+        temperature: user['temperature'] != null
+            ? UserPreferences.toTemperature(user['temperature'])
+            : Temperature.celsius,
+        dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
+        language: user['language'] != null
+            ? UserPreferences.toLanguage(user['language'])
+            : Language.english,
+      );
+      res.companyName = user['email'] ?? "";
+      res.street = user['street'] ?? "";
+      res.zip = user['zip'] ?? "";
+
+      return res;
+    }
+    return null;
+  }
+
+  static Map<String, dynamic>? toJSON(User user) {
+    Map<String, dynamic> res;
+
+    if (user is Individual) {
+      return {
+        "email": user.email,
+        // "avatarImage": avatarImage,
+        // "backgroundImage": backgroundImage,
+        "street": user.street,
+        "zip": user.zip,
+        "city": user.city,
+        "country": user.country,
+        "coordinates":
+            GeoPoint(user.coordinates.latitude, user.coordinates.longitude),
+        "phone": user.phone,
+        "bio": user.bio,
+        "blocked": user.blocked,
+        "banned": user.banned,
+        "distance": user.preferences?.distance == Length.miles ? "mi" : "km",
+        "temperature":
+            user.preferences?.temperature == Temperature.fahrenheit ? "F" : "C",
+        "dateFormat": user.preferences?.dateFormat ??= "yyyy-MM-dd",
+        "language": user.preferences?.language == Language.german ? "de" : "en",
+        // "password": password
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "birthday": Timestamp(
+            DateTime.parse(user.birthday).millisecondsSinceEpoch ~/ 1000, 0),
+      };
+    } else if (user is Company) {
+      return {
+        "email": user.email,
+        // "avatarImage": user.avatarImage,
+        // "backgroundImage": user.backgroundImage,
+        "street": user.street,
+        "zip": user.zip,
+        "city": user.city,
+        "country": user.country,
+        "coordinates":
+            GeoPoint(user.coordinates.latitude, user.coordinates.longitude),
+        "phone": user.phone,
+        "bio": user.bio,
+        "blocked": user.blocked,
+        "banned": user.banned,
+        "distance": user.preferences?.distance == Length.miles ? "mi" : "km",
+        "temperature":
+            user.preferences?.temperature == Temperature.fahrenheit ? "F" : "C",
+        "dateFormat": user.preferences?.dateFormat ??= "yyyy-MM-dd",
+        "language": user.preferences?.language == Language.german ? "de" : "en",
+        "typeOfUser": "com",
+        // "password": password
+        "ownerFirstname": user.ownerFirstname,
+        "ownerLastname": user.ownerLastname,
+        "companyName": user.companyName,
+      };
+    } else if (user is Admin) {
+      return {
+        "email": user.email,
+        "phone": user.phone,
+        "distance": user.preferences?.distance == Length.miles ? "mi" : "km",
+        "temperature":
+            user.preferences?.temperature == Temperature.fahrenheit ? "F" : "C",
+        "dateFormat": user.preferences?.dateFormat ??= "yyyy-MM-dd",
+        "language": user.preferences?.language == Language.german ? "de" : "en",
+        "typeOfUser": "adm",
+        // "password": password
+        "firstname": user.firstname,
+      };
+    }
+    return null;
+  }
 }
 
 class Admin extends User {
@@ -572,7 +720,7 @@ class Individual extends Customer {
       id: "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
       firstname: "Edmund",
       lastname: "Myers",
-      birthday: "1998-03-12",
+      birthday: "1974-05-07",
       email: "emyers11@gmail.com",
       avatarImage: "images/chick.jpg",
       backgroundImage: "images/background.jpg",

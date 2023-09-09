@@ -3,26 +3,41 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 
-class CalendarField extends StatelessWidget {
+class CalendarField extends StatefulWidget {
   final String labelText;
-  DateTime selectedDate = DateTime.now();
-  DateTime tmpDate = DateTime.now();
   final Function callback;
-  final String presetText;
+  late DateTime? firstDate = DateTime.utc(1998, 3, 12);
+  late DateTime? lastDate = DateTime.now();
+  final String dateFormat;
+  DateTime? selectedDate;
+  DateTime? tmpDate;
 
   CalendarField({
     Key? key,
     required this.labelText,
     required this.callback,
-    this.presetText = "",
+    this.firstDate,
+    this.lastDate,
+    this.dateFormat = "yyyy-MM-dd",
+    this.selectedDate,
   }) : super(key: key);
+
+  @override
+  State<CalendarField> createState() => _CalendarFieldState();
+}
+
+class _CalendarFieldState extends State<CalendarField> {
+  final textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width * 0.3;
     final double height = MediaQuery.of(context).size.height * 0.55;
-    final textController = TextEditingController();
-    textController.text = presetText;
+
+    widget.selectedDate ??= DateTime.now();
+    widget.tmpDate = widget.selectedDate;
+
+    textController.text = DateFormat(widget.dateFormat).format(widget.tmpDate!);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(
@@ -68,19 +83,25 @@ class CalendarField extends StatelessWidget {
                     height: MediaQuery.of(context).size.height * 0.4,
                     padding: const EdgeInsets.all(16),
                     child: CalendarDatePicker(
-                      firstDate: DateTime.utc(1998, 3, 12),
-                      initialDate: DateTime.now(),
-                      lastDate: DateTime.now(),
-                      onDateChanged: (DateTime value) => tmpDate = value,
+                      firstDate: widget.firstDate ?? DateTime(1900),
+                      initialDate: widget.tmpDate!,
+                      lastDate: widget.lastDate ?? DateTime.now(),
+                      onDateChanged: (DateTime value) {
+                        widget.tmpDate = value;
+                      },
                     ),
                   ),
                   const SizedBox(height: 30),
                   GradientButton(
                     buttonText: 'Set date',
                     callback: () {
-                      selectedDate = tmpDate;
-                      textController.text =
-                          DateFormat('dd.MM.yyyy').format(tmpDate);
+                      setState(() {
+                        widget.selectedDate = widget.tmpDate;
+                        widget.callback(widget.tmpDate);
+                        textController.text = DateFormat(widget.dateFormat)
+                            .format(widget.tmpDate!);
+                      });
+                      print(widget.selectedDate);
                       Navigator.pop(context);
                     },
                   ),
@@ -90,7 +111,7 @@ class CalendarField extends StatelessWidget {
           ),
         ),
         decoration: InputDecoration(
-          labelText: labelText,
+          labelText: widget.labelText,
           contentPadding: const EdgeInsets.all(27),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(
@@ -109,5 +130,11 @@ class CalendarField extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
   }
 }

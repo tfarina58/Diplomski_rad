@@ -7,9 +7,10 @@ import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UsersPage extends StatefulWidget {
-  List<Customer> customers = Individual.getAllCustomers();
+  List<Customer> customers = [];
   User user = Admin(
     firstname: "Admin",
     email: "admin.diplomski_rad@gmail.com",
@@ -91,7 +92,6 @@ class _UsersPageState extends State<UsersPage> {
             ),
             // Table header
             getTableHeader(height, upDownFiltersTitles),
-
             Divider(
               height: 30,
               thickness: 3,
@@ -99,7 +99,7 @@ class _UsersPageState extends State<UsersPage> {
               indent: width * 0.02,
               endIndent: width * 0.02,
             ),
-            ...getRows(width, height),
+            getRows(width, height, numOfPages),
             SizedBox(
               height: height * 0.05,
             ),
@@ -164,7 +164,6 @@ class _UsersPageState extends State<UsersPage> {
           onChanged: (String value) => setState(() {
             widget.searchbarText = value;
             widget.currentPage = 0;
-            // scrollToTop();
           }),
         ),
         SizedBox(
@@ -520,211 +519,220 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  List<Widget> getRows(double width, double height) {
-    List<Widget> res = [];
-    int cnt = 0;
+  StreamBuilder getRows(double width, double height, int numOfPages) {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('users').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator(
+            color: PalleteCommon.gradient2,
+            semanticsLabel: "Loading",
+            backgroundColor: PalleteCommon.backgroundColor,
+          );
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          final documents = snapshot.data.docs;
 
-    for (int i = widget.user.preferences!.usersPerPage * widget.currentPage;
-        i < widget.customers.length &&
-            cnt < widget.user.preferences!.usersPerPage;
-        ++i) {
-      if (!checkDisplayCriteria(widget.customers[i])) {
-        continue;
-      }
+          /*var users = snapshot.data.docs.map((DocumentSnapshot doc) {
+            Map<String, dynamic>? tmpMap = doc.data() as Map<String, dynamic>?;
+            if (tmpMap == null) return null;
 
-      res.add(
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Expanded(flex: 1, child: SizedBox()),
-            Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: height * 0.08,
-                child: Center(
-                  child: Text((i + 1).toString()),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Image
-            Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: height * 0.08,
-                child: Center(
-                  child: Image.asset("images/chick.jpg"),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Name
-            Expanded(
-              flex: 3,
-              child: SizedBox(
-                height: height * 0.08,
-                child: Center(
-                  child: Text(
-                    (widget.customers[i] is Individual)
-                        ? "${(widget.customers[i] as Individual).firstname} ${(widget.customers[i] as Individual).lastname}"
-                        : "${(widget.customers[i] as Company).ownerFirstname} ${(widget.customers[i] as Company).ownerLastname}",
-                  ),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Email
-            Expanded(
-              flex: 3,
-              child: SizedBox(
-                height: height * 0.08,
-                child: Center(
-                  child: Text(widget.customers[i].email),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Phone
-            Expanded(
-              flex: 3,
-              child: SizedBox(
-                height: height * 0.08,
-                child: Center(
-                  child: Text(widget.customers[i].phone),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Estates
-            Expanded(
-              flex: 2,
-              child: InkWell(
-                onHover: (value) {},
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: ElevatedButton(
-                    style: const ButtonStyle(
-                      backgroundColor: MaterialStatePropertyAll(
-                          PalleteCommon.highlightColor),
+            return User.toUser(tmpMap);
+          }).toList();*/
+
+          print(widget.customers.length);
+          widget.customers = [];
+
+          snapshot.data.docs.map((DocumentSnapshot doc) {
+            Map<String, dynamic>? tmpMap = doc.data() as Map<String, dynamic>?;
+            if (tmpMap == null) return;
+
+            User? tmp = User.toUser(tmpMap);
+            if (tmp == null) return;
+
+            widget.customers.add(tmp as Customer);
+          }).toList();
+
+          print(widget.customers.length);
+
+          numOfPages =
+              widget.customers.length ~/ widget.user.preferences!.usersPerPage;
+
+          List<Widget> rows = [];
+
+          for (int i = 0; i < documents.length; ++i) {
+            rows.add(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Expanded(flex: 1, child: SizedBox()),
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: Center(
+                        child: Text((i + 1).toString()),
+                      ),
                     ),
-                    onPressed: () => goToEstatesPage(),
-                    child: const Text("3"),
                   ),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Banned
-            Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: height * 0.08,
-                child: Tooltip(
-                  message: widget.customers[i] is Individual
-                      ? "Individual"
-                      : "Company",
-                  child: Icon(
-                    widget.customers[i] is Individual
-                        ? Icons.person
-                        : Icons.location_city,
-                    color: PalleteCommon.gradient2,
-                    size: 32,
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Image
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: Center(
+                        child: Image.asset("images/chick.jpg"),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Blocked
-            Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: height * 0.08,
-                child: InkWell(
-                  onHover: (value) {},
-                  onTap: () {
-                    setState(
-                      () {
-                        widget.customers[i].blocked =
-                            !widget.customers[i].blocked;
-                      },
-                    );
-                  },
-                  child: Icon(
-                    widget.customers[i].blocked ? Icons.done : Icons.close,
-                    color: PalleteCommon.gradient2,
-                    size: 32,
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Name
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: Center(
+                        child: Text(
+                          (widget.customers[i] is Individual)
+                              ? "${(widget.customers[i] as Individual).firstname} ${(widget.customers[i] as Individual).lastname}"
+                              : "${(widget.customers[i] as Company).ownerFirstname} ${(widget.customers[i] as Company).ownerLastname}",
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            const Expanded(flex: 1, child: SizedBox()),
-            // Banned
-            Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: height * 0.08,
-                child: InkWell(
-                  onHover: (value) {},
-                  onTap: () {
-                    setState(() {
-                      widget.customers[i].banned = !widget.customers[i].banned;
-                    });
-                  },
-                  child: Icon(
-                    widget.customers[i].banned ? Icons.done : Icons.close,
-                    color: PalleteCommon.gradient2,
-                    size: 32,
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Email
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: Center(
+                        child: Text(widget.customers[i].email),
+                      ),
+                    ),
                   ),
-                ),
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Phone
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: Center(
+                        child: Text(widget.customers[i].phone),
+                      ),
+                    ),
+                  ),
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Estates
+                  Expanded(
+                    flex: 2,
+                    child: InkWell(
+                      onHover: (value) {},
+                      child: SizedBox(
+                        height: height * 0.08,
+                        child: ElevatedButton(
+                          style: const ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll(
+                                PalleteCommon.highlightColor),
+                          ),
+                          onPressed: () => goToEstatesPage(),
+                          child: const Text("3"),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Banned
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: Tooltip(
+                        message: widget.customers[i] is Individual
+                            ? "Individual"
+                            : "Company",
+                        child: Icon(
+                          widget.customers[i] is Individual
+                              ? Icons.person
+                              : Icons.location_city,
+                          color: PalleteCommon.gradient2,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Blocked
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: InkWell(
+                        onHover: (value) {},
+                        onTap: () {
+                          setState(
+                            () {
+                              widget.customers[i].blocked =
+                                  !widget.customers[i].blocked;
+                            },
+                          );
+                        },
+                        child: Icon(
+                          widget.customers[i].blocked
+                              ? Icons.done
+                              : Icons.close,
+                          color: PalleteCommon.gradient2,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Expanded(flex: 1, child: SizedBox()),
+                  // Banned
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: InkWell(
+                        onHover: (value) {},
+                        onTap: () {
+                          setState(() {
+                            widget.customers[i].banned =
+                                !widget.customers[i].banned;
+                          });
+                        },
+                        child: Icon(
+                          widget.customers[i].banned ? Icons.done : Icons.close,
+                          color: PalleteCommon.gradient2,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const Expanded(flex: 1, child: SizedBox()),
+                ],
               ),
-            ),
-
-            const Expanded(flex: 1, child: SizedBox()),
-          ],
-        ),
-      );
-
-      res.add(
-        Divider(
-          height: 20,
-          thickness: 3,
-          color: PalleteCommon.gradient2,
-          indent: width * 0.02,
-          endIndent: width * 0.02,
-        ),
-      );
-      cnt++;
-    }
-
-    return res;
-  }
-
-  bool checkDisplayCriteria(Customer customer) {
-    if (customer is Individual) {
-      if (!customer.email.contains(widget.searchbarText) &&
-          !("${customer.firstname} ${customer.lastname}")
-              .contains(widget.searchbarText) &&
-          !customer.phone.contains(widget.searchbarText)) {
-        return false;
-      }
-      /*if (widget.blocked != customer.blocked) return false;
-      if (widget.banned != customer.banned) return false;
-      if (widget.individual == false && widget.company == true) return false;*/
-      return true;
-    } else if (customer is Company) {
-      if (!customer.email.contains(widget.searchbarText) &&
-          !("${(customer).ownerFirstname} ${(customer).ownerLastname}")
-              .contains(widget.searchbarText) &&
-          !customer.phone.contains(widget.searchbarText)) {
-        return false;
-      }
-      /*if (widget.blocked != customer.blocked) return false;
-      if (widget.banned != customer.banned) return false;
-      if (widget.individual == true && widget.company == false) return false;*/
-      return true;
-    }
-    return false;
+            );
+            rows.add(
+              Divider(
+                height: 20,
+                thickness: 3,
+                color: PalleteCommon.gradient2,
+                indent: width * 0.02,
+                endIndent: width * 0.02,
+              ),
+            );
+          }
+          return Column(
+            children: rows,
+          );
+        }
+      },
+    );
   }
 
   Widget getNumOfUsersSelection() {
@@ -734,7 +742,7 @@ class _UsersPageState extends State<UsersPage> {
         labelText: "Users per page",
         maxWidth: 200,
         callback: (int value) {
-          widget.user.preferences ??= UserPreferences();
+          // widget.user.preferences ??= UserPreferences();
 
           setState(() {
             widget.user.preferences!.usersPerPage = value;
@@ -765,7 +773,6 @@ class _UsersPageState extends State<UsersPage> {
           onTap: () {
             setState(() {
               widget.currentPage = 0;
-              scrollToTop();
             });
           },
           child: SizedBox(
@@ -798,7 +805,6 @@ class _UsersPageState extends State<UsersPage> {
             onTap: () {
               setState(() {
                 widget.currentPage = widget.currentPage - 1;
-                scrollToTop();
               });
             },
             child: SizedBox(
@@ -847,7 +853,6 @@ class _UsersPageState extends State<UsersPage> {
             onTap: () {
               setState(() {
                 widget.currentPage = widget.currentPage + 1;
-                scrollToTop();
               });
             },
             child: SizedBox(
@@ -871,7 +876,6 @@ class _UsersPageState extends State<UsersPage> {
           onTap: () {
             setState(() {
               widget.currentPage = numOfPages;
-              scrollToTop();
             });
           },
           child: SizedBox(
@@ -910,7 +914,9 @@ class _UsersPageState extends State<UsersPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EstatesPage(),
+        builder: (context) => EstatesPage(
+          showEmptyCard: false,
+        ),
       ),
     );
   }

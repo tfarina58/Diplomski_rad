@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "236389351601",
+    "firebase_url": "https://diplomski-rad-8bdb2-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "diplomski-rad-8bdb2",
+    "storage_bucket": "diplomski-rad-8bdb2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:236389351601:android:fb01a538d1b5a78856a290",
+        "android_client_info": {
+          "package_name": "com.example.diplomski_rad"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "236389351601-0q6kgflcvpferc94od95bk5o79385q8m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDMcBpVDUxancbQzEx5mxyXGj74tvP5m8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "236389351601-0q6kgflcvpferc94od95bk5o79385q8m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

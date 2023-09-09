@@ -3,6 +3,7 @@ import 'package:diplomski_rad/interfaces/preferences/estate-preferences.dart';
 
 abstract class Estate {
   abstract final String id;
+  abstract final String ownerId;
   abstract String name;
   abstract List<String> images;
   abstract String street;
@@ -17,7 +18,8 @@ abstract class Estate {
 }
 
 class CompanyEstate extends Estate {
-  final String companyId;
+  @override
+  final String ownerId;
 
   @override
   final String id;
@@ -46,7 +48,7 @@ class CompanyEstate extends Estate {
 
   CompanyEstate({
     this.id = "",
-    this.companyId = "",
+    this.ownerId = "",
     this.name = "",
     this.images = const <String>[],
     this.street = "",
@@ -63,7 +65,7 @@ class CompanyEstate extends Estate {
   factory CompanyEstate.getEstate1() {
     return CompanyEstate(
       id: "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
-      companyId:
+      ownerId:
           "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
       name: "Villa Rovinj",
       images: ["images/test.png", "images/rovinj2.jpg"],
@@ -82,7 +84,7 @@ class CompanyEstate extends Estate {
   factory CompanyEstate.getEstate2() {
     return CompanyEstate(
       id: "c4ca4238a0b923820dcc509a6f75849b",
-      companyId: "c81e728d9d4c2f636f067f89cc14862c",
+      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
       name: "Aphrodite's rock",
       images: ["images/test3.jpg"],
       street: "Pissouri 221A",
@@ -100,7 +102,7 @@ class CompanyEstate extends Estate {
   factory CompanyEstate.getEstate3() {
     return CompanyEstate(
       id: "c4ca4238a0b923820dcc509a6f75849b",
-      companyId: "c81e728d9d4c2f636f067f89cc14862c",
+      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
       name: "Sea apartments",
       images: ["images/test2.jpg"],
       zip: "47712",
@@ -116,8 +118,8 @@ class CompanyEstate extends Estate {
 }
 
 class IndividualEstate extends Estate {
-  final String individualId;
-
+  @override
+  final String ownerId;
   @override
   final String id;
   @override
@@ -145,7 +147,7 @@ class IndividualEstate extends Estate {
 
   IndividualEstate({
     this.id = "",
-    this.individualId = "",
+    this.ownerId = "",
     this.name = "",
     this.images = const <String>[],
     this.street = "",
@@ -162,7 +164,7 @@ class IndividualEstate extends Estate {
   factory IndividualEstate.getEstate1() {
     return IndividualEstate(
       id: "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
-      individualId:
+      ownerId:
           "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
       name: "Villa Rovinj",
       images: ["images/test.png", "images/rovinj2.jpg"],
@@ -181,7 +183,7 @@ class IndividualEstate extends Estate {
   factory IndividualEstate.getEstate2() {
     return IndividualEstate(
       id: "c4ca4238a0b923820dcc509a6f75849b",
-      individualId: "c81e728d9d4c2f636f067f89cc14862c",
+      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
       name: "Aphrodite's rock",
       images: ["images/test3.jpg"],
       street: "Pissouri 221A",
@@ -199,7 +201,7 @@ class IndividualEstate extends Estate {
   factory IndividualEstate.getEstate3() {
     return IndividualEstate(
       id: "c4ca4238a0b923820dcc509a6f75849b",
-      individualId: "c81e728d9d4c2f636f067f89cc14862c",
+      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
       name: "Sea apartments",
       images: ["images/test2.jpg"],
       zip: "47712",

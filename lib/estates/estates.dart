@@ -102,28 +102,30 @@ class _EstatesPageState extends State<EstatesPage> {
   List<Widget> getList() {
     List<Widget> res = [];
 
-    res.add(
-      GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => EstateDetailsPage(
-              estate: (widget.user is Individual)
-                  ? IndividualEstate()
-                  : CompanyEstate(),
+    if (widget.showEmptyCard == true) {
+      res.add(
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EstateDetailsPage(
+                estate: (widget.user is Individual)
+                    ? IndividualEstate()
+                    : CompanyEstate(),
+              ),
+            ),
+          ),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: CardWidget(
+              isEmptyCard: true,
+              width: widget.cardSize,
+              height: widget.cardSize * 0.5625,
             ),
           ),
         ),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: CardWidget(
-            isEmptyCard: widget.showEmptyCard,
-            width: widget.cardSize,
-            height: widget.cardSize * 0.5625,
-          ),
-        ),
-      ),
-    );
+      );
+    }
     res.add(
       SizedBox(
         height: 36,

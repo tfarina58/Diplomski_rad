@@ -1,18 +1,16 @@
-import 'dart:ffi';
-
 import '../estate/estate.dart';
 import '../user/user.dart';
-
-abstract class UserRes {
-  Bool? success; // If request sending and response obtaining was successful
-  List<Individual>? user;
-  List<Company>? user2;
-  
-  List<IndividualEstate>? estates;
-  List<CompanyEstate>? estates2;
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 abstract class SessionRes {
-  Bool? success; // If request sending and response obtaining was successful
-  Bool? session; // Is the session still active or not
+  bool? success; // If request sending and response obtaining was successful
+  bool? session; // Is the session still active or not
+}
+
+abstract class UserRes {
+  bool? success; // If request sending and response obtaining was successful
+}
+
+abstract class EstateRes {
+  bool? success; // If request sending and response obtaining was successful
 }

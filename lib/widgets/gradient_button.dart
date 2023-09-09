@@ -4,12 +4,14 @@ import 'package:diplomski_rad/other/pallete.dart';
 class GradientButton extends StatelessWidget {
   final String buttonText;
   final Function callback;
+  List<dynamic> arguments;
   final List<Color> colors;
 
-  const GradientButton({
+  GradientButton({
     Key? key,
     required this.buttonText,
     required this.callback,
+    this.arguments = const [],
     this.colors = const [
       PalleteCommon.gradient1,
       PalleteCommon.gradient2,
