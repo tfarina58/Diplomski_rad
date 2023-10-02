@@ -1,56 +1,28 @@
 import 'package:latlong2/latlong.dart';
 import 'package:diplomski_rad/interfaces/preferences/estate-preferences.dart';
+import 'package:diplomski_rad/services/firebase.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-abstract class Estate {
-  abstract final String id;
-  abstract final String ownerId;
-  abstract String name;
-  abstract List<String> images;
-  abstract String street;
-  abstract String zip;
-  abstract String city;
-  abstract String country;
-  abstract LatLng? coordinates;
-  abstract String phone;
-  abstract int templateCount;
-  abstract String description;
-  abstract EstatePreferences? preferences;
-}
-
-class CompanyEstate extends Estate {
-  @override
-  final String ownerId;
-
-  @override
-  final String id;
-  @override
+class Estate {
+  String id;
+  String ownerId;
   String name;
-  @override
   List<String> images;
-  @override
   String street;
-  @override
   String zip;
-  @override
   String city;
-  @override
   String country;
-  @override
   LatLng? coordinates;
-  @override
   String phone;
-  @override
   int templateCount;
-  @override
   String description;
-  @override
-  EstatePreferences? preferences = EstatePreferences();
+  EstatePreferences preferences;
 
-  CompanyEstate({
+  Estate({
     this.id = "",
     this.ownerId = "",
     this.name = "",
-    this.images = const <String>[],
+    this.images = const [],
     this.street = "",
     this.zip = "",
     this.city = "",
@@ -59,159 +31,104 @@ class CompanyEstate extends Estate {
     this.phone = "",
     this.templateCount = -1,
     this.description = "",
-    this.preferences,
-  });
+  }) : preferences = EstatePreferences();
 
-  factory CompanyEstate.getEstate1() {
-    return CompanyEstate(
-      id: "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
-      ownerId:
-          "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
-      name: "Villa Rovinj",
-      images: ["images/test.png", "images/rovinj2.jpg"],
-      street: "Ulica Luje Adamovića 2",
-      zip: "52210",
-      city: "Rovinj",
-      country: "Croatia",
-      coordinates: const LatLng(45.07739, 13.64329),
-      phone: "+385 99 471 6110",
-      description: "Villa Rovinj description",
-      templateCount: -1,
-      preferences: EstatePreferences(),
-    );
+  static List<String>? convertArray(List<dynamic>? images) {
+    if (images == null || images.isEmpty /*|| id == null || id.isEmpty*/) {
+      return null;
+    }
+
+    List<String>? res = [];
+    /*FirebaseStorageService storage = FirebaseStorageService();
+
+    for (dynamic element in images) {
+      String url = await storage.downloadFile(id, element.toString());
+      res.add(url);
+    }*/
+
+    for (dynamic element in images) {
+      res.add(element.toString());
+    }
+
+    return res;
   }
 
-  factory CompanyEstate.getEstate2() {
-    return CompanyEstate(
-      id: "c4ca4238a0b923820dcc509a6f75849b",
-      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
-      name: "Aphrodite's rock",
-      images: ["images/test3.jpg"],
-      street: "Pissouri 221A",
-      zip: "3221",
-      city: "Pissouri",
-      country: "Cyprus",
-      coordinates: const LatLng(34.664776, 32.627872),
-      phone: "+357 11 529 4490",
-      description: "Aphrodite's rock description",
-      templateCount: -1,
-      preferences: EstatePreferences(),
+  static Estate? toEstate(Map<String, dynamic>? estate) {
+    if (estate == null) return null;
+
+    Estate newEstate = Estate();
+    newEstate.id = estate['id'] ?? "";
+    newEstate.ownerId = estate['ownerId'] ?? "";
+    newEstate.images = convertArray(estate['images']) ?? [];
+    newEstate.templateCount = estate['templateCount'] ?? -1;
+    if (estate['coordinates'] != null) {
+      newEstate.coordinates = LatLng(
+          (estate['coordinates'] as GeoPoint).latitude,
+          (estate['coordinates'] as GeoPoint).longitude);
+    }
+    newEstate.street = estate['street'] ?? "";
+    newEstate.zip = estate['zip'] ?? "";
+    newEstate.city = estate['city'] ?? "";
+    newEstate.country = estate['country'] ?? "";
+    newEstate.phone = estate['phone'] ?? "";
+    newEstate.description = estate['description'] ?? "";
+    newEstate.name = estate['name'] ?? "";
+    newEstate.phone = estate['phone'] ?? "";
+    newEstate.preferences = EstatePreferences(
+      petsAllowed: estate['petsAllowed'] ?? false,
+      smokingAllowed: estate['smokingAllowed'] ?? false,
+      airConditioning: estate['airConditioning'] ?? false,
+      handicapAccessible: estate['handicapAccessible'] ?? false,
+      designatedParkingSpots: estate['designatedParkingSpots'] ?? 0,
+      outletType: estate['outletType'] ?? "",
+      houseOrientation: estate['houseOrientation'] ?? "",
+      acceptingPaymentCards: estate['acceptingPaymentCards'] ?? false,
+      wifi: estate['wifi'] ?? false,
+      pool: estate['pool'] ?? false,
+      kitchen: estate['kitchen'] ?? false,
+      washingMachine: estate['washingMachine'] ?? false,
+      dryingMachine: estate['dryingMachine'] ?? false,
     );
+
+    return newEstate;
   }
 
-  factory CompanyEstate.getEstate3() {
-    return CompanyEstate(
-      id: "c4ca4238a0b923820dcc509a6f75849b",
-      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
-      name: "Sea apartments",
-      images: ["images/test2.jpg"],
-      zip: "47712",
-      city: "Vaitāpē",
-      country: "Bora Bora, French Polynesia",
-      coordinates: const LatLng(-16.499701, -151.770538),
-      phone: "+47 86 000 1000",
-      description: "Sea apartments description",
-      templateCount: -1,
-      preferences: EstatePreferences(),
-    );
-  }
-}
+  static Map<String, dynamic>? toJSON(Estate? estate) {
+    if (estate == null) return null;
 
-class IndividualEstate extends Estate {
-  @override
-  final String ownerId;
-  @override
-  final String id;
-  @override
-  String name;
-  @override
-  List<String> images;
-  @override
-  String street;
-  @override
-  String zip;
-  @override
-  String city;
-  @override
-  String country;
-  @override
-  LatLng? coordinates;
-  @override
-  String phone;
-  @override
-  int templateCount;
-  @override
-  String description;
-  @override
-  EstatePreferences? preferences;
-
-  IndividualEstate({
-    this.id = "",
-    this.ownerId = "",
-    this.name = "",
-    this.images = const <String>[],
-    this.street = "",
-    this.zip = "",
-    this.city = "",
-    this.country = "",
-    this.coordinates,
-    this.phone = "",
-    this.templateCount = -1,
-    this.description = "",
-    this.preferences,
-  });
-
-  factory IndividualEstate.getEstate1() {
-    return IndividualEstate(
-      id: "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
-      ownerId:
-          "23f376ec08b0b6f43108f61bfaa96cd168f3dac4e5e5c02185a107ad9cffc5d1",
-      name: "Villa Rovinj",
-      images: ["images/test.png", "images/rovinj2.jpg"],
-      street: "Ulica Luje Adamovića 2",
-      zip: "52210",
-      city: "Rovinj",
-      country: "Croatia",
-      coordinates: const LatLng(45.07739, 13.64329),
-      phone: "+385 99 471 6110",
-      description: "Villa Rovinj description",
-      templateCount: -1,
-      preferences: EstatePreferences(),
-    );
+    return {
+      "id": estate.id,
+      // "avatarImage": avatarImage,
+      // "backgroundImage": backgroundImage,
+      "ownerId": estate.ownerId,
+      "name": estate.name,
+      "street": estate.street,
+      "zip": estate.zip,
+      "city": estate.city,
+      "country": estate.country,
+      "coordinates": estate.coordinates,
+      "phone": estate.phone,
+      "acceptingPaymentCards": estate.preferences.acceptingPaymentCards,
+      "airConditioning": estate.preferences.airConditioning,
+      "designatedParkingSpots": estate.preferences.designatedParkingSpots,
+      "dryingMachine": estate.preferences.dryingMachine,
+      "handicapAccessible": estate.preferences.handicapAccessible,
+      "houseOrientation": estate.preferences.houseOrientation,
+      "kitchen": estate.preferences.kitchen,
+      "outletType": estate.preferences.outletType,
+      "petsAllowed": estate.preferences.petsAllowed,
+      "pool": estate.preferences.pool,
+      "smokingAllowed": estate.preferences.smokingAllowed,
+      "washingMachine": estate.preferences.washingMachine,
+      "wifi": estate.preferences.wifi,
+      // "password": password,
+    };
   }
 
-  factory IndividualEstate.getEstate2() {
-    return IndividualEstate(
-      id: "c4ca4238a0b923820dcc509a6f75849b",
-      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
-      name: "Aphrodite's rock",
-      images: ["images/test3.jpg"],
-      street: "Pissouri 221A",
-      zip: "3221",
-      city: "Pissouri",
-      country: "Cyprus",
-      coordinates: const LatLng(44.80251084712432, 13.910140726102172),
-      phone: "+357 11 529 4490",
-      description: "Aphrodite's rock description",
-      templateCount: -1,
-      preferences: EstatePreferences(),
-    );
-  }
+  String asString(Estate estate) {
+    return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\ndescription: ${estate.description}\npetsAllowed: ${estate.preferences.petsAllowed}\nsmokingAllowed: ${estate.preferences.smokingAllowed}\nairConditioning: ${estate.preferences.airConditioning}\nhandicapAccessible: ${estate.preferences.handicapAccessible}\ndesignatedParkingSpots: ${estate.preferences.designatedParkingSpots}\nhouseOrientation: ${estate.preferences.houseOrientation}\nacceptingPaymentCards: ${estate.preferences.acceptingPaymentCards}\nwifi: ${estate.preferences.wifi}\npool: ${estate.preferences.pool}\nkitchen: ${estate.preferences.kitchen}\nwashingMachine: ${estate.preferences.washingMachine}\ndryingMachine: ${estate.preferences.dryingMachine}\n";
 
-  factory IndividualEstate.getEstate3() {
-    return IndividualEstate(
-      id: "c4ca4238a0b923820dcc509a6f75849b",
-      ownerId: "c81e728d9d4c2f636f067f89cc14862c",
-      name: "Sea apartments",
-      images: ["images/test2.jpg"],
-      zip: "47712",
-      city: "Vaitāpē",
-      country: "Bora Bora, French Polynesia",
-      coordinates: const LatLng(46.07739, 14.64329),
-      phone: "+47 86 000 1000",
-      description: "Sea apartments description",
-      templateCount: -1,
-      preferences: EstatePreferences(),
-    );
+    // res.images = user['images'] ?? "";
+    // res.templateCount = user['templateCount'] ?? "";
   }
 }

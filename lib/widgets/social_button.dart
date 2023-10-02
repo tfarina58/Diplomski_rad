@@ -1,3 +1,4 @@
+import 'package:diplomski_rad/services/firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -5,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class SocialButton extends StatelessWidget {
   final String iconPath;
   final String label;
-  final String method;
+  final Function method;
   final double horizontalPadding;
   const SocialButton({
     Key? key,
@@ -19,7 +20,8 @@ class SocialButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton.icon(
       onPressed: () {
-        // print("Log in with $method!");
+        print("Log in with Google!");
+        // await GoogleAuthService.signInWithGoogle();
       },
       icon: SvgPicture.asset(
         iconPath,

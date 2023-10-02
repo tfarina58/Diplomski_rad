@@ -1,35 +1,38 @@
-import 'dart:js_interop';
-
 import 'package:diplomski_rad/auth/login/login.dart';
 import 'package:diplomski_rad/home/home.dart';
-import 'package:diplomski_rad/settings/settings.dart';
+import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/estates/estates.dart';
 import 'package:diplomski_rad/users/users.dart';
 import 'package:diplomski_rad/profile/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/other/pallete.dart';
-import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:diplomski_rad/services/firebase.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 
-class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
+class HeaderComponent extends StatefulWidget implements PreferredSizeWidget {
   String currentPage;
-  bool drawer;
-  User user = Individual.getUser1();
-
+  Map<String, dynamic> headerValues; //userId, typeOfUser, userImage, language;
   String oldPassword = "", newPassword = "", repeatNewPassword = "";
+  LanguageService lang;
+  bool drawer;
 
   HeaderComponent({
     Key? key,
     required this.currentPage,
+    required this.headerValues,
+    required this.lang,
     this.drawer = false,
   }) : super(key: key);
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  State<HeaderComponent> createState() => _HeaderComponentState();
 
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _HeaderComponentState extends State<HeaderComponent> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -37,7 +40,7 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: PalleteCommon.backgroundColor,
-      automaticallyImplyLeading: drawer,
+      automaticallyImplyLeading: widget.drawer,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(4.0),
         child: Container(
@@ -59,7 +62,7 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const HomePage(),
+                      builder: (context) => HomePage(),
                     ),
                   );
                 },
@@ -67,8 +70,8 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                   height: height * 0.05,
                   child: Center(
                     child: Text(
-                      "Diplomski rad",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      widget.lang.dictionary["project_title"]!,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -93,10 +96,10 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                       },
                       child: SizedBox(
                         height: height * 0.05,
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            "Users",
-                            style: TextStyle(fontSize: 18),
+                            widget.lang.dictionary["users"]!,
+                            style: const TextStyle(fontSize: 18),
                           ),
                         ),
                       ),
@@ -114,10 +117,10 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                       },
                       child: SizedBox(
                         height: height * 0.05,
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            "Estates",
-                            style: TextStyle(fontSize: 18),
+                            widget.lang.dictionary["estates"]!,
+                            style: const TextStyle(fontSize: 18),
                           ),
                         ),
                       ),
@@ -157,7 +160,9 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                                         );
                                       },
                                       leading: const Icon(Icons.person),
-                                      title: const Text("Profile page"),
+                                      title: Text(
+                                        widget.lang.dictionary["profile_page"]!,
+                                      ),
                                     ),
                                     ListTile(
                                       textColor: PalleteCommon.gradient2,
@@ -172,14 +177,17 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                                             width,
                                             height,
                                             context,
-                                            oldPassword,
-                                            newPassword,
-                                            repeatNewPassword,
+                                            widget.oldPassword,
+                                            widget.newPassword,
+                                            widget.repeatNewPassword,
                                           ),
                                         );
                                       },
                                       leading: const Icon(Icons.password),
-                                      title: const Text("Change password"),
+                                      title: Text(
+                                        widget.lang
+                                            .dictionary["change_password"]!,
+                                      ),
                                     ),
                                     ListTile(
                                       textColor: PalleteCommon.gradient2,
@@ -191,11 +199,16 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                                           context: context,
                                           builder: (BuildContext context) =>
                                               deleteAccountDialog(
-                                                  width, height, context, user),
+                                                  width,
+                                                  height,
+                                                  context,
+                                                  widget
+                                                      .headerValues["userId"]),
                                         );
                                       },
                                       leading: const Icon(Icons.gavel),
-                                      title: const Text("Delete profile"),
+                                      title: Text(widget
+                                          .lang.dictionary["delete_account"]!),
                                     ),
                                     ListTile(
                                       textColor: PalleteCommon.gradient2,
@@ -203,6 +216,8 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                                           .withOpacity(0.35),
                                       tileColor: PalleteCommon.backgroundColor,
                                       onTap: () {
+                                        // await GoogleAuthService.signOut();
+
                                         Navigator.popUntil(
                                             context, (route) => false);
 
@@ -214,7 +229,9 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                                         );
                                       },
                                       leading: const Icon(Icons.logout),
-                                      title: const Text("Sign out"),
+                                      title: Text(
+                                        widget.lang.dictionary["sign_out"]!,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -225,7 +242,8 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
                         height: height * 0.05,
                         child: Padding(
                             padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
-                            child: getUserImage(user, height)),
+                            child: getUserImage(
+                                widget.headerValues["userImage"], height)),
                       ),
                     ),
                   ),
@@ -237,161 +255,186 @@ class HeaderComponent extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-}
 
-Widget changePasswordDialog(double width, double height, BuildContext context,
-    String oldPassword, String newPassword, String repeatNewPassword) {
-  return Dialog(
-    insetPadding: EdgeInsets.fromLTRB(
-      width * 0.25,
-      height * 0.25,
-      width * 0.25,
-      height * 0.25,
-    ),
-    backgroundColor: PalleteCommon.backgroundColor,
-    alignment: Alignment.center,
-    child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          StringField(
-            osbcure: true,
-            labelText: "Old password",
-            callback: (String value) => oldPassword = value,
-          ),
-          const SizedBox(
-            height: 22,
-          ),
-          StringField(
-            osbcure: true,
-            labelText: "New password",
-            callback: (String value) => newPassword = value,
-          ),
-          const SizedBox(
-            height: 22,
-          ),
-          StringField(
-            osbcure: true,
-            labelText: "Repeat new password",
-            callback: (String value) => repeatNewPassword = value,
-          ),
-          const SizedBox(
-            height: 28,
-          ),
-          GradientButton(
-            buttonText: "Change password",
-            callback: () {
-              Navigator.pop(context);
-              print("Password changed!");
-            },
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget deleteAccountDialog(
-    double width, double height, BuildContext context, User user) {
-  String password = "";
-
-  return Dialog(
-    insetPadding: EdgeInsets.fromLTRB(
-      width * 0.25,
-      height * 0.25,
-      width * 0.25,
-      height * 0.25,
-    ),
-    backgroundColor: PalleteCommon.backgroundColor,
-    alignment: Alignment.center,
-    child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Expanded(flex: 2, child: SizedBox()),
-          const Expanded(
-            flex: 2,
-            child: Text(
-              "Are you sure you want to delete your account?",
-              style: TextStyle(
-                fontSize: 18,
-                color: PalleteCommon.gradient2,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const Expanded(child: SizedBox()),
-          Expanded(
-            flex: 2,
-            child: StringField(
-              osbcure: true,
-              labelText: "Password",
-              callback: (String value) => password = value,
-            ),
-          ),
-          const Expanded(flex: 2, child: SizedBox()),
-          Expanded(
-            flex: 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Expanded(
-                  flex: 2,
-                  child: SizedBox(),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: GradientButton(
-                    colors: [...PalleteDanger.getGradients()],
-                    buttonText: "Delete account",
-                    callback: () async {
-                      await deleteUser(width, height, context, user, password);
-                    },
-                  ),
-                ),
-                const Expanded(
-                  flex: 1,
-                  child: SizedBox(),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: GradientButton(
-                    buttonText: "Cancel",
-                    callback: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: SizedBox(),
-                ),
-              ],
-            ),
-          ),
-          const Expanded(flex: 1, child: SizedBox()),
-        ],
-      ),
-    ),
-  );
-}
-
-Future<void> deleteUser(double width, double height, BuildContext context,
-    User user, String password) async {
-  bool res = false;
-
-  Map<String, dynamic>? userMap = User.toJSON(user);
-  if (userMap != null) {
-    res = await UserRepository.deleteUser(userMap, password);
+  @override
+  void initState() {
+    super.initState();
   }
 
-  if (!res) {
+  Widget changePasswordDialog(double width, double height, BuildContext context,
+      String oldPassword, String newPassword, String repeatNewPassword) {
+    return Dialog(
+      insetPadding: EdgeInsets.fromLTRB(
+        width * 0.25,
+        height * 0.25,
+        width * 0.25,
+        height * 0.25,
+      ),
+      backgroundColor: PalleteCommon.backgroundColor,
+      alignment: Alignment.center,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            StringField(
+              osbcure: true,
+              labelText: widget.lang.dictionary["old_password"]!,
+              callback: (String value) => oldPassword = value,
+            ),
+            const SizedBox(
+              height: 22,
+            ),
+            StringField(
+              osbcure: true,
+              labelText: widget.lang.dictionary["new_password"]!,
+              callback: (String value) => newPassword = value,
+            ),
+            const SizedBox(
+              height: 22,
+            ),
+            StringField(
+              osbcure: true,
+              labelText: widget.lang.dictionary["repeat_password"]!,
+              callback: (String value) => repeatNewPassword = value,
+            ),
+            const SizedBox(
+              height: 28,
+            ),
+            GradientButton(
+              buttonText: widget.lang.dictionary["change_password"]!,
+              callback: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget deleteAccountDialog(
+      double width, double height, BuildContext context, String userId) {
+    if (userId.isEmpty) return const Text("Missing user ID");
+    String password = "";
+
+    return Dialog(
+      insetPadding: EdgeInsets.fromLTRB(
+        width * 0.25,
+        height * 0.25,
+        width * 0.25,
+        height * 0.25,
+      ),
+      backgroundColor: PalleteCommon.backgroundColor,
+      alignment: Alignment.center,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Expanded(flex: 2, child: SizedBox()),
+            Expanded(
+              flex: 2,
+              child: Text(
+                widget.lang.dictionary["delete_account_warning_message"]!,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: PalleteCommon.gradient2,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Expanded(child: SizedBox()),
+            Expanded(
+              flex: 2,
+              child: StringField(
+                osbcure: true,
+                labelText: widget.lang.dictionary["password"]!,
+                callback: (String value) => password = value,
+              ),
+            ),
+            const Expanded(flex: 2, child: SizedBox()),
+            Expanded(
+              flex: 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Expanded(
+                    flex: 2,
+                    child: SizedBox(),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: GradientButton(
+                      colors: [...PalleteDanger.getGradients()],
+                      buttonText: widget.lang.dictionary["delete_account"]!,
+                      callback: () async {
+                        await deleteUser(
+                            width, height, context, userId, password);
+                      },
+                    ),
+                  ),
+                  const Expanded(
+                    flex: 1,
+                    child: SizedBox(),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: GradientButton(
+                      buttonText: widget.lang.dictionary["cancel"]!,
+                      callback: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                  const Expanded(
+                    flex: 2,
+                    child: SizedBox(),
+                  ),
+                ],
+              ),
+            ),
+            const Expanded(flex: 1, child: SizedBox()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> deleteUser(double width, double height, BuildContext context,
+      String userId, String password) async {
+    bool res = await UserRepository.deleteUser(userId, password);
+
+    if (!res) {
+      final snackBar = SnackBar(
+        content: Text(
+          widget.lang.dictionary["error_while_deleting"]!,
+        ),
+        backgroundColor: (Colors.white),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: height * 0.85,
+          left: width * 0.8,
+          right: width * 0.02,
+          top: height * 0.02,
+        ),
+        closeIconColor: PalleteCommon.gradient2,
+        action: SnackBarAction(
+          label: widget.lang.dictionary["dismiss"]!,
+          onPressed: () {},
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+      Navigator.pop(context);
+      return;
+    }
+
     final snackBar = SnackBar(
-      content: const Text(
-          'There was an error while deleting your account. Please try again (later)...'),
+      content: Text(
+        widget.lang.dictionary["successfull_delete_account"]!,
+      ),
       backgroundColor: (Colors.white),
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.only(
@@ -402,60 +445,33 @@ Future<void> deleteUser(double width, double height, BuildContext context,
       ),
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
-        label: 'Dismiss',
+        label: widget.lang.dictionary["dismiss"]!,
         onPressed: () {},
       ),
     );
+
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
-    Navigator.pop(context);
-    return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LoginPage(),
+      ),
+    );
   }
 
-  final snackBar = SnackBar(
-    content: const Text('Your account has successfully been deleted!'),
-    backgroundColor: (Colors.white),
-    behavior: SnackBarBehavior.floating,
-    margin: EdgeInsets.only(
-      bottom: height * 0.85,
-      left: width * 0.8,
-      right: width * 0.02,
-      top: height * 0.02,
-    ),
-    closeIconColor: PalleteCommon.gradient2,
-    action: SnackBarAction(
-      label: 'Dismiss',
-      onPressed: () {},
-    ),
-  );
-
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => LoginPage(),
-    ),
-  );
-}
-
-Image getUserImage(User user, double height) {
-  if (user is Customer && user.avatarImage.isNotEmpty) {
-    return Image.asset(
-      user.avatarImage,
-      fit: BoxFit.contain,
-    );
-  } else if (user is Company && user.avatarImage.isNotEmpty) {
-    return Image.asset(
-      user.avatarImage,
-      fit: BoxFit.contain,
-    );
-  } else {
-    return Image.asset("images/default_user.png");
+  Image getUserImage(String? avatarImage, double height) {
+    if (avatarImage != null && avatarImage.isNotEmpty) {
+      return Image.asset(
+        avatarImage,
+        fit: BoxFit.contain,
+      );
+    } else {
+      return Image.asset("images/default_user.png");
+    }
   }
-}
 
-String? getCurrentPage(BuildContext context) {
-  // print(ModalRoute.of(context)!.settings);
-  return ModalRoute.of(context)!.settings.name;
+  String? getCurrentPage(BuildContext context) {
+    return ModalRoute.of(context)!.settings.name;
+  }
 }

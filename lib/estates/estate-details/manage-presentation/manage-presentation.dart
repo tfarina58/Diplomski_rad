@@ -1,4 +1,5 @@
 import 'package:diplomski_rad/components/header.dart';
+import 'package:diplomski_rad/services/language.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
@@ -24,7 +25,11 @@ class _ManagePresentationPageState extends State<ManagePresentationPage> {
     final double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      appBar: HeaderComponent(currentPage: 'ManagePresentationPage'),
+      appBar: HeaderComponent(
+        currentPage: 'ManagePresentationPage',
+        headerValues: {},
+        lang: LanguageService(language: "en"),
+      ),
       body: Drawer(
         semanticLabel: "Show presentation list",
         width: width * 0.2,

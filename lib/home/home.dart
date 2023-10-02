@@ -1,14 +1,65 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/components/header.dart';
+import 'package:diplomski_rad/services/language.dart';
+import 'package:diplomski_rad/interfaces/user/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:diplomski_rad/services/firebase.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+class HomePage extends StatefulWidget {
+  User? user;
+  LanguageService? lang;
+  Map<String, dynamic> headerValues = <String, dynamic>{};
+
+  HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? tmpUserId = prefs.getString("userId");
+      String? tmpTypeOfUser = prefs.getString("typeOfUser");
+      String? tmpAvatarImage = prefs.getString("avatarImage");
+      String? tmpLanguage = prefs.getString("language");
+
+      if (tmpUserId == null || tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+
+      LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
+      Map<String, dynamic>? userMap =
+          await UserRepository.readUserWithId(tmpUserId);
+      if (userMap == null) return;
+
+      setState(() {
+        widget.user = User.toUser(userMap);
+        widget.lang = tmpLang;
+        widget.headerValues["userId"] = tmpUserId;
+        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
+        widget.headerValues["userImage"] = tmpAvatarImage ?? "";
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.lang == null || widget.user == null) {
+      return const SizedBox();
+    }
+
     return Scaffold(
-      appBar: HeaderComponent(currentPage: 'HomePage'),
+      appBar: HeaderComponent(
+        currentPage: 'HomePage',
+        headerValues: widget.headerValues,
+        lang: widget.lang!,
+      ),
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400),

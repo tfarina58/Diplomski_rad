@@ -8,15 +8,16 @@ import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diplomski_rad/services/language.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:diplomski_rad/services/firebase.dart';
 
 class UsersPage extends StatefulWidget {
+  User? user;
+  LanguageService? lang;
+  Map<String, dynamic> headerValues = <String, dynamic>{};
+
   List<Customer> customers = [];
-  User user = Admin(
-    firstname: "Admin",
-    email: "admin.diplomski_rad@gmail.com",
-    phone: "+385994716110",
-    preferences: UserPreferences(),
-  );
 
   int currentPage = 0;
   String searchbarText = "";
@@ -34,16 +35,6 @@ class UsersPage extends StatefulWidget {
 
 class _UsersPageState extends State<UsersPage> {
   List<bool> upDownFilters = [true, false];
-  List<String> upDownFiltersTitles = [
-    "Name",
-    "Email",
-    "Phone",
-    "Estates",
-    "Type",
-    "Blocked",
-    "Banned"
-  ];
-
   List<bool> isHovering = [false, false, false];
 
   late ScrollController scrollController;
@@ -52,6 +43,31 @@ class _UsersPageState extends State<UsersPage> {
   void initState() {
     scrollController = ScrollController();
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? tmpUserId = prefs.getString("userId");
+      String? tmpTypeOfUser = prefs.getString("typeOfUser");
+      String? tmpAvatarImage = prefs.getString("avatarImage");
+      String? tmpLanguage = prefs.getString("language");
+
+      if (tmpUserId == null || tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+
+      LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
+      Map<String, dynamic>? userMap =
+          await UserRepository.readUserWithId(tmpUserId);
+      if (userMap == null) return;
+
+      setState(() {
+        widget.user = User.toUser(userMap);
+        widget.lang = tmpLang;
+        widget.headerValues["userId"] = tmpUserId;
+        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
+        widget.headerValues["userImage"] = tmpAvatarImage ?? "";
+      });
+    });
   }
 
   @override
@@ -71,11 +87,19 @@ class _UsersPageState extends State<UsersPage> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
+    if (widget.lang == null || widget.user == null) {
+      return const SizedBox();
+    }
+
     int numOfPages =
-        widget.customers.length ~/ widget.user.preferences!.usersPerPage;
+        widget.customers.length ~/ widget.user!.preferences.usersPerPage;
 
     return Scaffold(
-      appBar: HeaderComponent(currentPage: 'UsersPage'),
+      appBar: HeaderComponent(
+        currentPage: 'UsersPage',
+        lang: widget.lang!,
+        headerValues: widget.headerValues,
+      ),
       body: SingleChildScrollView(
         controller: scrollController,
         scrollDirection: Axis.vertical,
@@ -91,7 +115,7 @@ class _UsersPageState extends State<UsersPage> {
               height: height * 0.075,
             ),
             // Table header
-            getTableHeader(height, upDownFiltersTitles),
+            getTableHeader(height),
             Divider(
               height: 30,
               thickness: 3,
@@ -116,7 +140,7 @@ class _UsersPageState extends State<UsersPage> {
                   Expanded(
                     flex: 1,
                     child: GradientButton(
-                      buttonText: "Scroll to top",
+                      buttonText: widget.lang!.dictionary["scroll_to_top"]!,
                       callback: () {
                         setState(() {
                           scrollToTop();
@@ -146,11 +170,10 @@ class _UsersPageState extends State<UsersPage> {
           hintText: "john.doe@mail.com",
           leading: const Icon(Icons.search),
           trailing: [
-            const Tooltip(
-              message:
-                  "Here you can search for names, emails and phone numbers",
+            Tooltip(
+              message: widget.lang!.dictionary["search_text"]!,
               triggerMode: TooltipTriggerMode.tap,
-              child: Icon(Icons.info),
+              child: const Icon(Icons.info),
             ),
             const SizedBox(width: 15),
             GestureDetector(
@@ -170,7 +193,7 @@ class _UsersPageState extends State<UsersPage> {
           width: width * 0.02,
         ),
         GradientButton(
-          buttonText: "Additional filters",
+          buttonText: widget.lang!.dictionary["additional_filters"]!,
           callback: () {
             showDialog(
               context: context,
@@ -206,35 +229,35 @@ class _UsersPageState extends State<UsersPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text("Number of estates: "),
+                Text(
+                  "${widget.lang!.dictionary['additional_filters']!}: ",
+                ),
                 const SizedBox(
                   width: 16,
                 ),
                 StringField(
-                  presetText: widget.from != null ? widget.from.toString() : "",
+                  presetText: widget.from?.toString() ?? "",
                   inputType: TextInputType.number,
                   maxWidth: 200,
-                  labelText: "From",
+                  labelText: widget.lang!.dictionary["from"]!,
                   callback: (dynamic value) {
                     setState(() {
                       widget.from = int.parse(value);
                     });
-                    print(widget.from);
                   },
                 ),
                 const SizedBox(
                   width: 16,
                 ),
                 StringField(
-                  presetText: widget.to != null ? widget.to.toString() : "",
+                  presetText: widget.to?.toString() ?? "",
                   inputType: TextInputType.number,
                   maxWidth: 200,
-                  labelText: "To",
+                  labelText: widget.lang!.dictionary["to"]!,
                   callback: (dynamic value) {
                     setState(() {
                       widget.to = int.parse(value);
                     });
-                    print(widget.to);
                   },
                 ),
               ],
@@ -264,7 +287,7 @@ class _UsersPageState extends State<UsersPage> {
                     const SizedBox(
                       width: 22,
                     ),
-                    const Text("Blocked"),
+                    Text(widget.lang!.dictionary["blocked"]!),
                   ],
                 ),
                 Row(
@@ -285,7 +308,7 @@ class _UsersPageState extends State<UsersPage> {
                     const SizedBox(
                       width: 22,
                     ),
-                    const Text("Individual"),
+                    Text(widget.lang!.dictionary["individual"]!),
                   ],
                 ),
               ],
@@ -312,7 +335,7 @@ class _UsersPageState extends State<UsersPage> {
                     const SizedBox(
                       width: 22,
                     ),
-                    const Text("Banned"),
+                    Text(widget.lang!.dictionary["banned"]!),
                   ],
                 ),
                 Row(
@@ -333,7 +356,7 @@ class _UsersPageState extends State<UsersPage> {
                     const SizedBox(
                       width: 22,
                     ),
-                    const Text("Company"),
+                    Text(widget.lang!.dictionary["company"]!),
                   ],
                 ),
               ],
@@ -354,7 +377,7 @@ class _UsersPageState extends State<UsersPage> {
                   PalleteCommon.gradient2,
                 ),
               ),
-              child: const Text("Apply filters"),
+              child: Text(widget.lang!.dictionary["apply_filters"]!),
             ),
           ],
         ),
@@ -362,7 +385,7 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  Widget getTableHeader(double height, List<String> upDownFiltersTitles) {
+  Widget getTableHeader(double height) {
     List<Widget> res = [];
 
     res.add(
@@ -384,8 +407,8 @@ class _UsersPageState extends State<UsersPage> {
         flex: 2,
         child: SizedBox(
           height: height * 0.08,
-          child: const Center(
-            child: Text("Image"),
+          child: Center(
+            child: Text(widget.lang!.dictionary["image"]!),
           ),
         ),
       ),
@@ -394,14 +417,24 @@ class _UsersPageState extends State<UsersPage> {
       const Expanded(flex: 1, child: SizedBox()),
     );
 
-    for (int i = 0; i < upDownFiltersTitles.length; ++i) {
+    List<String> filterTitles = [
+      "Name",
+      "Email",
+      "Phone",
+      "Estates",
+      "Type",
+      "Blocked",
+      "Banned",
+    ];
+
+    for (int i = 0; i < filterTitles.length; ++i) {
       res.add(
         Expanded(
-          flex: i < upDownFiltersTitles.length - 2 ? 2 : 1,
+          flex: i < filterTitles.length - 2 ? 2 : 1,
           child: SizedBox(
             height: height * 0.08,
             child: Center(
-              child: Text(upDownFiltersTitles[i]),
+              child: Text(filterTitles[i]),
             ),
           ),
         ),
@@ -431,8 +464,8 @@ class _UsersPageState extends State<UsersPage> {
           flex: 2,
           child: SizedBox(
             height: height * 0.08,
-            child: const Center(
-              child: Text("Image"),
+            child: Center(
+              child: Text(widget.lang!.dictionary["image"]!),
             ),
           ),
         ),
@@ -442,8 +475,8 @@ class _UsersPageState extends State<UsersPage> {
           flex: 3,
           child: SizedBox(
             height: height * 0.08,
-            child: const Center(
-              child: Text("Name"),
+            child: Center(
+              child: Text(widget.lang!.dictionary["name"]!),
             ),
           ),
         ),
@@ -464,8 +497,8 @@ class _UsersPageState extends State<UsersPage> {
           flex: 3,
           child: SizedBox(
             height: height * 0.08,
-            child: const Center(
-              child: Text("Phone"),
+            child: Center(
+              child: Text(widget.lang!.dictionary["phone_number"]!),
             ),
           ),
         ),
@@ -475,8 +508,8 @@ class _UsersPageState extends State<UsersPage> {
           flex: 2,
           child: SizedBox(
             height: height * 0.08,
-            child: const Center(
-              child: Text("Number of estates"),
+            child: Center(
+              child: Text(widget.lang!.dictionary["number_of_estates"]!),
             ),
           ),
         ),
@@ -486,8 +519,8 @@ class _UsersPageState extends State<UsersPage> {
           flex: 1,
           child: SizedBox(
             height: height * 0.08,
-            child: const Center(
-              child: Text("Type"),
+            child: Center(
+              child: Text(widget.lang!.dictionary["type"]!),
             ),
           ),
         ),
@@ -497,8 +530,8 @@ class _UsersPageState extends State<UsersPage> {
           flex: 1,
           child: SizedBox(
             height: height * 0.08,
-            child: const Center(
-              child: Text("Blocked"),
+            child: Center(
+              child: Text(widget.lang!.dictionary["blocked"]!),
             ),
           ),
         ),
@@ -508,8 +541,8 @@ class _UsersPageState extends State<UsersPage> {
           flex: 1,
           child: SizedBox(
             height: height * 0.08,
-            child: const Center(
-              child: Text("Banned"),
+            child: Center(
+              child: Text(widget.lang!.dictionary["banned"]!),
             ),
           ),
         ),
@@ -521,7 +554,11 @@ class _UsersPageState extends State<UsersPage> {
 
   StreamBuilder getRows(double width, double height, int numOfPages) {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('users').snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .where("typeOfUser", isNotEqualTo: "adm")
+          // .orderBy("email", descending: false)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator(
@@ -541,7 +578,6 @@ class _UsersPageState extends State<UsersPage> {
             return User.toUser(tmpMap);
           }).toList();*/
 
-          print(widget.customers.length);
           widget.customers = [];
 
           snapshot.data.docs.map((DocumentSnapshot doc) {
@@ -554,10 +590,8 @@ class _UsersPageState extends State<UsersPage> {
             widget.customers.add(tmp as Customer);
           }).toList();
 
-          print(widget.customers.length);
-
           numOfPages =
-              widget.customers.length ~/ widget.user.preferences!.usersPerPage;
+              widget.customers.length ~/ widget.user!.preferences.usersPerPage;
 
           List<Widget> rows = [];
 
@@ -584,7 +618,7 @@ class _UsersPageState extends State<UsersPage> {
                     child: SizedBox(
                       height: height * 0.08,
                       child: Center(
-                        child: Image.asset("images/chick.jpg"),
+                        child: Image.asset("images/default_user.png"),
                       ),
                     ),
                   ),
@@ -652,8 +686,8 @@ class _UsersPageState extends State<UsersPage> {
                       height: height * 0.08,
                       child: Tooltip(
                         message: widget.customers[i] is Individual
-                            ? "Individual"
-                            : "Company",
+                            ? widget.lang!.dictionary["individual"]!
+                            : widget.lang!.dictionary["company"]!,
                         child: Icon(
                           widget.customers[i] is Individual
                               ? Icons.person
@@ -739,19 +773,15 @@ class _UsersPageState extends State<UsersPage> {
     return Expanded(
       flex: 1,
       child: DropdownField(
-        labelText: "Users per page",
+        labelText: widget.lang!.dictionary["users_per_page"]!,
         maxWidth: 200,
         callback: (int value) {
-          // widget.user.preferences ??= UserPreferences();
-
           setState(() {
-            widget.user.preferences!.usersPerPage = value;
+            widget.user!.preferences.usersPerPage = value;
           });
         },
         choices: const [5, 10, 15, 25, 50, 100, 200],
-        selected: widget.user.preferences != null
-            ? widget.user.preferences!.usersPerPage
-            : 10,
+        selected: widget.user!.preferences.usersPerPage,
       ),
     );
   }

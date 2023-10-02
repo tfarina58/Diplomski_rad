@@ -1,21 +1,17 @@
-enum Direction { west, north, east, south }
-
-enum EstateType { west, north, east, south }
-
 class EstatePreferences {
-  bool? petsAllowed;
-  bool? smokingAllowed;
-  bool? airConditioning;
-  bool? handicapAccessible;
-  int? designatedParkingSpots;
-  String? outletType;
-  Direction? houseOrientation;
-  bool? acceptingPaymentCards;
-  bool? wifi;
-  bool? pool;
-  bool? kitchen;
-  bool? washingMachine;
-  bool? dryingMachine;
+  bool petsAllowed;
+  bool smokingAllowed;
+  bool airConditioning;
+  bool handicapAccessible;
+  int designatedParkingSpots;
+  String outletType;
+  String houseOrientation;
+  bool acceptingPaymentCards;
+  bool wifi;
+  bool pool;
+  bool kitchen;
+  bool washingMachine;
+  bool dryingMachine;
 
   EstatePreferences({
     this.petsAllowed = false,
@@ -23,14 +19,14 @@ class EstatePreferences {
     this.airConditioning = false,
     this.handicapAccessible = false,
     this.designatedParkingSpots = 0,
-    this.outletType,
-    this.houseOrientation,
-    this.acceptingPaymentCards,
-    this.wifi,
-    this.pool,
-    this.kitchen,
-    this.washingMachine,
-    this.dryingMachine,
+    this.outletType = "C",
+    this.houseOrientation = "N",
+    this.acceptingPaymentCards = false,
+    this.wifi = false,
+    this.pool = false,
+    this.kitchen = false,
+    this.washingMachine = false,
+    this.dryingMachine = false,
   });
 
   /*

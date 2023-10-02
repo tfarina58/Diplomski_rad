@@ -1,4 +1,3 @@
-import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,14 +8,9 @@ import 'package:diplomski_rad/estates/estate-details/estate-details.dart';
 import 'dart:math';
 
 class MapsWidget extends StatefulWidget {
-  User user = Individual.getUser1();
-  List<Estate> estates = [
-    IndividualEstate.getEstate1(),
-    IndividualEstate.getEstate2(),
-    IndividualEstate.getEstate3(),
-  ];
+  List<Estate> estates;
 
-  MapsWidget({Key? key}) : super(key: key);
+  MapsWidget({Key? key, this.estates = const []}) : super(key: key);
 
   @override
   State<MapsWidget> createState() => _MapsWidgetState();
@@ -67,7 +61,9 @@ class _MapsWidgetState extends State<MapsWidget> {
         lng += widget.estates[i].coordinates!.longitude;
       }
     }
-    return LatLng(lat /= widget.estates.length, lng /= widget.estates.length);
+    return LatLng(
+        lat /= (widget.estates.isNotEmpty ? widget.estates.length : 1),
+        lng /= (widget.estates.isNotEmpty ? widget.estates.length : 1));
   }
 
   double getMapZoom(LatLng center) {

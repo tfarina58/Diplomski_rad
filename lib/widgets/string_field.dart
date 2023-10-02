@@ -4,7 +4,7 @@ import 'package:diplomski_rad/other/pallete.dart';
 class StringField extends StatefulWidget {
   final String labelText;
   final Function callback;
-  final String? presetText;
+  final String presetText;
   final int multiline;
   final bool readOnly;
   final bool osbcure;

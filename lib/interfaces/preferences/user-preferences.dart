@@ -1,86 +1,29 @@
-enum Length { kilometers, miles }
-
-enum Temperature { celsius, fahrenheit }
-
-enum Language { english, german }
-
-// enum FontSize { small, medium, large }
-
 class UserPreferences {
-  Length distance;
-  Temperature temperature;
+  String distance;
+  String temperature;
   String dateFormat;
-  Language language;
+  String language;
   int usersPerPage;
   int estatesPerPage;
   // FontSize fontSize;
 
   UserPreferences({
-    this.distance = Length.kilometers,
-    this.temperature = Temperature.celsius,
+    this.distance = "km",
+    this.temperature = "C",
     this.dateFormat = "yyyy-MM-dd",
-    this.language = Language.english,
+    this.language = "en",
     this.usersPerPage = 10,
     this.estatesPerPage = 5,
     // this.fontSize = FontSize.medium,
   });
 
-  String asString(dynamic arg) {
-    if (arg is Length) {
-      if (arg == Length.miles) {
-        return "mi";
-      } else {
-        return "km";
-      }
-    } else if (arg is Temperature) {
-      if (arg == Temperature.fahrenheit) {
-        return "F";
-      } else {
-        return "C";
-      }
-    } else if (arg is Language) {
-      if (arg == Language.german) {
-        return "de";
-      } else {
-        return "en";
-      }
-    } else if (arg is String) {
-      return arg;
-    } else {
-      return "";
-    }
+  // Kelvin to Fahrenheit
+  static double K2F(double k) {
+    return (k - 273.15) * 1.8 + 32;
   }
 
-  static Length toLength(String length) {
-    switch (length) {
-      case "km":
-        return Length.kilometers;
-      case "mi":
-        return Length.miles;
-      default:
-        return Length.kilometers;
-    }
-  }
-
-  static Temperature toTemperature(String temperature) {
-    switch (temperature) {
-      case "C":
-        return Temperature.celsius;
-      case "F":
-        return Temperature.fahrenheit;
-      default:
-        return Temperature.celsius;
-    }
-  }
-
-  static Language toLanguage(String language) {
-    switch (language) {
-      case "en":
-        return Language.english;
-      case "de":
-        return Language.german;
-      default:
-        return Language.english;
-    }
+  // Kelvin to Celsius
+  static double K2C(double k) {
+    return k - 272.15;
   }
 }
