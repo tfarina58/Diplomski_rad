@@ -189,7 +189,7 @@ class EstateRepository {
     try {
       DocumentSnapshot<Map<String, dynamic>> docSnapshot =
           await (await estates.add(estateMap)).get();
-      Map<String, dynamic>? res = await docSnapshot.data();
+      Map<String, dynamic>? res = docSnapshot.data();
 
       if (res == null) return null;
 
@@ -203,13 +203,14 @@ class EstateRepository {
 
   /*static Future<Estate?> readEstate() async {}*/
 
-  static Future<bool> updateEstate(Map<String, dynamic> estateMap) async {
+  static Future<bool> updateEstate(
+      Map<String, dynamic> estateMap, String estateId) async {
     // TODO: email comparation should be done on the backend
 
-    bool success;
+    bool success = false;
 
     try {
-      await estates.doc(estateMap["id"]).update(estateMap);
+      await estates.doc(estateId).update(estateMap);
       success = true;
     } catch (err) {
       print('Error updating document: $err');

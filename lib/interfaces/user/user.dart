@@ -9,6 +9,19 @@ abstract class User {
   abstract String phone;
   abstract UserPreferences preferences;
 
+  static List<String>? convertArray(List<dynamic>? input) {
+    if (input == null || input.isEmpty) {
+      return null;
+    }
+
+    List<String>? output = [];
+    for (dynamic element in input) {
+      output.add(element.toString());
+    }
+
+    return output;
+  }
+
   static User? toUser(Map<String, dynamic> user) {
     if (user['typeOfUser'] == "ind") {
       Individual res = Individual();
@@ -37,6 +50,7 @@ abstract class User {
           .format((user['birthday'] as Timestamp).toDate());
       res.street = user['street'] ?? "";
       res.zip = user['zip'] ?? "";
+      res.numOfEstates = user['numOfEstates'] ?? 0;
 
       return res;
     } else if (user["typeOfUser"] == "com") {
@@ -65,6 +79,7 @@ abstract class User {
       res.companyName = user['email'] ?? "";
       res.street = user['street'] ?? "";
       res.zip = user['zip'] ?? "";
+      res.numOfEstates = user['numOfEstates'] ?? 0;
 
       return res;
     } else if (user["typeOfUser"] == "adm") {
@@ -114,6 +129,7 @@ abstract class User {
         "lastname": user.lastname,
         "birthday": Timestamp(
             DateTime.parse(user.birthday).millisecondsSinceEpoch ~/ 1000, 0),
+        "numOfEstates": user.numOfEstates,
       };
     } else if (user is Company) {
       return {
@@ -140,6 +156,7 @@ abstract class User {
         "ownerFirstname": user.ownerFirstname,
         "ownerLastname": user.ownerLastname,
         "companyName": user.companyName,
+        "numOfEstates": user.numOfEstates,
       };
     } else if (user is Admin) {
       return {
@@ -198,6 +215,7 @@ abstract class Customer extends User {
   abstract String bio;
   abstract bool blocked;
   abstract bool banned;
+  abstract int numOfEstates;
 }
 
 class Company extends Customer {
@@ -228,6 +246,8 @@ class Company extends Customer {
   @override
   bool banned;
   @override
+  int numOfEstates;
+  @override
   UserPreferences preferences; //TODO: somehow remove ?
 
   String ownerFirstname;
@@ -251,6 +271,7 @@ class Company extends Customer {
     this.bio = "",
     this.blocked = false,
     this.banned = false,
+    this.numOfEstates = 0,
   }) : preferences = UserPreferences();
 }
 
@@ -282,6 +303,8 @@ class Individual extends Customer {
   @override
   bool banned;
   @override
+  int numOfEstates;
+  @override
   UserPreferences preferences; //TODO: somehow remove ?
 
   String firstname;
@@ -305,5 +328,6 @@ class Individual extends Customer {
     this.bio = "",
     this.blocked = false,
     this.banned = false,
+    this.numOfEstates = 0,
   }) : preferences = UserPreferences();
 }

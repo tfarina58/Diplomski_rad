@@ -30,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       key: widget._key,
       body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
         child: Center(
           child: Column(
             children: [
@@ -133,7 +134,6 @@ class _LoginPageState extends State<LoginPage> {
         await UserRepository.loginUser(email, password);
 
     if (user != null) {
-      print("User ID: ${user['id']}");
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString("userId", user["id"]);
       await prefs.setString("typeOfUser", user["typeOfUser"] ?? "");

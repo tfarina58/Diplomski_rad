@@ -97,6 +97,10 @@ class LanguageService {
           "washing_machine": "Washing machine",
           "drying_machine": "Drying machine",
           "edit_presentation": "Edit presentation",
+          "delete_estate": "Delete estate",
+          "delete_estate_warning_message":
+              "Are you sure you want to delete your estate?",
+          "cancel": "Cancel",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -191,6 +195,10 @@ class LanguageService {
           "washing_machine": "Waschmaschine",
           "drying_machine": "Trockner",
           "edit_presentation": "Präsentation bearbeiten",
+          "delete_estate": "Immobilien löschen",
+          "delete_estate_warning_message":
+              "Sind Sie sicher, dass Sie Ihre Immobilie löschen möchten?",
+          "cancel": "Abbrechen",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -283,6 +291,10 @@ class LanguageService {
           "washing_machine": "Perilica za rublje",
           "drying_machine": "Sušilica za rublje",
           "edit_presentation": "Uredi prezentaciju",
+          "delete_estate": "Izbriši nekretninu",
+          "delete_estate_warning_message":
+              "Jeste li sigurni da želite izbrisati svoju nekretninu?",
+          "cancel": "Otkaži",
         };
 
         /*if (specific != null && specific.isNotEmpty) {

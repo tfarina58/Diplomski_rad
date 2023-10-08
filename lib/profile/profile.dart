@@ -677,12 +677,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
             fit: BoxFit.fitWidth,
             image: Image(
               fit: BoxFit.fitWidth,
-              image: AssetImage(
-                  user is Individual && user.backgroundImage.isNotEmpty
-                      ? user.backgroundImage
-                      : user is Company && user.backgroundImage.isNotEmpty
-                          ? user.backgroundImage
-                          : "images/background.jpg"),
+              image: AssetImage("images/background.jpg"),
             ).image,
           ),
         ),

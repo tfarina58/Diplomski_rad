@@ -41,6 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     return Scaffold(
       body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
         child: Center(
           child: Column(
             children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/other/pallete.dart';
+import 'package:flutter/services.dart';
 
 class StringField extends StatefulWidget {
   final String labelText;
@@ -10,6 +11,7 @@ class StringField extends StatefulWidget {
   final bool osbcure;
   final double maxWidth;
   final TextInputType inputType;
+  final int? maxNum;
 
   StringField({
     Key? key,
@@ -21,6 +23,7 @@ class StringField extends StatefulWidget {
     this.osbcure = false,
     this.maxWidth = 400,
     this.inputType = TextInputType.multiline,
+    this.maxNum,
   }) : super(key: key);
 
   @override
@@ -35,13 +38,34 @@ class _StringFieldState extends State<StringField> {
         maxWidth: widget.maxWidth,
       ),
       child: TextFormField(
+        inputFormatters: [
+          if (widget.inputType == TextInputType.number)
+            TextInputFormatter.withFunction((oldValue, newValue) {
+              if (newValue.text.isEmpty) {
+                return newValue.copyWith(
+                  text: '0',
+                  selection: const TextSelection.collapsed(offset: 1),
+                );
+              }
+
+              final i = int.tryParse(newValue.text);
+              if (i == null) return oldValue;
+              if (widget.maxNum != null) {
+                if (i > widget.maxNum!) {
+                  return newValue.copyWith(
+                      text: '10',
+                      selection: const TextSelection.collapsed(offset: 2));
+                }
+              }
+              return newValue;
+            }),
+        ],
         obscureText: widget.osbcure,
         readOnly: widget.readOnly,
         textInputAction: TextInputAction.next,
         onChanged: (dynamic value) {
           widget.callback(value);
         },
-        keyboardType: widget.inputType,
         maxLines: widget.multiline,
         maxLength: null,
         decoration: InputDecoration(

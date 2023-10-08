@@ -113,7 +113,6 @@ class _EstatesPageState extends State<EstatesPage> {
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
 
-      print("Estates user ID: ${tmpUserId}");
       setState(() {
         widget.userId = tmpUserId;
         widget.lang = tmpLang;

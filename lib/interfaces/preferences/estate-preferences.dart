@@ -3,7 +3,7 @@ class EstatePreferences {
   bool smokingAllowed;
   bool airConditioning;
   bool handicapAccessible;
-  int designatedParkingSpots;
+  String designatedParkingSpots;
   String outletType;
   String houseOrientation;
   bool acceptingPaymentCards;
@@ -18,7 +18,7 @@ class EstatePreferences {
     this.smokingAllowed = false,
     this.airConditioning = false,
     this.handicapAccessible = false,
-    this.designatedParkingSpots = 0,
+    this.designatedParkingSpots = '0',
     this.outletType = "C",
     this.houseOrientation = "N",
     this.acceptingPaymentCards = false,

@@ -79,7 +79,7 @@ class Estate {
       smokingAllowed: estate['smokingAllowed'] ?? false,
       airConditioning: estate['airConditioning'] ?? false,
       handicapAccessible: estate['handicapAccessible'] ?? false,
-      designatedParkingSpots: estate['designatedParkingSpots'] ?? 0,
+      designatedParkingSpots: estate['designatedParkingSpots'] ?? '0',
       outletType: estate['outletType'] ?? "",
       houseOrientation: estate['houseOrientation'] ?? "",
       acceptingPaymentCards: estate['acceptingPaymentCards'] ?? false,
@@ -97,16 +97,18 @@ class Estate {
     if (estate == null) return null;
 
     return {
-      "id": estate.id,
       // "avatarImage": avatarImage,
       // "backgroundImage": backgroundImage,
-      "ownerId": estate.ownerId,
+      // "ownerId": estate.ownerId, // Should not change?
       "name": estate.name,
       "street": estate.street,
       "zip": estate.zip,
       "city": estate.city,
       "country": estate.country,
-      "coordinates": estate.coordinates,
+      "coordinates": estate.coordinates != null
+          ? GeoPoint(
+              estate.coordinates!.latitude, estate.coordinates!.longitude)
+          : null,
       "phone": estate.phone,
       "acceptingPaymentCards": estate.preferences.acceptingPaymentCards,
       "airConditioning": estate.preferences.airConditioning,
@@ -121,7 +123,6 @@ class Estate {
       "smokingAllowed": estate.preferences.smokingAllowed,
       "washingMachine": estate.preferences.washingMachine,
       "wifi": estate.preferences.wifi,
-      // "password": password,
     };
   }
 

@@ -2,13 +2,16 @@ import 'package:diplomski_rad/components/header.dart';
 import 'package:diplomski_rad/estates/estates.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/interfaces/preferences/user-preferences.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:diplomski_rad/widgets/dropdown_field.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diplomski_rad/services/language.dart';
+import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 
@@ -20,10 +23,12 @@ class UsersPage extends StatefulWidget {
   List<Customer> customers = [];
 
   int currentPage = 0;
+  int numOfPages = 0;
   String searchbarText = "";
 
   bool blocked = false, banned = false;
   bool individual = false, company = false;
+  bool updated = false;
 
   int? from, to;
 
@@ -91,9 +96,6 @@ class _UsersPageState extends State<UsersPage> {
       return const SizedBox();
     }
 
-    int numOfPages =
-        widget.customers.length ~/ widget.user!.preferences.usersPerPage;
-
     return Scaffold(
       appBar: HeaderComponent(
         currentPage: 'UsersPage',
@@ -123,7 +125,7 @@ class _UsersPageState extends State<UsersPage> {
               indent: width * 0.02,
               endIndent: width * 0.02,
             ),
-            getRows(width, height, numOfPages),
+            getRows(width, height),
             SizedBox(
               height: height * 0.05,
             ),
@@ -135,16 +137,14 @@ class _UsersPageState extends State<UsersPage> {
                   const Expanded(flex: 1, child: SizedBox()),
                   getNumOfUsersSelection(),
                   const Expanded(flex: 1, child: SizedBox()),
-                  getPagination(width, height, numOfPages),
+                  getPagination(width, height),
                   const Expanded(flex: 1, child: SizedBox()),
                   Expanded(
                     flex: 1,
                     child: GradientButton(
                       buttonText: widget.lang!.dictionary["scroll_to_top"]!,
                       callback: () {
-                        setState(() {
-                          scrollToTop();
-                        });
+                        scrollToTop();
                       },
                     ),
                   ),
@@ -208,6 +208,12 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   Widget getAdditionalFilters(double width, double height) {
+    int? from = widget.from, to = widget.to;
+    bool banned = widget.banned,
+        blocked = widget.blocked,
+        individual = widget.individual,
+        company = widget.company;
+
     return Dialog(
       insetPadding: EdgeInsets.fromLTRB(
         width * 0.3,
@@ -217,170 +223,187 @@ class _UsersPageState extends State<UsersPage> {
       ),
       backgroundColor: PalleteCommon.backgroundColor,
       alignment: Alignment.center,
-      child: StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) => Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) => Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  "${widget.lang!.dictionary['additional_filters']!}: ",
+                const SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "${widget.lang!.dictionary['number_of_estates']!}: ",
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    StringField(
+                      presetText: from != null ? from.toString() : '',
+                      inputType: TextInputType.number,
+                      maxWidth: 200,
+                      labelText: widget.lang!.dictionary["from"]!,
+                      callback: (dynamic value) {
+                        setState(() {
+                          if (value == null) from = null;
+                          from = int.parse(value);
+                        });
+                      },
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    StringField(
+                      presetText: to != null ? to.toString() : '',
+                      inputType: TextInputType.number,
+                      maxWidth: 200,
+                      labelText: widget.lang!.dictionary["to"]!,
+                      callback: (dynamic value) {
+                        setState(() {
+                          if (value == null) to = null;
+                          to = int.parse(value);
+                        });
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(
-                  width: 16,
+                  height: 10,
                 ),
-                StringField(
-                  presetText: widget.from?.toString() ?? "",
-                  inputType: TextInputType.number,
-                  maxWidth: 200,
-                  labelText: widget.lang!.dictionary["from"]!,
-                  callback: (dynamic value) {
-                    setState(() {
-                      widget.from = int.parse(value);
-                    });
-                  },
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                StringField(
-                  presetText: widget.to?.toString() ?? "",
-                  inputType: TextInputType.number,
-                  maxWidth: 200,
-                  labelText: widget.lang!.dictionary["to"]!,
-                  callback: (dynamic value) {
-                    setState(() {
-                      widget.to = int.parse(value);
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Checkbox(
-                      activeColor: PalleteCommon.gradient2,
-                      value: widget.blocked,
-                      onChanged: (bool? value) {
-                        if (value == null) return;
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          activeColor: PalleteCommon.gradient2,
+                          value: blocked,
+                          onChanged: (bool? value) {
+                            if (value == null) return;
 
-                        setState(() {
-                          widget.blocked = value;
-                        });
-                      },
+                            setState(() {
+                              blocked = value;
+                              if (value == false) banned = false;
+                            });
+                          },
+                        ),
+                        const SizedBox(
+                          width: 22,
+                        ),
+                        Text(widget.lang!.dictionary["blocked"]!),
+                      ],
                     ),
-                    const SizedBox(
-                      width: 22,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          activeColor: PalleteCommon.gradient2,
+                          value: individual,
+                          onChanged: (bool? value) {
+                            if (value == null) return;
+
+                            setState(() {
+                              individual = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(
+                          width: 22,
+                        ),
+                        Text(widget.lang!.dictionary["individual"]!),
+                      ],
                     ),
-                    Text(widget.lang!.dictionary["blocked"]!),
                   ],
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Checkbox(
-                      activeColor: PalleteCommon.gradient2,
-                      value: widget.individual,
-                      onChanged: (bool? value) {
-                        if (value == null) return;
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          activeColor: PalleteCommon.gradient2,
+                          value: banned,
+                          onChanged: (bool? value) {
+                            if (value == null) return;
 
-                        setState(() {
-                          widget.individual = value;
-                        });
-                      },
+                            setState(() {
+                              banned = value;
+                              if (value == true) blocked = true;
+                            });
+                          },
+                        ),
+                        const SizedBox(
+                          width: 22,
+                        ),
+                        Text(widget.lang!.dictionary["banned"]!),
+                      ],
                     ),
-                    const SizedBox(
-                      width: 22,
-                    ),
-                    Text(widget.lang!.dictionary["individual"]!),
-                  ],
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Checkbox(
-                      activeColor: PalleteCommon.gradient2,
-                      value: widget.banned,
-                      onChanged: (bool? value) {
-                        if (value == null) return;
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          activeColor: PalleteCommon.gradient2,
+                          value: company,
+                          onChanged: (bool? value) {
+                            if (value == null) return;
 
-                        setState(() {
-                          widget.banned = value;
-                        });
-                      },
+                            setState(() {
+                              company = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(
+                          width: 22,
+                        ),
+                        Text(widget.lang!.dictionary["company"]!),
+                      ],
                     ),
-                    const SizedBox(
-                      width: 22,
-                    ),
-                    Text(widget.lang!.dictionary["banned"]!),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Checkbox(
-                      activeColor: PalleteCommon.gradient2,
-                      value: widget.company,
-                      onChanged: (bool? value) {
-                        if (value == null) return;
-
-                        setState(() {
-                          widget.company = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(
-                      width: 22,
-                    ),
-                    Text(widget.lang!.dictionary["company"]!),
                   ],
                 ),
               ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() {});
-              },
-              style: ButtonStyle(
-                fixedSize: MaterialStatePropertyAll(
-                  Size(width * 0.15, height * 0.05),
-                ),
-                backgroundColor: const MaterialStatePropertyAll(
-                  PalleteCommon.gradient2,
-                ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                widget.from = from;
+                widget.to = to;
+                widget.blocked = blocked;
+                widget.banned = banned;
+                widget.individual = individual;
+                widget.company = company;
+              });
+              Navigator.pop(context);
+            },
+            style: ButtonStyle(
+              fixedSize: MaterialStatePropertyAll(
+                Size(width * 0.15, height * 0.05),
               ),
-              child: Text(widget.lang!.dictionary["apply_filters"]!),
+              backgroundColor: const MaterialStatePropertyAll(
+                PalleteCommon.gradient2,
+              ),
             ),
-          ],
-        ),
+            child: Text(widget.lang!.dictionary["apply_filters"]!),
+          ),
+        ],
       ),
     );
   }
@@ -552,13 +575,9 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  StreamBuilder getRows(double width, double height, int numOfPages) {
+  StreamBuilder getRows(double width, double height) {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .where("typeOfUser", isNotEqualTo: "adm")
-          // .orderBy("email", descending: false)
-          .snapshots(),
+      stream: streamQueryBuilder(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator(
@@ -567,16 +586,10 @@ class _UsersPageState extends State<UsersPage> {
             backgroundColor: PalleteCommon.backgroundColor,
           );
         } else if (snapshot.hasError) {
+          print(snapshot.error);
           return Text('Error: ${snapshot.error}');
         } else {
           final documents = snapshot.data.docs;
-
-          /*var users = snapshot.data.docs.map((DocumentSnapshot doc) {
-            Map<String, dynamic>? tmpMap = doc.data() as Map<String, dynamic>?;
-            if (tmpMap == null) return null;
-
-            return User.toUser(tmpMap);
-          }).toList();*/
 
           widget.customers = [];
 
@@ -590,12 +603,29 @@ class _UsersPageState extends State<UsersPage> {
             widget.customers.add(tmp as Customer);
           }).toList();
 
-          numOfPages =
-              widget.customers.length ~/ widget.user!.preferences.usersPerPage;
+          // TODO: find a better solution
+          if (!widget.updated) {
+            widget.updated = true;
+            Future.delayed(
+              const Duration(milliseconds: 0),
+              () {
+                setState(() {
+                  widget.numOfPages = widget.customers.length ~/
+                      widget.user!.preferences.usersPerPage;
+                });
+              },
+            );
+          }
 
           List<Widget> rows = [];
 
-          for (int i = 0; i < documents.length; ++i) {
+          for (int i =
+                  widget.currentPage * widget.user!.preferences.usersPerPage;
+              i <
+                      (widget.currentPage + 1) *
+                          widget.user!.preferences.usersPerPage &&
+                  i < widget.customers.length;
+              ++i) {
             rows.add(
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -670,10 +700,13 @@ class _UsersPageState extends State<UsersPage> {
                         child: ElevatedButton(
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                                PalleteCommon.highlightColor),
+                              PalleteCommon.backgroundColor,
+                            ),
                           ),
                           onPressed: () => goToEstatesPage(),
-                          child: const Text("3"),
+                          child: Text(
+                            widget.customers[i].numOfEstates.toString(),
+                          ),
                         ),
                       ),
                     ),
@@ -761,12 +794,139 @@ class _UsersPageState extends State<UsersPage> {
               ),
             );
           }
+
           return Column(
             children: rows,
           );
         }
       },
     );
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamQueryBuilder() {
+    print(widget.from);
+    print(widget.to);
+    print(widget.blocked);
+    print(widget.banned);
+    print(widget.individual);
+    print(widget.company);
+    CollectionReference<Map<String, dynamic>> users =
+        FirebaseFirestore.instance.collection('users');
+    Query<Map<String, dynamic>> tmpQuery;
+
+    Stream<QuerySnapshot<Map<String, dynamic>>> baseQuery =
+        users.where("typeOfUser", isNotEqualTo: "adm").snapshots();
+
+    // Query for documents that meet the first condition
+    Stream<QuerySnapshot<Map<String, dynamic>>> popupQuery;
+
+    if (widget.banned) {
+      tmpQuery = users.where("banned", isEqualTo: true);
+    } else if (widget.blocked) {
+      tmpQuery = users.where("blocked", isEqualTo: true);
+    } else {
+      tmpQuery = users.where("blocked", isEqualTo: false);
+    }
+    if (widget.individual && widget.company ||
+        !widget.individual && !widget.company) {
+      // Don't do anything
+    } else {
+      if (widget.individual) {
+        tmpQuery = tmpQuery.where("typeOfUser", isEqualTo: "ind");
+      } else if (widget.company) {
+        tmpQuery = tmpQuery.where("typeOfUser", isEqualTo: "com");
+      }
+    }
+    if (widget.from != null && widget.to != null) {
+      tmpQuery = tmpQuery
+          .where("numOfEstates",
+              isGreaterThanOrEqualTo:
+                  widget.from! > widget.to! ? widget.to : widget.from)
+          .where("numOfEstates",
+              isLessThanOrEqualTo:
+                  widget.from! > widget.to! ? widget.from : widget.to);
+    } else if (widget.from != null) {
+      tmpQuery = tmpQuery.where("numOfEstates", isGreaterThan: widget.from);
+    } else if (widget.to != null) {
+      tmpQuery = tmpQuery.where("numOfEstates", isLessThanOrEqualTo: widget.to);
+    }
+    popupQuery = tmpQuery.snapshots();
+
+    // Query for documents that meet the second condition
+    /*Stream<QuerySnapshot<Map<String, dynamic>>> emailQuery =
+        users.where('email', arrayContains: widget.searchbarText).snapshots();
+
+    Stream<QuerySnapshot<Map<String, dynamic>>> phoneQuery =
+        users.where('phone', arrayContains: widget.searchbarText).snapshots();
+
+    Stream<QuerySnapshot<Map<String, dynamic>>> nameQuery =
+        users.where('email', arrayContains: widget.searchbarText).snapshots();*/
+
+    // Combine the two streams using the merge operator
+    // !!! Base query cannot be combined with other queries !!!
+    if (checkFiltersInactivity()) {
+      return baseQuery;
+    } else {
+      return popupQuery;
+
+      // TODO: Other streams need to be fixed
+      /*Stream<QuerySnapshot<Map<String, dynamic>>> mergedStream =
+          Rx.combineLatest5(
+              baseQuery, popupQuery, emailQuery, phoneQuery, nameQuery,
+              (a, b, c, d, e) {
+        Set<String> ids = <String>{};
+
+        for (int i = 0; i < a.docs.length; ++i) {
+          if (!ids.contains(a.docs[i].id)) {
+            ids.add(a.docs[i].id);
+          }
+        }
+
+        for (int i = 0; i < b.docs.length; ++i) {
+          if (!ids.contains(b.docs[i].id)) {
+            a.docs.add(b.docs[i]);
+            ids.add(b.docs[i].id);
+          }
+        }
+
+        for (int i = 0; i < c.docs.length; ++i) {
+          if (!ids.contains(c.docs[i].id)) {
+            a.docs.add(c.docs[i]);
+            ids.add(c.docs[i].id);
+          }
+        }
+
+        for (int i = 0; i < d.docs.length; ++i) {
+          if (!ids.contains(d.docs[i].id)) {
+            a.docs.add(d.docs[i]);
+            ids.add(d.docs[i].id);
+          }
+        }
+
+        for (int i = 0; i < e.docs.length; ++i) {
+          if (!ids.contains(e.docs[i].id)) {
+            a.docs.add(e.docs[i]);
+            ids.add(e.docs[i].id);
+          }
+        }
+
+        print("Count: ${a.docChanges.length}");
+        print("---------------------------");
+
+        return a;
+      });
+      
+      return mergedStream;*/
+    }
+  }
+
+  bool checkFiltersInactivity() {
+    return !widget.banned &&
+        !widget.blocked &&
+        !widget.individual &&
+        !widget.company &&
+        (widget.from == null || widget.from == 0) &&
+        (widget.to == null || widget.to == 0);
   }
 
   Widget getNumOfUsersSelection() {
@@ -778,6 +938,9 @@ class _UsersPageState extends State<UsersPage> {
         callback: (int value) {
           setState(() {
             widget.user!.preferences.usersPerPage = value;
+            widget.numOfPages = widget.customers.length ~/
+                widget.user!.preferences.usersPerPage;
+            widget.currentPage = 0;
           });
         },
         choices: const [5, 10, 15, 25, 50, 100, 200],
@@ -786,10 +949,10 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  Widget getPagination(double width, double height, int numOfPages) {
+  Widget getPagination(double width, double height) {
     List<Widget> res = [];
 
-    if (numOfPages == 0) {
+    if (widget.numOfPages == 0) {
       return const Expanded(
         flex: 1,
         child: SizedBox(),
@@ -851,7 +1014,7 @@ class _UsersPageState extends State<UsersPage> {
         ),
       );
     }
-    if (widget.currentPage != 0 && widget.currentPage != numOfPages) {
+    if (widget.currentPage != 0 && widget.currentPage != widget.numOfPages) {
       res.add(
         Expanded(
           flex: 1,
@@ -875,7 +1038,7 @@ class _UsersPageState extends State<UsersPage> {
         ),
       );
     }
-    if (widget.currentPage <= numOfPages - 1) {
+    if (widget.currentPage <= widget.numOfPages - 1) {
       res.add(
         Expanded(
           flex: 1,
@@ -905,15 +1068,15 @@ class _UsersPageState extends State<UsersPage> {
         child: InkWell(
           onTap: () {
             setState(() {
-              widget.currentPage = numOfPages;
+              widget.currentPage = widget.numOfPages;
             });
           },
           child: SizedBox(
             height: width * 0.04,
             child: Center(
               child: Text(
-                (numOfPages + 1).toString(),
-                style: widget.currentPage == numOfPages
+                (widget.numOfPages + 1).toString(),
+                style: widget.currentPage == widget.numOfPages
                     ? const TextStyle(
                         color: PalleteCommon.gradient2,
                         fontSize: 22,
@@ -930,6 +1093,7 @@ class _UsersPageState extends State<UsersPage> {
         ),
       ),
     );
+
     return Expanded(
       flex: 1,
       child: Row(
