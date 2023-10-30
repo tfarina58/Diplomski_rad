@@ -39,6 +39,8 @@ class _CalendarFieldState extends State<CalendarField> {
 
     textController.text = DateFormat(widget.dateFormat).format(widget.tmpDate!);
 
+    print(widget.dateFormat);
+
     return ConstrainedBox(
       constraints: const BoxConstraints(
         maxWidth: 400,

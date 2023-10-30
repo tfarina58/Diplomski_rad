@@ -11,6 +11,7 @@ import 'package:diplomski_rad/interfaces/preferences/user-preferences.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:intl/intl.dart';
+import 'package:diplomski_rad/services/language.dart';
 
 class RegisterPage extends StatefulWidget {
   String firstname = "Toni";
@@ -26,6 +27,8 @@ class RegisterPage extends StatefulWidget {
   String password = "password";
   String repeatPassword = "password";
   bool keepLoggedIn = false;
+
+  LanguageService lang = LanguageService.getInstance("en");
 
   RegisterPage({Key? key}) : super(key: key);
 
@@ -50,23 +53,28 @@ class _RegisterPageState extends State<RegisterPage> {
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height * 0.06,
               ),
-              const Text(
-                'Sign up.',
-                style: TextStyle(
+              Text(
+                widget.lang.dictionary["sign_up"]!,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 50,
                 ),
               ),
               const SizedBox(height: 50),
               DropdownField(
-                labelText: 'Type of customer',
-                choices: const ["Individual", "Company"],
-                selected: widget.typeOfUser == "ind" ? "Individual" : "Company",
+                labelText: widget.lang.dictionary["type_of_customer"]!,
+                choices: [
+                  widget.lang.dictionary["individual"]!,
+                  widget.lang.dictionary["company"]!
+                ],
+                selected: widget.typeOfUser == "ind"
+                    ? widget.lang.dictionary["individual"]!
+                    : widget.lang.dictionary["company"]!,
                 callback: (String value) {
                   setState(() {
-                    if (value == "Individual") {
+                    if (value == widget.lang.dictionary["individual"]!) {
                       widget.typeOfUser = "ind";
-                    } else if (value == "Company") {
+                    } else if (value == widget.lang.dictionary["company"]!) {
                       widget.typeOfUser = "com";
                     }
                   });
@@ -76,36 +84,36 @@ class _RegisterPageState extends State<RegisterPage> {
               widget.typeOfUser == "ind"
                   ? StringField(
                       presetText: widget.firstname,
-                      labelText: 'First name',
+                      labelText: widget.lang.dictionary["firstname"]!,
                       callback: (value) => widget.firstname = value,
                     )
                   : StringField(
                       presetText: widget.ownerFirstname,
-                      labelText: 'Owner\'s first name',
+                      labelText: widget.lang.dictionary["owner_firstname"]!,
                       callback: (value) => widget.ownerFirstname = value,
                     ),
               const SizedBox(height: 15),
               widget.typeOfUser == "ind"
                   ? StringField(
                       presetText: widget.lastname,
-                      labelText: 'Last name',
+                      labelText: widget.lang.dictionary["lastname"]!,
                       callback: (value) => widget.lastname = value,
                     )
                   : StringField(
                       presetText: widget.ownerLastname,
-                      labelText: 'Owner\'s last name',
+                      labelText: widget.lang.dictionary["owner_lastname"]!,
                       callback: (value) => widget.ownerLastname = value,
                     ),
               const SizedBox(height: 15),
               widget.typeOfUser == "ind"
                   ? CalendarField(
                       selectedDate: widget.birthday,
-                      labelText: 'Date of birth',
+                      labelText: widget.lang.dictionary["date_of_birth"]!,
                       callback: (DateTime value) => widget.birthday = value,
                     )
                   : StringField(
                       presetText: widget.companyName,
-                      labelText: 'Company\'s name',
+                      labelText: widget.lang.dictionary["company_name"]!,
                       callback: (value) => widget.companyName = value,
                     ),
               Divider(
@@ -124,23 +132,21 @@ class _RegisterPageState extends State<RegisterPage> {
               StringField(
                 osbcure: true,
                 presetText: widget.password,
-                labelText: 'Password',
+                labelText: widget.lang.dictionary["password"]!,
                 callback: (value) => widget.password = value,
               ),
               const SizedBox(height: 15),
               StringField(
                 osbcure: true,
                 presetText: widget.repeatPassword,
-                labelText: 'Repeat password',
+                labelText: widget.lang.dictionary["repeat_password"]!,
                 callback: (value) => widget.repeatPassword = value,
               ),
               const SizedBox(height: 20),
               GradientButton(
-                  buttonText: 'Sign up',
+                  buttonText: widget.lang.dictionary["sign_up"]!,
                   callback: () {
-                    setState(() {
-                      signUp(width, height);
-                    });
+                    signUp(width, height);
                   }),
               const SizedBox(height: 20),
               Row(
@@ -155,7 +161,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           widget.keepLoggedIn = value!;
                         });
                       }),
-                  const Text("Keep me logged in."),
+                  Text(widget.lang.dictionary["keep_me_logged_in"]!),
                 ],
               ),
               const SizedBox(height: 15),
@@ -163,7 +169,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () => toLoginPage(),
-                  child: const Text("Already have an account? Sign in here."),
+                  child:
+                      Text(widget.lang.dictionary["have_account_login_here"]!),
                 ),
               ),
             ],
@@ -187,8 +194,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (user == null) {
       // TODO: fix colors!
       final snackBar = SnackBar(
-        content: const Text(
-            'There was an error while creating your account. Please try again (later)...'),
+        content: Text(widget.lang.dictionary["cant_register"]!),
         backgroundColor: (Colors.white),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
@@ -199,17 +205,16 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         closeIconColor: PalleteCommon.gradient2,
         action: SnackBarAction(
-          label: 'Dismiss',
+          label: widget.lang.dictionary["dismiss"]!,
           onPressed: () {},
         ),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      ;
       return;
     }
     // TODO: fix colors!
     final snackBar = SnackBar(
-      content: const Text('Your account has successfully been created!'),
+      content: Text(widget.lang.dictionary["account_successfully_created"]!),
       backgroundColor: (Colors.white),
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.only(
@@ -220,7 +225,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
-        label: 'Dismiss',
+        label: widget.lang.dictionary["dismiss"]!,
         onPressed: () {},
       ),
     );

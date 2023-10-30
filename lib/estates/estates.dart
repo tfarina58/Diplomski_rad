@@ -22,6 +22,7 @@ class EstatesPage extends StatefulWidget {
   EstatesPage({
     Key? key,
     this.showEmptyCard = true,
+    this.userId,
   }) : super(key: key);
 
   @override
@@ -51,34 +52,40 @@ class _EstatesPageState extends State<EstatesPage> {
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(
                   height: 26,
                 ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: width * 0.2,
+                    const Expanded(child: SizedBox()),
+                    Expanded(
+                      flex: 2,
+                      child: optionButton(
+                        width,
+                        height,
+                        () => setState(() {
+                          widget.choice = UserChoice.list;
+                        }),
+                        widget.lang!.dictionary["list"]!,
+                      ),
                     ),
-                    optionButton(
-                      width,
-                      height,
-                      () => setState(() {
-                        widget.choice = UserChoice.list;
-                      }),
-                      widget.lang!.dictionary["list"]!,
+                    Expanded(
+                      flex: 2,
+                      child: optionButton(
+                        width,
+                        height,
+                        () => setState(() {
+                          widget.choice = UserChoice.map;
+                        }),
+                        widget.lang!.dictionary["map"]!,
+                      ),
                     ),
-                    optionButton(
-                      width,
-                      height,
-                      () => setState(() {
-                        widget.choice = UserChoice.map;
-                      }),
-                      widget.lang!.dictionary["map"]!,
-                    ),
-                    SizedBox(
-                      width: width * 0.2,
-                    ),
+                    const Expanded(child: SizedBox()),
                   ],
                 ),
                 const SizedBox(
@@ -87,7 +94,11 @@ class _EstatesPageState extends State<EstatesPage> {
                 if (widget.choice == UserChoice.map)
                   getMap(width, height)
                 else
-                  ...getList(cardSize),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: getList(cardSize),
+                  )
               ],
             ),
           ),
@@ -102,7 +113,7 @@ class _EstatesPageState extends State<EstatesPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = prefs.getString("userId");
+      String? tmpUserId = widget.userId ?? prefs.getString("userId");
       String? tmpTypeOfUser = prefs.getString("typeOfUser");
       String? tmpAvatarImage = prefs.getString("avatarImage");
       String? tmpLanguage = prefs.getString("language");
@@ -118,7 +129,7 @@ class _EstatesPageState extends State<EstatesPage> {
         widget.lang = tmpLang;
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["userImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
       });
     });
   }
@@ -286,31 +297,28 @@ class _EstatesPageState extends State<EstatesPage> {
 
   Widget optionButton(
       double width, double height, Function onPressed, String title) {
-    return Expanded(
-      flex: 1,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(
-            Radius.circular(3),
-          ),
-          border: Border.all(
-            color: Colors.white,
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(
+          Radius.circular(3),
         ),
-        width: width * 0.4,
-        height: height * 0.05,
-        child: ElevatedButton(
-          style: const ButtonStyle(
-            backgroundColor:
-                MaterialStatePropertyAll(PalleteCommon.backgroundColor),
-          ),
-          onPressed: () => onPressed(),
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: PalleteCommon.gradient2,
-              fontWeight: FontWeight.bold,
-            ),
+        border: Border.all(
+          color: Colors.white,
+        ),
+      ),
+      width: width * 0.4,
+      height: height * 0.05,
+      child: ElevatedButton(
+        style: const ButtonStyle(
+          backgroundColor:
+              MaterialStatePropertyAll(PalleteCommon.backgroundColor),
+        ),
+        onPressed: () => onPressed(),
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: PalleteCommon.gradient2,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

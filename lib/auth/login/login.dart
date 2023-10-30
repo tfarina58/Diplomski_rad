@@ -1,4 +1,5 @@
 import 'package:diplomski_rad/auth/register/register.dart';
+import 'package:diplomski_rad/services/language.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
@@ -14,6 +15,7 @@ class LoginPage extends StatefulWidget {
   bool keepLoggedIn = false;
   String email = "tfarina58@gmail.com";
   String password = "password";
+  LanguageService lang = LanguageService.getInstance("en");
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -40,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: MediaQuery.of(context).size.height * 0.1,
               ),
               const Text(
-                'Sign in.',
+                'Sign in',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 50,
@@ -49,13 +51,13 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 50),
               SocialButton(
                 iconPath: 'svgs/google.svg',
-                label: 'Continue with Google',
+                label: widget.lang.dictionary["sign_in_with_google"]!,
                 method: () {},
               ),
               const SizedBox(height: 20),
               SocialButton(
                 iconPath: 'svgs/facebook.svg',
-                label: 'Continue with Facebook',
+                label: widget.lang.dictionary["sign_in_with_facebook"]!,
                 method: () {},
                 horizontalPadding: 90,
               ),
@@ -78,14 +80,14 @@ class _LoginPageState extends State<LoginPage> {
               StringField(
                 osbcure: true,
                 presetText: widget.password,
-                labelText: 'Password',
+                labelText: widget.lang.dictionary["password"]!,
                 callback: (value) => setState(() {
                   widget.password = value;
                 }),
               ),
               const SizedBox(height: 20),
               GradientButton(
-                buttonText: 'Sign in',
+                buttonText: widget.lang.dictionary["sign_in"]!,
                 callback: () => setState(() {
                   signIn(
                     width,
@@ -110,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                       });
                     },
                   ),
-                  const Text("Keep me logged in."),
+                  Text(widget.lang.dictionary["keep_me_logged_in"]!),
                 ],
               ),
               const SizedBox(height: 15),
@@ -118,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () => toRegisterPage(),
-                  child: const Text("Don't have an account? Sign up here."),
+                  child: Text(widget.lang.dictionary["dont_have_account_register_here"]!),
                 ),
               ),
             ],
@@ -133,42 +135,98 @@ class _LoginPageState extends State<LoginPage> {
     Map<String, dynamic>? user =
         await UserRepository.loginUser(email, password);
 
+    // TODO: fix colors!
+    SnackBar feedback;
     if (user != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("userId", user["id"]);
-      await prefs.setString("typeOfUser", user["typeOfUser"] ?? "");
-      await prefs.setString("language", user["language"] ?? "en");
-      await prefs.setString("avatarImage", user["avatarImage"] ?? "");
-      await prefs.setString("backgroundImage", user["backgroundImage"] ?? "");
+      if (user["banned"]) {
+        feedback = SnackBar(
+          content: Text(
+            widget.lang.dictionary["banned_by_admin"]!,
+          ),
+          backgroundColor: (Colors.white),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom: height * 0.85,
+            left: width * 0.8,
+            right: width * 0.02,
+            top: height * 0.02,
+          ),
+          closeIconColor: PalleteCommon.gradient2,
+          action: SnackBarAction(
+            label: 'Dismiss',
+            onPressed: () {},
+          ),
+        );
+      } else if (user["blocked"]) {
+        feedback = SnackBar(
+          content: Text(
+            widget.lang.dictionary["blocked_by_admin"]!,
+          ),
+          backgroundColor: (Colors.white),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom: height * 0.85,
+            left: width * 0.8,
+            right: width * 0.02,
+            top: height * 0.02,
+          ),
+          closeIconColor: PalleteCommon.gradient2,
+          action: SnackBarAction(
+            label: 'Dismiss',
+            onPressed: () {},
+          ),
+        );
+      } else {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString("userId", user["id"]);
+        await prefs.setString("typeOfUser", user["typeOfUser"] ?? "");
+        await prefs.setString("language", user["language"] ?? "en");
+        await prefs.setString("avatarImage", user["avatarImage"] ?? "");
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
+        feedback = SnackBar(
+          content: Text(widget.lang.dictionary["successful_login"]!),
+          backgroundColor: (Colors.white),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom: height * 0.85,
+            left: width * 0.8,
+            right: width * 0.02,
+            top: height * 0.02,
+          ),
+          closeIconColor: PalleteCommon.gradient2,
+          action: SnackBarAction(
+            label: widget.lang.dictionary["dismiss"]!,
+            onPressed: () {},
+          ),
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+      }
+    } else {
+      feedback = SnackBar(
+        content: Text(widget.lang.dictionary["cant_log_in"]!),
+        backgroundColor: (Colors.white),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: height * 0.85,
+          left: width * 0.8,
+          right: width * 0.02,
+          top: height * 0.02,
+        ),
+        closeIconColor: PalleteCommon.gradient2,
+        action: SnackBarAction(
+          label: widget.lang.dictionary["dismiss"]!,
+          onPressed: () {},
         ),
       );
-      return;
     }
 
-    // TODO: fix colors!
-    final snackBar = SnackBar(
-      content: const Text(
-          'There was an error while logging in. Please try again (later)...'),
-      backgroundColor: (Colors.white),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: height * 0.85,
-        left: width * 0.8,
-        right: width * 0.02,
-        top: height * 0.02,
-      ),
-      closeIconColor: PalleteCommon.gradient2,
-      action: SnackBarAction(
-        label: 'Dismiss',
-        onPressed: () {},
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    ScaffoldMessenger.of(context).showSnackBar(feedback);
   }
 
   void toRegisterPage() {

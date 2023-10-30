@@ -1,12 +1,11 @@
 import 'package:diplomski_rad/interfaces/preferences/user-preferences.dart';
 import 'package:diplomski_rad/services/language.dart';
+import 'package:diplomski_rad/widgets/dropzone_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/components/header.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:diplomski_rad/other/pallete.dart';
-import 'package:flutter_dropzone/flutter_dropzone.dart';
-import 'package:flutter/foundation.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/calendar_field.dart';
@@ -18,11 +17,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   Map<String, dynamic> headerValues = <String, dynamic>{};
-  String userId = "";
+  String userId;
   User? user;
   LanguageService? lang;
 
-  ProfilePage({Key? key}) : super(key: key);
+  ProfilePage({Key? key, this.userId = ""}) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -34,9 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
-    print("Profile (build): ${widget.lang?.language}");
-
-    if (widget.lang == null) {
+    if (widget.lang == null || widget.userId.isEmpty) {
       return const SizedBox();
     }
 
@@ -64,13 +61,19 @@ class _ProfilePageState extends State<ProfilePage> {
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
                   } else {
-                    final document = snapshot.data?.data();
-
+                    final document = snapshot.data;
                     if (document == null) {
                       return Text('Error: ${snapshot.error}');
                     }
 
-                    User? tmp = User.toUser(document);
+                    Map<String, dynamic>? userMap = document.data();
+                    if (userMap == null) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+
+                    userMap["id"] = document.id;
+                    User? tmp = User.toUser(userMap);
+
                     if (tmp == null) {
                       return const Text("Error while converting data!");
                     }
@@ -86,20 +89,32 @@ class _ProfilePageState extends State<ProfilePage> {
                           padding: EdgeInsets.fromLTRB(width * 0.2, 0, 0, 0),
                           child: Row(
                             children: [
-                              Text(
-                                widget.user!.email,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 22),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  widget.user!.email,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 22),
+                                ),
                               ),
-                              SizedBox(width: width * 0.4),
-                              GradientButton(
-                                buttonText:
-                                    widget.lang!.dictionary["save_changes"]!,
-                                callback: () {
-                                  saveChanges(width, height);
-                                },
-                                colors: PalleteSuccess.getGradients(),
+                              const Expanded(flex: 3, child: SizedBox()),
+                              Expanded(
+                                flex: 2,
+                                child: GradientButton(
+                                  buttonText:
+                                      widget.lang!.dictionary["save_changes"]!,
+                                  callback: () {
+                                    /*
+                                      FirebaseStorageService storage = FirebaseStorageService();
+                                      storage.uploadFile(widget.user.id, droppedFile!.url);
+                                    */
+                                    saveChanges(width, height);
+                                  },
+                                  colors: PalleteSuccess.getGradients(),
+                                ),
                               ),
+                              const Expanded(flex: 1, child: SizedBox()),
                             ],
                           ),
                         ),
@@ -254,11 +269,11 @@ class _ProfilePageState extends State<ProfilePage> {
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
 
       setState(() {
-        widget.userId = tmpUserId;
-        widget.lang = tmpLang;
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["userImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
+        widget.userId = widget.userId.isNotEmpty ? widget.userId : tmpUserId;
+        widget.lang = tmpLang;
       });
     });
   }
@@ -310,11 +325,10 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get31() {
     if (widget.user is Individual) {
       return CalendarField(
-        selectedDate: (widget.user as Individual).birthday.isNotEmpty
-            ? DateTime.parse((widget.user as Individual).birthday)
-            : DateTime.now(),
+        dateFormat: widget.user!.preferences.dateFormat,
+        selectedDate: (widget.user as Individual).birthday,
         labelText: widget.lang!.dictionary["date_of_birth"]!,
-        callback: (String value) =>
+        callback: (DateTime value) =>
             (widget.user as Individual).birthday = value,
       );
     } else if (widget.user is Company) {
@@ -489,17 +503,10 @@ class _ProfilePageState extends State<ProfilePage> {
     bool res = await UserRepository.updateUser(userMap);
     if (res) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      // print("Saved: ${widget.user!.preferences!.language}");
       await prefs.setString("language", widget.user!.preferences.language);
       await prefs.setString(
         "avatarImage",
         widget.user is Customer ? (widget.user as Customer).avatarImage : "",
-      );
-      await prefs.setString(
-        "backgroundImage",
-        widget.user is Customer
-            ? (widget.user as Customer).backgroundImage
-            : "",
       );
 
       LanguageService tmpLang =
@@ -556,6 +563,7 @@ class ImagesDisplay extends StatefulWidget {
   User user;
   LanguageService lang;
   UserChoice choice = UserChoice.editImage;
+  DroppedFile? droppedFile;
 
   ImagesDisplay({Key? key, required this.user, required this.lang})
       : super(key: key);
@@ -565,12 +573,6 @@ class ImagesDisplay extends StatefulWidget {
 }
 
 class _ImagesDisplayState extends State<ImagesDisplay> {
-  late DropzoneViewController dvController;
-
-  bool isHovering = false;
-  Uint8List? selectedImage;
-  Uint8List? profileImage;
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -610,7 +612,15 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                             shape: BoxShape.circle,
                             image: DecorationImage(
                               fit: BoxFit.cover,
-                              image: getAvatarImage(),
+                              image: widget.user is Customer &&
+                                      (widget.user as Customer)
+                                          .avatarImage
+                                          .isNotEmpty
+                                  ? Image.network(
+                                      (widget.user as Customer).avatarImage,
+                                    ).image
+                                  : Image.asset('images/default_user.png')
+                                      .image,
                             ),
                           ),
                         ),
@@ -643,22 +653,10 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     );
   }
 
-  ImageProvider<Object> getAvatarImage() {
-    if (profileImage != null) {
-      return Image.memory(profileImage!).image;
-    } else if (widget.user is Individual &&
-        (widget.user as Individual).avatarImage.isNotEmpty) {
-      return Image.asset((widget.user as Individual).avatarImage).image;
-    } else if (widget.user is Company &&
-        (widget.user as Company).avatarImage.isNotEmpty) {
-      return Image.asset((widget.user as Individual).avatarImage).image;
-    } else {
-      return Image.asset('images/default_user.png').image;
-    }
-  }
-
   Widget backgroundImage(BuildContext context, User user) {
-    if (user is Admin) {
+    if (user is Admin ||
+        widget.user is Customer &&
+            (widget.user as Customer).backgroundImage.isEmpty) {
       return Container(
         margin: const EdgeInsets.only(bottom: 50),
         decoration: const BoxDecoration(
@@ -675,10 +673,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
           image: DecorationImage(
             scale: 0.01,
             fit: BoxFit.fitWidth,
-            image: Image(
-              fit: BoxFit.fitWidth,
-              image: AssetImage("images/background.jpg"),
-            ).image,
+            image:
+                Image.network((widget.user as Customer).backgroundImage).image,
           ),
         ),
       );
@@ -750,67 +746,43 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                     ),
                   ],
                 ),
+                SizedBox(height: height * 0.05),
                 // Body features
                 if (widget.choice == UserChoice.editImage)
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(150, 50, 150, 50),
-                    child: InkWell(
-                      onTap: () {},
-                      onHover: (value) {
+                  if (widget.droppedFile == null)
+                    DropzoneWidget(
+                      lang: widget.lang,
+                      onDroppedFile: (DroppedFile file) {
                         setState(() {
-                          isHovering = value;
+                          widget.droppedFile = file;
                         });
                       },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(6)),
-                              border: Border(
-                                left: BorderSide(
-                                    color: isHovering
-                                        ? PalleteCommon.gradient2
-                                        : Colors.white),
-                                top: BorderSide(
-                                    color: isHovering
-                                        ? PalleteCommon.gradient2
-                                        : Colors.white),
-                                right: BorderSide(
-                                    color: isHovering
-                                        ? PalleteCommon.gradient2
-                                        : Colors.white),
-                                bottom: BorderSide(
-                                    color: isHovering
-                                        ? PalleteCommon.gradient2
-                                        : Colors.white),
-                              ),
-                              color: PalleteCommon.backgroundColor,
-                            ),
-                            width: width * 0.7,
-                            height: height * 0.6,
-                            child: DropzoneView(
-                              mime: const ['image/jpg', 'image/png'],
-                              onDropInvalid: declineFile,
-                              onDrop: acceptFile,
-                              onCreated: (controller) =>
-                                  dvController = controller,
-                            ),
+                    )
+                  else
+                    Row(
+                      children: [
+                        Container(
+                          width: width * 0.5,
+                          height: height * 0.5,
+                          margin: const EdgeInsets.all(8.0),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
                           ),
-                          MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () => showFilePicker(),
-                              child: selectedImage == null
-                                  ? dropOrBrowseImage()
-                                  : manageSelectedImage(width, height),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
+                          child: Image.network(widget.droppedFile!.url),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            optionSaveImage(width, height),
+                            SizedBox(height: height * 0.08),
+                            optionDiscardImage(width, height),
+                            SizedBox(height: height * 0.08),
+                            optionCancel(width, height),
+                          ],
+                        ),
+                      ],
+                    )
                 else
                   const Padding(
                     padding: EdgeInsets.fromLTRB(50, 50, 50, 50),
@@ -826,126 +798,71 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     );
   }
 
-  Widget manageSelectedImage(double width, double height) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: width * 0.5,
-                minWidth: width * 0.5,
-                maxHeight: height * 0.5,
-                minHeight: height * 0.5,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: Image.memory(
-                    selectedImage!,
-                  ).image,
-                ),
-              ),
-              /*child: Image.memory(
-                                              (await selectedImage!.readAsBytes()),
-                                              fit: BoxFit.contain,
-                                            ),*/
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                GradientButton(buttonText: 'Anything', callback: () {}),
-                const SizedBox(
-                  width: 100,
-                  height: 20,
-                ),
-                GradientButton(
-                  buttonText: widget.lang.dictionary["discard_image"]!,
-                  colors: const [
-                    Color.fromARGB(255, 224, 40, 0),
-                    Color.fromARGB(255, 255, 91, 46),
-                    Color.fromARGB(255, 179, 60, 0),
-                  ],
-                  callback: () {
-                    setState(() {
-                      selectedImage = null;
-                    });
-                  },
-                ),
-              ],
-            ),
-          )
-        ],
+  Widget optionSaveImage(double width, double height) {
+    return ElevatedButton(
+      style: ButtonStyle(
+        minimumSize: MaterialStatePropertyAll(
+          Size(width * 0.25, height * 0.08),
+        ),
+        maximumSize: MaterialStatePropertyAll(
+          Size(width * 0.25, height * 0.4),
+        ),
+        backgroundColor: const MaterialStatePropertyAll(
+          Color.fromARGB(125, 85, 85, 85),
+        ),
       ),
+      onPressed: () {
+        setState(() {
+          (widget.user as Customer).avatarImage = widget.droppedFile!.url;
+        });
+        Navigator.pop(context);
+      },
+      child: Text(widget.lang.dictionary["save_image"]!),
     );
   }
 
-  Widget dropOrBrowseImage() {
-    return Column(
-      children: [
-        const Icon(
-          Icons.cloud_upload,
-          size: 80,
-          color: PalleteCommon.gradient2,
+  Widget optionDiscardImage(double width, double height) {
+    return ElevatedButton(
+      style: ButtonStyle(
+        minimumSize: MaterialStatePropertyAll(
+          Size(width * 0.25, height * 0.08),
         ),
-        Text(
-          widget.lang.dictionary["dropzone_text"]!,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
+        maximumSize: MaterialStatePropertyAll(
+          Size(width * 0.25, height * 0.4),
         ),
-      ],
+        backgroundColor: const MaterialStatePropertyAll(
+          Color.fromARGB(125, 85, 85, 85),
+        ),
+      ),
+      onPressed: () {
+        setState(() {
+          widget.droppedFile = null;
+        });
+      },
+      child: Text(widget.lang.dictionary["discard_image"]!),
     );
   }
 
-  Future<void> declineFile(dynamic event) async {}
-
-  Future<void> errorFile(dynamic event) async {}
-
-  Future<void> acceptFile(dynamic event) async {
-    setState(() {
-      selectedImage = event;
-    });
-
-    /*
-    final name = event.name;
-    final mime = await dvController.getFileMIME(event);
-    final bytes = await dvController.getFileSize(event);
-    final url = await dvController.createFileUrl(event);
-    */
-  }
-
-  Future<void> showFilePicker() async {
-    /*if (kIsWeb) {
-    }
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-    }
-    if (defaultTargetPlatform == TargetPlatform.linux) {
-    }
-    if (defaultTargetPlatform == TargetPlatform.macOS) {
-    }
-    if (defaultTargetPlatform == TargetPlatform.windows) {
-    }
-    if (defaultTargetPlatform == TargetPlatform.fuchsia) {
-    }*/
-
-    FilePickerResult? picked = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowMultiple: false,
-      allowedExtensions: ['jpg', 'png', 'gif'],
+  Widget optionCancel(double width, double height) {
+    return ElevatedButton(
+      style: ButtonStyle(
+        minimumSize: MaterialStatePropertyAll(
+          Size(width * 0.25, height * 0.08),
+        ),
+        maximumSize: MaterialStatePropertyAll(
+          Size(width * 0.25, height * 0.4),
+        ),
+        backgroundColor: const MaterialStatePropertyAll(
+          Color.fromARGB(125, 85, 85, 85),
+        ),
+      ),
+      onPressed: () {
+        setState(() {
+          widget.droppedFile = null;
+        });
+        Navigator.pop(context);
+      },
+      child: Text(widget.lang.dictionary["cancel"]!),
     );
-
-    if (picked == null || picked.files.single.bytes == null) return;
-    setState(() {
-      selectedImage = picked.files.single.bytes;
-    });
   }
 }

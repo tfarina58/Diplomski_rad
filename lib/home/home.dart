@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
         widget.lang = tmpLang;
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["userImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
       });
     });
   }

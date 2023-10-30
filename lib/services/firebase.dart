@@ -14,18 +14,19 @@ class FirebaseStorageService {
     storage = FirebaseStorage.instance.ref(instance);
   }
 
-  Future<void> uploadFile(String id, String name) async {
+  Future<void> uploadFile(String id, String localFilePath) async {
     final Reference folder = storage.child(id);
-    final Reference objectRef = folder.child(name);
-    final localFilePath = "images/test2.jpg"; // TODO: dynamic path
+    print(folder.fullPath);
+    print(localFilePath);
     final file = File(localFilePath);
-    await objectRef.putFile(file);
+    await folder.putFile(file);
   }
 
   Future<String> downloadFile(String id, String name) async {
     final Reference folder = storage.child(id);
     final Reference fileRef = folder.child(name);
-    return await fileRef.getDownloadURL();
+    String url = await fileRef.getDownloadURL();
+    return url;
   }
 }
 
@@ -126,15 +127,17 @@ class UserRepository {
     if (password.length < 8) return null;
 
     // TODO: Front-end shouldn't check if there are more docs with the same email
-    QuerySnapshot<Map<String, dynamic>> querySnapshot =
-        await users.where("email", isEqualTo: email).get();
+    QuerySnapshot<Map<String, dynamic>> querySnapshot = await users
+        .where("email", isEqualTo: email)
+        .where("password", isEqualTo: password)
+        // .where("blocked", isEqualTo: false)
+        // .where("banned", isEqualTo: false)
+        .get();
 
-    if (querySnapshot.docs.length == 1 &&
-        querySnapshot.docs[0]["password"] == password) {
+    if (querySnapshot.docs.length == 1) {
       Map<String, dynamic> userMap = querySnapshot.docs[0].data();
       userMap["id"] = querySnapshot.docs[0].id;
       return userMap;
-      // return local.User.toUser(userMap);
     }
     return null;
   }
@@ -178,6 +181,44 @@ class UserRepository {
       return success;
     }
     return false;
+  }
+
+  static Future<Map<String, dynamic>> blockUser(
+      String id, bool wantedState) async {
+    if (id.isEmpty) return {"success": false};
+
+    DocumentSnapshot<Map<String, dynamic>> res = await users.doc(id).get();
+
+    if (res["blocked"] == wantedState) {
+      return {"success": true, "value": wantedState};
+    } else {
+      try {
+        await users.doc(id).update({"blocked": wantedState});
+        return {"success": true, "value": wantedState};
+      } catch (err) {
+        print('Error updating document: $err');
+        return {"success": false};
+      }
+    }
+  }
+
+  static Future<Map<String, dynamic>> banUser(
+      String id, bool wantedState) async {
+    if (id.isEmpty) return {"success": false};
+
+    DocumentSnapshot<Map<String, dynamic>> res = await users.doc(id).get();
+
+    if (res["banned"] == wantedState) {
+      return {"success": true, "value": wantedState};
+    } else {
+      try {
+        await users.doc(id).update({"banned": wantedState});
+        return {"success": true, "value": wantedState};
+      } catch (err) {
+        print('Error updating document: $err');
+        return {"success": false};
+      }
+    }
   }
 }
 

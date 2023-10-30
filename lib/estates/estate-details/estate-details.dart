@@ -428,39 +428,59 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    widget.isNew
-                        ? GradientButton(
-                            buttonText:
-                                widget.lang!.dictionary["create_estate"]!,
-                            callback: createEstate,
-                          )
-                        : GradientButton(
-                            buttonText:
-                                widget.lang!.dictionary["save_changes"]!,
-                            callback: updateEstate,
-                          ),
-                    GradientButton(
-                      buttonText: widget.lang!.dictionary["edit_presentation"]!,
-                      callback: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ManagePresentationPage(
-                            estate: widget.estate,
+                    const Expanded(child: SizedBox()),
+                    Expanded(
+                      flex: 3,
+                      child: widget.isNew
+                          ? GradientButton(
+                              buttonText:
+                                  widget.lang!.dictionary["create_estate"]!,
+                              callback: createEstate,
+                            )
+                          : GradientButton(
+                              buttonText:
+                                  widget.lang!.dictionary["save_changes"]!,
+                              callback: updateEstate,
+                            ),
+                    ),
+                    const Expanded(
+                      flex: 2,
+                      child: SizedBox(),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: GradientButton(
+                        buttonText:
+                            widget.lang!.dictionary["edit_presentation"]!,
+                        callback: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ManagePresentationPage(
+                              estate: widget.estate,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    !widget.isNew
-                        ? GradientButton(
-                            buttonText:
-                                widget.lang!.dictionary["delete_estate"]!,
-                            callback: () => showDialog(
-                              context: context,
-                              builder: (BuildContext context) =>
-                                  showDeleteAlert(width, height),
-                            ),
-                          )
-                        : const SizedBox(),
+                    const Expanded(
+                      flex: 2,
+                      child: SizedBox(),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: !widget.isNew
+                          ? GradientButton(
+                              buttonText:
+                                  widget.lang!.dictionary["delete_estate"]!,
+                              callback: () => showDialog(
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    showDeleteAlert(width, height),
+                              ),
+                            )
+                          : const SizedBox(),
+                    ),
+                    const Expanded(child: SizedBox()),
                   ],
                 ),
                 const SizedBox(
@@ -491,39 +511,41 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
 
-      print(tmpUserId);
-      print(tmpLang);
-      print(tmpUserId);
-      print(tmpTypeOfUser);
-      print(tmpAvatarImage);
-
       setState(() {
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["userImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
       });
     });
   }
 
   Widget backgroundImage() {
-    print("widget.estate.images: ${widget.estate.images}");
     return Container(
       margin: const EdgeInsets.only(bottom: 50),
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          // scale: 0.01,
-          fit: BoxFit.fitWidth,
-          image: Image(
+      decoration: widget.estate.images.isNotEmpty
+          ? BoxDecoration(
+              image: DecorationImage(
+                fit: BoxFit.fitWidth,
+                image: Image(
                   fit: BoxFit.contain,
-                  image: //widget.estate.images.isEmpty
-                      Image.asset("images/test.png").image
-                  //: Image.network(widget.estate.images[0]).image,
-                  )
-              .image,
-        ),
-      ),
+                  image: widget.estate.images.isNotEmpty
+                      ? Image.network(widget.estate.images[0]).image
+                      : Image.asset("images/test.png").image,
+                ).image,
+              ),
+            )
+          : const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 1, 105, 88),
+                  Color.fromARGB(255, 20, 207, 61)
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
     );
   }
 

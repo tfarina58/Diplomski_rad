@@ -231,28 +231,27 @@ class _CardWidgetState extends State<CardWidget> {
   }
 
   BoxDecoration setDecoration() {
-    /*if (widget.backgroundImage != null) {
+    if (widget.backgroundImage != null && widget.backgroundImage!.isNotEmpty) {
       return BoxDecoration(
         border: Border.all(color: Colors.white),
         borderRadius: BorderRadius.circular(widget.width * 0.043),
         image: DecorationImage(
           fit: BoxFit.cover,
-          // image: Image.asset("images/chick.jpg").image,
           image: NetworkImage(widget.backgroundImage!),
         ),
       );
-    } else {*/
-    return BoxDecoration(
-      border: Border.all(color: Colors.white),
-      borderRadius: BorderRadius.circular(widget.width * 0.043),
-      gradient: LinearGradient(
-        colors: [
-          ...randomColorPair(),
-        ],
-        begin: Alignment.centerLeft,
-        end: Alignment.bottomRight,
-      ),
-    );
-    //}
+    } else {
+      return BoxDecoration(
+        border: Border.all(color: Colors.white),
+        borderRadius: BorderRadius.circular(widget.width * 0.043),
+        gradient: LinearGradient(
+          colors: [
+            ...randomColorPair(),
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.bottomRight,
+        ),
+      );
+    }
   }
 }

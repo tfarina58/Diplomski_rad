@@ -101,6 +101,31 @@ class LanguageService {
           "delete_estate_warning_message":
               "Are you sure you want to delete your estate?",
           "cancel": "Cancel",
+          "choose_file": "Choose file",
+          "no_file": "No file",
+          "cannot_preview": "Cannot preview",
+          "save_image": "Save image",
+          "banned_by_admin":
+              "Your account has been banned by the admin. You can contact the admin at admin@diplomski.com for more information.",
+          "blocked_by_admin":
+              "Your account is currently blocked by the admin. You can contact the admin at admin@diplomski.com for more information.",
+          "cant_log_in":
+              "There was an error while logging in. Please try again (later)...",
+          "successful_login": "You have successfully logged in!",
+          "sign_up": "Sign up",
+          "type_of_customer": "Type of customer",
+          "password": "Password",
+          "repeat_password": "Repeat password",
+          "keep_me_logged_in": "Keep me logged in.",
+          "have_account_login_here": "Already have an account? Sign in here.",
+          "cant_register":
+              "There is a problem while trying to create your account. Please try again later.",
+          "account_successfully_created":
+              "Your account gas successfully been created!",
+              "dont_have_account_register_here": "Don't have an account? Sign up here.",
+          "sign_in": "Sign in",
+          "sign_in_with_google": "Sign in with Google",
+          "sign_in_with_facebook": "Sign in with Facebook",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -199,6 +224,17 @@ class LanguageService {
           "delete_estate_warning_message":
               "Sind Sie sicher, dass Sie Ihre Immobilie löschen möchten?",
           "cancel": "Abbrechen",
+          "choose_file": "Datei wählen",
+          "no_file": "Keine datei",
+          "cannot_preview": "Vorschau nicht möglich",
+          "save_image": "Bild speichern",
+          "banned_by_admin":
+              "Ihr Konto wurde vom Administrator gesperrt. Für weitere Informationen können Sie den Administrator unter admin@diplomski.com kontaktieren.",
+          "blocked_by_admin":
+              "Ihr Konto ist derzeit vom Administrator gesperrt. Für weitere Informationen können Sie den Administrator unter admin@diplomski.com kontaktieren.",
+          "cant_log_in":
+              "Beim Anmelden ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut ...",
+          "successful_login": "Sie haben sich erfolgreich angemeldet!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -295,6 +331,17 @@ class LanguageService {
           "delete_estate_warning_message":
               "Jeste li sigurni da želite izbrisati svoju nekretninu?",
           "cancel": "Otkaži",
+          "choose_file": "Odaberite datoteku",
+          "no_file": "Nema datoteke",
+          "cannot_preview": "Nije moguće pregledati",
+          "save_image": "Spremiti sliku",
+          "banned_by_admin":
+              "Administrator je izbrisao vaš korisnički račun. Za više informacija možete kontaktirati admina na admin@diplomski.com.",
+          "blocked_by_admin":
+              "Vaš korisnički račun je trenutno blokiran od strane administratora. Za više informacija možete kontaktirati admina na admin@diplomski.com.",
+          "cant_log_in":
+              "There was an error while logging in. Please try again (later)...",
+          "successful_login": "You have successfully logged in!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {

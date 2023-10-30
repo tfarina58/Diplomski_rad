@@ -56,7 +56,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCDMcBpVDUxancbQzEx5mxyXGj74tvP5m8',
-    appId: '1:236389351601:android:fb01a538d1b5a78856a290',
+    appId: '1:236389351601:android:e58b182ba7a2006056a290',
     messagingSenderId: '236389351601',
     projectId: 'diplomski-rad-8bdb2',
     databaseURL: 'https://diplomski-rad-8bdb2-default-rtdb.europe-west1.firebasedatabase.app',
@@ -65,7 +65,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBMyVgSyZvNc4oFMRf8W02b5l7nhmGrMJ0',
-    appId: '1:236389351601:ios:7ab8c3561c4d8cc656a290',
+    appId: '1:236389351601:ios:84bb0e9ddf39d90656a290',
     messagingSenderId: '236389351601',
     projectId: 'diplomski-rad-8bdb2',
     databaseURL: 'https://diplomski-rad-8bdb2-default-rtdb.europe-west1.firebasedatabase.app',

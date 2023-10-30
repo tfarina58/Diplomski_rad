@@ -26,6 +26,8 @@ abstract class User {
     if (user['typeOfUser'] == "ind") {
       Individual res = Individual();
 
+      res.avatarImage = user['avatarImage'] ?? "";
+      res.backgroundImage = user['backgroundImage'] ?? "";
       res.banned = user['banned'] ?? false;
       res.bio = user['bio'] ?? "";
       res.blocked = user['blocked'] ?? false;
@@ -46,8 +48,12 @@ abstract class User {
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
       );
-      res.birthday = DateFormat(res.preferences.dateFormat)
-          .format((user['birthday'] as Timestamp).toDate());
+      /*res.birthday = DateFormat(res.preferences.dateFormat)
+          .format((user['birthday'] as Timestamp).toDate());*/
+      Timestamp x = user['birthday'];
+
+      res.birthday =
+          DateTime.fromMillisecondsSinceEpoch(x.millisecondsSinceEpoch);
       res.street = user['street'] ?? "";
       res.zip = user['zip'] ?? "";
       res.numOfEstates = user['numOfEstates'] ?? 0;
@@ -56,6 +62,8 @@ abstract class User {
     } else if (user["typeOfUser"] == "com") {
       Company res = Company();
 
+      res.avatarImage = user['avatarImage'] ?? "";
+      res.backgroundImage = user['backgroundImage'] ?? "";
       res.banned = user['banned'] ?? false;
       res.bio = user['bio'] ?? "";
       res.blocked = user['blocked'] ?? false;
@@ -128,7 +136,7 @@ abstract class User {
         "typeOfUser": "ind",
         "lastname": user.lastname,
         "birthday": Timestamp(
-            DateTime.parse(user.birthday).millisecondsSinceEpoch ~/ 1000, 0),
+            user.birthday.millisecondsSinceEpoch ~/ 1000, 0),
         "numOfEstates": user.numOfEstates,
       };
     } else if (user is Company) {
@@ -309,13 +317,12 @@ class Individual extends Customer {
 
   String firstname;
   String lastname;
-  String birthday;
+  DateTime birthday;
 
   Individual({
     this.id = "",
     this.firstname = "",
     this.lastname = "",
-    this.birthday = "",
     this.email = "",
     this.avatarImage = "",
     this.backgroundImage = "",
@@ -329,5 +336,6 @@ class Individual extends Customer {
     this.blocked = false,
     this.banned = false,
     this.numOfEstates = 0,
-  }) : preferences = UserPreferences();
+  })  : preferences = UserPreferences(),
+        birthday = DateTime.now();
 }

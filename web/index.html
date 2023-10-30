@@ -38,7 +38,9 @@
     var serviceWorkerVersion = null;
   </script>
   <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
+  <script src="flutter.js" defer>
+
+  </script>
 </head>
 
 <body>
@@ -50,27 +52,29 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-storage.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
     // TODO: Add SDKs for Firebase products that you want to use
     // https://firebase.google.com/docs/web/setup#available-libraries
 
     // Your web app's Firebase configuration
     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
-      apiKey: "AIzaSyCr1DO0mTiEk3G7G31ir462s61f9kiZqEQ",
-      authDomain: "diplomski-rad-8bdb2.firebaseapp.com",
-      databaseURL: "https://diplomski-rad-8bdb2-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "diplomski-rad-8bdb2",
-      storageBucket: "diplomski-rad-8bdb2.appspot.com",
-      messagingSenderId: "236389351601",
-      appId: "1:236389351601:web:66c1f13569d93cc056a290",
-      measurementId: "G-4KSSRHL1KF"
+      apiKey: 'AIzaSyCr1DO0mTiEk3G7G31ir462s61f9kiZqEQ',
+      appId: '1:236389351601:web:66c1f13569d93cc056a290',
+      messagingSenderId: '236389351601',
+      projectId: 'diplomski-rad-8bdb2',
+      authDomain: 'diplomski-rad-8bdb2.firebaseapp.com',
+      databaseURL: 'https://diplomski-rad-8bdb2-default-rtdb.europe-west1.firebasedatabase.app',
+      storageBucket: 'diplomski-rad-8bdb2.appspot.com',
+      measurementId: 'G-4KSSRHL1KF',
     };
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
-
+    const storage = getStorage(app);
   </script>
   <script>
     window.addEventListener('load', function (ev) {

@@ -242,8 +242,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                         height: height * 0.05,
                         child: Padding(
                             padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
-                            child: getUserImage(
-                                widget.headerValues["userImage"], height)),
+                            child: getUserImage()),
                       ),
                     ),
                   ),
@@ -460,11 +459,14 @@ class _HeaderComponentState extends State<HeaderComponent> {
     );
   }
 
-  Image getUserImage(String? avatarImage, double height) {
-    if (avatarImage != null && avatarImage.isNotEmpty) {
-      return Image.asset(
-        avatarImage,
+  Image getUserImage() {
+    if (widget.headerValues["avatarImage"].isNotEmpty) {
+      return Image.network(
+        widget.headerValues["avatarImage"],
         fit: BoxFit.contain,
+        errorBuilder: (context, error, StackTrace? stackTrace) {
+          return Image.asset("images/default_user.png");
+        },
       );
     } else {
       return Image.asset("images/default_user.png");

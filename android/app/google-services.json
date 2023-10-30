@@ -8,7 +8,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:236389351601:android:fb01a538d1b5a78856a290",
+        "mobilesdk_app_id": "1:236389351601:android:e58b182ba7a2006056a290",
         "android_client_info": {
           "package_name": "com.example.diplomski_rad"
         }
@@ -30,6 +30,13 @@
             {
               "client_id": "236389351601-0q6kgflcvpferc94od95bk5o79385q8m.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "236389351601-21d12mcsup5m4n4njhok0ddgkambeorf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.diplomskiRad"
+              }
             }
           ]
         }
