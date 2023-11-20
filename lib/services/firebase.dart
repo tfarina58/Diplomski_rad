@@ -2,6 +2,7 @@ import 'package:diplomski_rad/interfaces/estate/estate.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart' as local;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
@@ -14,12 +15,17 @@ class FirebaseStorageService {
     storage = FirebaseStorage.instance.ref(instance);
   }
 
-  Future<void> uploadFile(String id, String localFilePath) async {
-    final Reference folder = storage.child(id);
-    print(folder.fullPath);
-    print(localFilePath);
-    final file = File(localFilePath);
-    await folder.putFile(file);
+  Future<void> uploadFile(String id, Uint8List bytes) async {
+    final Reference folder = storage.child("$id/chick.jpg");
+    if (kIsWeb) {
+      //try {
+      final TaskSnapshot uploadTask =
+          await folder.putData(bytes).whenComplete(() => print("Completed!"));
+      print(await folder.getDownloadURL());
+      /*} catch (err) {
+        print(err);
+      }*/
+    }
   }
 
   Future<String> downloadFile(String id, String name) async {
@@ -66,10 +72,8 @@ credentials.user.
       final firebase.UserCredential authResult =
           await firebaseAuth.signInWithCredential(credential);
 
-      print(authResult.user);
       return authResult.user;
     } catch (err) {
-      print(err);
       return null;
     }
     // return userFromFirebase(authResult);
@@ -103,7 +107,6 @@ class UserRepository {
         if (res != null) return local.User.toUser(res);
         return null;
       } catch (err) {
-        print('Error updating document: $err');
         return null;
       }
     }
@@ -154,7 +157,6 @@ class UserRepository {
         await users.doc(res.docs[0].id).update(userMap);
         success = true;
       } catch (err) {
-        print('Error updating document: $err');
         success = false;
       }
       return success;
@@ -175,7 +177,6 @@ class UserRepository {
         await users.doc(userId).delete();
         success = true;
       } catch (err) {
-        print('Error updating document: $err');
         success = false;
       }
       return success;
@@ -196,7 +197,6 @@ class UserRepository {
         await users.doc(id).update({"blocked": wantedState});
         return {"success": true, "value": wantedState};
       } catch (err) {
-        print('Error updating document: $err');
         return {"success": false};
       }
     }
@@ -215,7 +215,6 @@ class UserRepository {
         await users.doc(id).update({"banned": wantedState});
         return {"success": true, "value": wantedState};
       } catch (err) {
-        print('Error updating document: $err');
         return {"success": false};
       }
     }
@@ -237,7 +236,6 @@ class EstateRepository {
       res["id"] = docSnapshot.id;
       return Estate.toEstate(res);
     } catch (err) {
-      print('Error updating document: $err');
       return null;
     }
   }
@@ -254,7 +252,6 @@ class EstateRepository {
       await estates.doc(estateId).update(estateMap);
       success = true;
     } catch (err) {
-      print('Error updating document: $err');
       success = false;
     }
     return success;
@@ -268,7 +265,6 @@ class EstateRepository {
       await estates.doc(estateId).delete();
       success = true;
     } catch (err) {
-      print('Error updating document: $err');
       success = false;
     }
     return success;

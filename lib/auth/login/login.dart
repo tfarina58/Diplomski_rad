@@ -120,7 +120,8 @@ class _LoginPageState extends State<LoginPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () => toRegisterPage(),
-                  child: Text(widget.lang.dictionary["dont_have_account_register_here"]!),
+                  child: Text(widget
+                      .lang.dictionary["dont_have_account_register_here"]!),
                 ),
               ),
             ],
@@ -183,23 +184,6 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString("language", user["language"] ?? "en");
         await prefs.setString("avatarImage", user["avatarImage"] ?? "");
 
-        feedback = SnackBar(
-          content: Text(widget.lang.dictionary["successful_login"]!),
-          backgroundColor: (Colors.white),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: height * 0.85,
-            left: width * 0.8,
-            right: width * 0.02,
-            top: height * 0.02,
-          ),
-          closeIconColor: PalleteCommon.gradient2,
-          action: SnackBarAction(
-            label: widget.lang.dictionary["dismiss"]!,
-            onPressed: () {},
-          ),
-        );
-
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -224,9 +208,8 @@ class _LoginPageState extends State<LoginPage> {
           onPressed: () {},
         ),
       );
+      ScaffoldMessenger.of(context).showSnackBar(feedback);
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(feedback);
   }
 
   void toRegisterPage() {

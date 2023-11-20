@@ -54,8 +54,8 @@ class LanguageService {
           "dismiss": "Dismiss",
           "error_while_updating_user":
               "There was an error while updating your account. Please try again (later)...",
-          "edit_image": "Edit image",
-          "change_image": "Change image",
+          "profile_image": "Profile image",
+          "background_image": "Background image",
           "discard_image": "Discard image",
           "dropzone_text": "Drop images here or browse through files",
           "no_estates": "There are no estates to display!",
@@ -122,10 +122,16 @@ class LanguageService {
               "There is a problem while trying to create your account. Please try again later.",
           "account_successfully_created":
               "Your account gas successfully been created!",
-              "dont_have_account_register_here": "Don't have an account? Sign up here.",
+          "dont_have_account_register_here":
+              "Don't have an account? Sign up here.",
           "sign_in": "Sign in",
           "sign_in_with_google": "Sign in with Google",
           "sign_in_with_facebook": "Sign in with Facebook",
+          "customers": "Customers",
+          "old_password": "Old password",
+          "new_password": "New password",
+          "delete_account_warning_message":
+              "Are you sure you want to delete your account? Your data will be permanently lost!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -176,8 +182,8 @@ class LanguageService {
           "dismiss": "Zurückweisen",
           "error_while_updating_user":
               "Beim Aktualisieren Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es (später) noch einmal...",
-          "edit_image": "Bild bearbeiten",
-          "change_image": "Bild ändern",
+          "profile_image": "Profilbild",
+          "background_image": "Hintergrundbild",
           "discard_image": "Bild verwerfen",
           "dropzone_text":
               "Legen Sie hier Bilder ab oder durchsuchen Sie die Dateien",
@@ -235,6 +241,14 @@ class LanguageService {
           "cant_log_in":
               "Beim Anmelden ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut ...",
           "successful_login": "Sie haben sich erfolgreich angemeldet!",
+          "customers": "Kunden",
+          "old_password": "Altes Passwort",
+          "new_password": "Neue Passwort",
+          "repeat_password": "Passwort wiederholen",
+          "type_of_customer": "Kundentyp",
+          "password": "Passwort",
+          "delete_account_warning_message":
+              "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Ihre Daten gehen dauerhaft verloren!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -284,8 +298,8 @@ class LanguageService {
           "dismiss": "Odbaci",
           "error_while_updating_user":
               "Došlo je do pogreške prilikom ažuriranja vašeg računa. Molimo pokušajte ponovo (kasnije)...",
-          "edit_image": "Uredi sliku",
-          "change_image": "Promjeni sliku",
+          "profile_image": "Profilna slika",
+          "background_image": "Pozadinska slika",
           "discard_image": "Odbaci sliku",
           "dropzone_text": "Ovdje ispustite slike ili pregledajte datoteke",
           "no_estates": "Nema nekretnina za prikaz!",
@@ -342,6 +356,13 @@ class LanguageService {
           "cant_log_in":
               "There was an error while logging in. Please try again (later)...",
           "successful_login": "You have successfully logged in!",
+          "old_password": "Stara lozinka",
+          "new_password": "Nova lozinka",
+          "repeat_password": "Ponovite lozinku",
+          "type_of_customer": "Vrsta korisnika",
+          "password": "Lozinka",
+          "delete_account_warning_message":
+              "Jeste li sigurni da želite izbrisati svoj račun? Vaši će podaci biti trajno izgubljeni!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {

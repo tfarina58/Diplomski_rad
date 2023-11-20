@@ -142,9 +142,10 @@ class _HeaderComponentState extends State<HeaderComponent> {
                               ),
                               alignment: Alignment.topRight,
                               child: SizedBox(
-                                height: height * 0.2,
+                                height: height * 0.18,
                                 width: width * 0.1,
                                 child: ListView(
+                                  scrollDirection: Axis.vertical,
                                   children: [
                                     ListTile(
                                       textColor: PalleteCommon.gradient2,
@@ -174,13 +175,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                           context: context,
                                           builder: (BuildContext context) =>
                                               changePasswordDialog(
-                                            width,
-                                            height,
-                                            context,
-                                            widget.oldPassword,
-                                            widget.newPassword,
-                                            widget.repeatNewPassword,
-                                          ),
+                                                  width, height, context),
                                         );
                                       },
                                       leading: const Icon(Icons.password),
@@ -260,8 +255,8 @@ class _HeaderComponentState extends State<HeaderComponent> {
     super.initState();
   }
 
-  Widget changePasswordDialog(double width, double height, BuildContext context,
-      String oldPassword, String newPassword, String repeatNewPassword) {
+  Widget changePasswordDialog(
+      double width, double height, BuildContext context) {
     return Dialog(
       insetPadding: EdgeInsets.fromLTRB(
         width * 0.25,
@@ -279,7 +274,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
             StringField(
               osbcure: true,
               labelText: widget.lang.dictionary["old_password"]!,
-              callback: (String value) => oldPassword = value,
+              callback: (String value) => widget.oldPassword = value,
             ),
             const SizedBox(
               height: 22,
@@ -287,7 +282,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
             StringField(
               osbcure: true,
               labelText: widget.lang.dictionary["new_password"]!,
-              callback: (String value) => newPassword = value,
+              callback: (String value) => widget.newPassword = value,
             ),
             const SizedBox(
               height: 22,
@@ -295,7 +290,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
             StringField(
               osbcure: true,
               labelText: widget.lang.dictionary["repeat_password"]!,
-              callback: (String value) => repeatNewPassword = value,
+              callback: (String value) => widget.repeatNewPassword = value,
             ),
             const SizedBox(
               height: 28,

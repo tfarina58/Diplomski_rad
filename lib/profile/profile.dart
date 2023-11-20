@@ -1,7 +1,8 @@
-import 'package:diplomski_rad/interfaces/preferences/user-preferences.dart';
+import 'dart:typed_data';
+
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:diplomski_rad/widgets/image_picker_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/components/header.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart';
@@ -14,6 +15,7 @@ import 'package:diplomski_rad/services/firebase.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
   Map<String, dynamic> headerValues = <String, dynamic>{};
@@ -105,10 +107,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                   buttonText:
                                       widget.lang!.dictionary["save_changes"]!,
                                   callback: () {
-                                    /*
-                                      FirebaseStorageService storage = FirebaseStorageService();
-                                      storage.uploadFile(widget.user.id, droppedFile!.url);
-                                    */
                                     saveChanges(width, height);
                                   },
                                   colors: PalleteSuccess.getGradients(),
@@ -557,16 +555,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-enum UserChoice { editImage, changeImage }
+enum UserChoice { profilePicture, backgroundPicture }
 
 class ImagesDisplay extends StatefulWidget {
   User user;
   LanguageService lang;
-  UserChoice choice = UserChoice.editImage;
-  DroppedFile? droppedFile;
+  UserChoice choice = UserChoice.profilePicture;
+  String droppedFileName = "";
+  Uint8List? droppedFileBytes;
 
-  ImagesDisplay({Key? key, required this.user, required this.lang})
-      : super(key: key);
+  ImagesDisplay({
+    Key? key,
+    required this.user,
+    required this.lang,
+  }) : super(key: key);
 
   @override
   State<ImagesDisplay> createState() => _ImagesDisplayState();
@@ -598,7 +600,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                   onTap: () => showDialog(
                     context: context,
                     builder: (BuildContext context) =>
-                        showImageOptions(context),
+                        showImagesDialog(context),
                   ),
                   child: SizedBox(
                     width: 150,
@@ -703,7 +705,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     );
   }
 
-  Widget showImageOptions(BuildContext context) {
+  Widget showImagesDialog(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
@@ -732,32 +734,42 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                       width,
                       height,
                       () => setState(() {
-                        widget.choice = UserChoice.editImage;
+                        widget.choice = UserChoice.profilePicture;
                       }),
-                      widget.lang.dictionary["edit_image"]!,
+                      widget.lang.dictionary["profile_image"]!,
                     ),
                     optionButton(
                       width,
                       height,
                       () => setState(() {
-                        widget.choice = UserChoice.changeImage;
+                        widget.choice = UserChoice.backgroundPicture;
                       }),
-                      widget.lang.dictionary["change_image"]!,
+                      widget.lang.dictionary["background_image"]!,
                     ),
                   ],
                 ),
                 SizedBox(height: height * 0.05),
                 // Body features
-                if (widget.choice == UserChoice.editImage)
-                  if (widget.droppedFile == null)
+                if (widget.choice == UserChoice.profilePicture)
+                  if (widget.droppedFileBytes == null)
                     DropzoneWidget(
                       lang: widget.lang,
-                      onDroppedFile: (DroppedFile file) {
+                      onDroppedFile: (Map<String, dynamic>? file) {
+                        if (file == null) return;
+
+                        setState(() {
+                          widget.droppedFileName = file['name'];
+                          widget.droppedFileBytes = file['bytes'];
+                        });
+                      },
+                    )
+                  /*ImagePickerWidget(
+                      onDroppedFile: (File? file) {
                         setState(() {
                           widget.droppedFile = file;
                         });
                       },
-                    )
+                    )*/
                   else
                     Row(
                       children: [
@@ -768,7 +780,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                           ),
-                          child: Image.network(widget.droppedFile!.url),
+                          // child: Image.network(widget.droppedFile!.path),
+                          child: Image.memory(widget.droppedFileBytes!),
                         ),
                         Column(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -811,11 +824,11 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
           Color.fromARGB(125, 85, 85, 85),
         ),
       ),
-      onPressed: () {
-        setState(() {
-          (widget.user as Customer).avatarImage = widget.droppedFile!.url;
-        });
-        Navigator.pop(context);
+      onPressed: () async {
+        if (widget.droppedFileBytes == null) return;
+        FirebaseStorageService storage = FirebaseStorageService();
+        storage.uploadFile(widget.user.id, widget.droppedFileBytes!);
+        // Navigator.pop(context);
       },
       child: Text(widget.lang.dictionary["save_image"]!),
     );
@@ -836,7 +849,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
       ),
       onPressed: () {
         setState(() {
-          widget.droppedFile = null;
+          widget.droppedFileBytes = null;
+          widget.droppedFileName = '';
         });
       },
       child: Text(widget.lang.dictionary["discard_image"]!),
@@ -858,7 +872,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
       ),
       onPressed: () {
         setState(() {
-          widget.droppedFile = null;
+          widget.droppedFileBytes = null;
+          widget.droppedFileName = '';
         });
         Navigator.pop(context);
       },

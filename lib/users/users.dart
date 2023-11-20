@@ -27,7 +27,7 @@ class UsersPage extends StatefulWidget {
   int numOfPages = 0;
   String searchbarText = "";
 
-  String orderBy = "phone";
+  String orderBy = "email";
   bool asc = true;
 
   int? from, to;
@@ -439,58 +439,53 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   Widget getTableHeader(double height) {
-    List<Widget> res = [];
-
-    res.add(
-      Expanded(
-        flex: 1,
-        child: SizedBox(
-          height: height * 0.08,
-          child: const Center(
-            child: Text("#"),
-          ),
-        ),
-      ),
+    return Column(
+      children: [
+        getUpArrow(height),
+        getCenterRow(height),
+        getDownArrow(height),
+      ],
     );
-    res.add(
-      Expanded(
-        flex: 2,
-        child: SizedBox(
-          height: height * 0.08,
-          child: Center(
-            child: Text(widget.lang!.dictionary["image"]!),
-          ),
-        ),
-      ),
-    );
-    res.add(
-      const Expanded(flex: 1, child: SizedBox()),
-    );
+  }
 
-    List<String> filterTitles = [
-      "Name",
-      "Email",
-      "Phone",
-      "Estates",
-      "Type",
-      "Blocked",
-      "Banned",
-    ];
+  Widget getUpArrow(double height) {
+    Map<String, List<int>> hash = {
+      "name": [6, 3],
+      "email": [10, 3],
+      "phone": [14, 3],
+      "numOfEstates": [18, 2],
+      "typeOfUser": [21, 1],
+      "blocked": [23, 1],
+      "banned": [25, 1],
+    };
+    height = height * 0.03;
 
-    for (int i = 0; i < filterTitles.length; ++i) {
-      res.add(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
         Expanded(
-          flex: i < filterTitles.length - 2 ? 2 : 1,
+          flex: hash[widget.orderBy]![0],
+          child: SizedBox(height: height),
+        ),
+        Expanded(
+          flex: hash[widget.orderBy]![1],
           child: SizedBox(
-            height: height * 0.08,
-            child: Center(
-              child: Text(filterTitles[i]),
-            ),
+            height: height,
+            child: widget.asc
+                ? const Icon(Icons.arrow_upward, size: 16)
+                : const SizedBox(),
           ),
         ),
-      );
-    }
+        Expanded(
+            flex: 27 - hash[widget.orderBy]![0] - hash[widget.orderBy]![1],
+            child: SizedBox(height: height)),
+      ],
+    );
+  }
 
+  Widget getCenterRow(double height) {
+    height = height * 0.06;
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -499,7 +494,7 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 1,
           child: SizedBox(
-            height: height * 0.08,
+            height: height,
             child: const Center(
               child: Text("#"),
             ),
@@ -510,7 +505,7 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 2,
           child: SizedBox(
-            height: height * 0.08,
+            height: height,
             child: Center(
               child: Text(widget.lang!.dictionary["image"]!),
             ),
@@ -521,7 +516,7 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 3,
           child: SizedBox(
-            height: height * 0.08,
+            height: height,
             child: Center(
               child: Text(widget.lang!.dictionary["name"]!),
             ),
@@ -532,9 +527,22 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 3,
           child: SizedBox(
-            height: height * 0.08,
-            child: const Center(
-              child: Text("Email"),
+            height: height,
+            child: InkWell(
+              onHover: (value) {},
+              onTap: () {
+                setState(() {
+                  if (widget.orderBy == "email") {
+                    widget.asc = !widget.asc;
+                  } else {
+                    widget.asc = true;
+                    widget.orderBy = "email";
+                  }
+                });
+              },
+              child: const Center(
+                child: Text("Email"),
+              ),
             ),
           ),
         ),
@@ -543,9 +551,22 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 3,
           child: SizedBox(
-            height: height * 0.08,
-            child: Center(
-              child: Text(widget.lang!.dictionary["phone_number"]!),
+            height: height,
+            child: InkWell(
+              onHover: (value) {},
+              onTap: () {
+                setState(() {
+                  if (widget.orderBy == "phone") {
+                    widget.asc = !widget.asc;
+                  } else {
+                    widget.asc = true;
+                    widget.orderBy = "phone";
+                  }
+                });
+              },
+              child: Center(
+                child: Text(widget.lang!.dictionary["phone_number"]!),
+              ),
             ),
           ),
         ),
@@ -554,9 +575,22 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 2,
           child: SizedBox(
-            height: height * 0.08,
-            child: Center(
-              child: Text(widget.lang!.dictionary["number_of_estates"]!),
+            height: height,
+            child: InkWell(
+              onHover: (value) {},
+              onTap: () {
+                setState(() {
+                  if (widget.orderBy == "numOfEstates") {
+                    widget.asc = !widget.asc;
+                  } else {
+                    widget.asc = true;
+                    widget.orderBy = "numOfEstates";
+                  }
+                });
+              },
+              child: Center(
+                child: Text(widget.lang!.dictionary["number_of_estates"]!),
+              ),
             ),
           ),
         ),
@@ -565,9 +599,22 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 1,
           child: SizedBox(
-            height: height * 0.08,
-            child: Center(
-              child: Text(widget.lang!.dictionary["type"]!),
+            height: height,
+            child: InkWell(
+              onHover: (value) {},
+              onTap: () {
+                setState(() {
+                  if (widget.orderBy == "typeOfUser") {
+                    widget.asc = !widget.asc;
+                  } else {
+                    widget.asc = true;
+                    widget.orderBy = "typeOfUser";
+                  }
+                });
+              },
+              child: Center(
+                child: Text(widget.lang!.dictionary["type"]!),
+              ),
             ),
           ),
         ),
@@ -576,9 +623,22 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 1,
           child: SizedBox(
-            height: height * 0.08,
-            child: Center(
-              child: Text(widget.lang!.dictionary["blocked"]!),
+            height: height,
+            child: InkWell(
+              onHover: (value) {},
+              onTap: () {
+                setState(() {
+                  if (widget.orderBy == "blocked") {
+                    widget.asc = !widget.asc;
+                  } else {
+                    widget.asc = true;
+                    widget.orderBy = "blocked";
+                  }
+                });
+              },
+              child: Center(
+                child: Text(widget.lang!.dictionary["blocked"]!),
+              ),
             ),
           ),
         ),
@@ -587,9 +647,22 @@ class _UsersPageState extends State<UsersPage> {
         Expanded(
           flex: 1,
           child: SizedBox(
-            height: height * 0.08,
-            child: Center(
-              child: Text(widget.lang!.dictionary["banned"]!),
+            height: height,
+            child: InkWell(
+              onHover: (value) {},
+              onTap: () {
+                setState(() {
+                  if (widget.orderBy == "banned") {
+                    widget.asc = !widget.asc;
+                  } else {
+                    widget.asc = true;
+                    widget.orderBy = "banned";
+                  }
+                });
+              },
+              child: Center(
+                child: Text(widget.lang!.dictionary["banned"]!),
+              ),
             ),
           ),
         ),
@@ -599,15 +672,55 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
+  Widget getDownArrow(double height) {
+    Map<String, List<int>> hash = {
+      "name": [6, 3],
+      "email": [10, 3],
+      "phone": [14, 3],
+      "numOfEstates": [18, 2],
+      "typeOfUser": [21, 1],
+      "blocked": [23, 1],
+      "banned": [25, 1],
+    };
+    height = height * 0.03;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          flex: hash[widget.orderBy]![0],
+          child: SizedBox(height: height),
+        ),
+        Expanded(
+          flex: hash[widget.orderBy]![1],
+          child: SizedBox(
+            height: height,
+            child: !widget.asc
+                ? const Icon(Icons.arrow_downward, size: 16)
+                : const SizedBox(),
+          ),
+        ),
+        Expanded(
+            flex: 27 - hash[widget.orderBy]![0] - hash[widget.orderBy]![1],
+            child: SizedBox(height: height)),
+      ],
+    );
+  }
+
   StreamBuilder getRows(double width, double height) {
     return StreamBuilder(
       stream: streamQueryBuilder(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator(
-            color: PalleteCommon.gradient2,
-            semanticsLabel: "Loading",
-            backgroundColor: PalleteCommon.backgroundColor,
+          return SizedBox(
+            width: height * 0.15,
+            height: height * 0.15,
+            child: const CircularProgressIndicator(
+              color: PalleteCommon.gradient2,
+              semanticsLabel: "Loading",
+              backgroundColor: PalleteCommon.backgroundColor,
+            ),
           );
         } else if (snapshot.hasError) {
           print(snapshot.error);
@@ -903,8 +1016,8 @@ class _UsersPageState extends State<UsersPage> {
         // Merge sort by widget.orderBy, already sorted by widget.asc
         int i = 0, j = 0;
         while (i < snapshot1.docs.length && j < snapshot2.docs.length) {
-          int comparation = (snapshot1.docs[i][widget.orderBy] as String)
-              .compareTo(snapshot2.docs[j][widget.orderBy] as String);
+          int comparation = (snapshot1.docs[i][widget.orderBy].toString())
+              .compareTo(snapshot2.docs[j][widget.orderBy].toString());
 
           if (widget.asc && comparation < 0 || !widget.asc && comparation > 0) {
             Map<String, dynamic> tmpHashUser = snapshot1.docs[i].data();
@@ -918,7 +1031,7 @@ class _UsersPageState extends State<UsersPage> {
             Map<String, dynamic> tmpHashUser = snapshot2.docs[j].data();
             tmpHashUser["id"] = snapshot2.docs[j].id;
             if (checkSearchbarTextMatching(tmpHashUser) &&
-                checkNumOfEstatesRange(tmpHashUser["numOfEstates"])) {
+                checkNumOfEstatesRange(tmpHashUser["numOfEstates"] as int)) {
               list.add(tmpHashUser);
             }
             ++j;
@@ -990,6 +1103,9 @@ class _UsersPageState extends State<UsersPage> {
         tmpQuery = (tmpQuery ?? users)
             .where("numOfEstates", isLessThanOrEqualTo: widget.to);
       }*/
+
+      if (widget.orderBy == "name") {}
+
       popupQuery = (tmpQuery ?? users)
           .orderBy(widget.orderBy, descending: !widget.asc)
           .snapshots();
