@@ -827,8 +827,9 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
       onPressed: () async {
         if (widget.droppedFileBytes == null) return;
         FirebaseStorageService storage = FirebaseStorageService();
-        storage.uploadFile(widget.user.id, widget.droppedFileBytes!);
-        // Navigator.pop(context);
+        storage.uploadFile(
+            widget.user.id, widget.droppedFileName, widget.droppedFileBytes!);
+        Navigator.pop(context);
       },
       child: Text(widget.lang.dictionary["save_image"]!),
     );

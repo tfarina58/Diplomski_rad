@@ -1,11 +1,11 @@
-import 'package:diplomski_rad/auth/register/register.dart';
+import 'package:diplomski_rad/pages/register/register.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/social_button.dart';
 import 'package:diplomski_rad/other/pallete.dart';
-import 'package:diplomski_rad/home/home.dart';
+import 'package:diplomski_rad/pages/home/home.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -53,14 +53,15 @@ class _LoginPageState extends State<LoginPage> {
                 iconPath: 'svgs/google.svg',
                 label: widget.lang.dictionary["sign_in_with_google"]!,
                 method: () {},
+                horizontalPadding: 110,
               ),
-              const SizedBox(height: 20),
+              /*const SizedBox(height: 20),
               SocialButton(
                 iconPath: 'svgs/facebook.svg',
                 label: widget.lang.dictionary["sign_in_with_facebook"]!,
                 method: () {},
-                horizontalPadding: 90,
-              ),
+                horizontalPadding: 100,
+              ),*/
               const SizedBox(height: 15),
               const Text(
                 'or',

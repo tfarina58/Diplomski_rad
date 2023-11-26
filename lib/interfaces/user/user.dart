@@ -23,7 +23,7 @@ abstract class User {
   }
 
   static User? toUser(Map<String, dynamic> user) {
-    if (user['typeOfUser'] == "ind") {
+        if (user['typeOfUser'] == "ind") {
       Individual res = Individual();
 
       res.avatarImage = user['avatarImage'] ?? "";
@@ -135,8 +135,7 @@ abstract class User {
         "firstname": user.firstname,
         "typeOfUser": "ind",
         "lastname": user.lastname,
-        "birthday": Timestamp(
-            user.birthday.millisecondsSinceEpoch ~/ 1000, 0),
+        "birthday": Timestamp(user.birthday.millisecondsSinceEpoch ~/ 1000, 0),
         "numOfEstates": user.numOfEstates,
       };
     } else if (user is Company) {

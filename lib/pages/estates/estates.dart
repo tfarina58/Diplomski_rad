@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:diplomski_rad/components/header.dart';
 import 'package:diplomski_rad/widgets/card.dart';
 import 'package:diplomski_rad/other/pallete.dart';
-import 'package:diplomski_rad/estates/estate-details/estate-details.dart';
+import 'package:diplomski_rad/pages/estates/estate-details/estate-details.dart';
 import 'package:diplomski_rad/widgets/maps.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';

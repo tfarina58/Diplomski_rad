@@ -249,6 +249,18 @@ class LanguageService {
           "password": "Passwort",
           "delete_account_warning_message":
               "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Ihre Daten gehen dauerhaft verloren!",
+          "sign_up": "Anmelden",
+          "have_account_login_here":
+              "Haben Sie bereits ein Konto? Melden Sie sich hier an.",
+          "cant_register":
+              "Beim Versuch, Ihr Konto zu erstellen, ist ein Problem aufgetreten. Bitte versuchen Sie es später erneut.",
+          "account_successfully_created":
+              "Ihr Gaskonto wurde erfolgreich erstellt!",
+          "dont_have_account_register_here":
+              "Sie haben noch kein Konto? Melden Sie sich hier an.",
+          "sign_in": "Anmelden",
+          "sign_in_with_google": "Mit Google anmelden",
+          "sign_in_with_facebook": "Mit Facebook anmelden",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -283,7 +295,7 @@ class LanguageService {
           "phone_number": "Broj telefona",
           "street": "Ulica",
           "zip": "Poštanski broj",
-          "city": "grad",
+          "city": "Grad",
           "country": "Država",
           "distance_units": "Jedinice udaljenosti",
           "km": "Kilometri",
@@ -363,6 +375,18 @@ class LanguageService {
           "password": "Lozinka",
           "delete_account_warning_message":
               "Jeste li sigurni da želite izbrisati svoj račun? Vaši će podaci biti trajno izgubljeni!",
+          "customers": "Korisnici",
+          "sign_up": "Prijavite se",
+          "have_account_login_here": "Već imate račun? Prijavite se ovdje.",
+          "cant_register":
+              "Došlo je do problema prilikom pokušaja kreiranja vašeg računa. Pokušajte ponovno kasnije.",
+          "account_successfully_created":
+              "Vaš račun za plin uspješno je kreiran!",
+          "dont_have_account_register_here":
+              "Nemate račun? Prijavite se ovdje.",
+          "sign_in": "Prijava",
+          "sign_in_with_google": "Prijavite se s Googleom",
+          "sign_in_with_facebook": "Prijavite se putem Facebooka",
         };
 
         /*if (specific != null && specific.isNotEmpty) {

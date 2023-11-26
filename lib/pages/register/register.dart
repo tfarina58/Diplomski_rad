@@ -1,5 +1,5 @@
-import 'package:diplomski_rad/auth/login/login.dart';
-import 'package:diplomski_rad/home/home.dart';
+import 'package:diplomski_rad/pages/login/login.dart';
+import 'package:diplomski_rad/pages/home/home.dart';
 import 'package:diplomski_rad/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';

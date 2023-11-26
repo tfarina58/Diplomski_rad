@@ -15,16 +15,13 @@ class FirebaseStorageService {
     storage = FirebaseStorage.instance.ref(instance);
   }
 
-  Future<void> uploadFile(String id, Uint8List bytes) async {
-    final Reference folder = storage.child("$id/chick.jpg");
+  Future<void> uploadFile(String id, String name, Uint8List bytes) async {
+    final Reference folder = storage.child("$id/$name");
     if (kIsWeb) {
-      //try {
       final TaskSnapshot uploadTask =
-          await folder.putData(bytes).whenComplete(() => print("Completed!"));
-      print(await folder.getDownloadURL());
-      /*} catch (err) {
-        print(err);
-      }*/
+          await folder.putData(bytes).whenComplete(() async {
+        String url = await folder.getDownloadURL();
+      });
     }
   }
 

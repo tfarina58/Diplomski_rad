@@ -1,9 +1,9 @@
-import 'package:diplomski_rad/auth/login/login.dart';
-import 'package:diplomski_rad/home/home.dart';
+import 'package:diplomski_rad/pages/login/login.dart';
+import 'package:diplomski_rad/pages/home/home.dart';
 import 'package:diplomski_rad/services/language.dart';
-import 'package:diplomski_rad/estates/estates.dart';
-import 'package:diplomski_rad/users/users.dart';
-import 'package:diplomski_rad/profile/profile.dart';
+import 'package:diplomski_rad/pages/estates/estates.dart';
+import 'package:diplomski_rad/pages/users/users.dart';
+import 'package:diplomski_rad/pages/profile/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/services/firebase.dart';

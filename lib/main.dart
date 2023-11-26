@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:diplomski_rad/auth/login/login.dart';
+import 'package:diplomski_rad/pages/login/login.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';

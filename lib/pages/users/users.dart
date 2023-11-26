@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:diplomski_rad/components/header.dart';
-import 'package:diplomski_rad/estates/estates.dart';
-import 'package:diplomski_rad/profile/profile.dart';
+import 'package:diplomski_rad/pages/estates/estates.dart';
+import 'package:diplomski_rad/pages/profile/profile.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:diplomski_rad/widgets/dropdown_field.dart';
@@ -998,6 +998,7 @@ class _UsersPageState extends State<UsersPage> {
 
     // Combine the two streams using the merge operator
     if (checkFiltersInactivity()) {
+      print("Inactive");
       Stream<QuerySnapshot<Map<String, dynamic>>> indQuery = users
           .where("typeOfUser", isEqualTo: "ind")
           .orderBy(widget.orderBy, descending: !widget.asc)

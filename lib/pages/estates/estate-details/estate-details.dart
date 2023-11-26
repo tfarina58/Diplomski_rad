@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/interfaces/estate/estate.dart';
-import 'package:diplomski_rad/estates/estate-details/manage-presentation/manage-presentation.dart';
+import 'package:diplomski_rad/pages/estates/estate-details/manage-presentation/manage-presentation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/other/pallete.dart';
