@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:diplomski_rad/components/header.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/widgets/dropdown_field.dart';
@@ -5,20 +7,26 @@ import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/interfaces/estate/estate.dart';
+import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:diplomski_rad/pages/estates/estate-details/manage-presentation/manage-presentation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/other/pallete.dart';
+import 'package:diplomski_rad/widgets/images_display_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EstateDetailsPage extends StatefulWidget {
+  String? userId;
   Estate estate;
   bool isNew;
-  String? userId;
   LanguageService? lang;
   Map<String, dynamic> headerValues = <String, dynamic>{};
 
-  EstateDetailsPage({Key? key, required this.estate, this.isNew = false})
-      : super(key: key);
+  EstateDetailsPage({
+    Key? key,
+    required this.estate,
+    this.isNew = false,
+  }) : super(key: key);
 
   @override
   State<EstateDetailsPage> createState() => _EstateDetailsPageState();
@@ -36,6 +44,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       return const SizedBox();
     }
 
+    print(widget.estate.id);
     return Scaffold(
       appBar: HeaderComponent(
         currentPage: 'EstateDetailsPage',
@@ -44,452 +53,38 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  constraints: BoxConstraints(
-                    maxHeight: height * 0.6,
-                    minHeight: height * 0.3,
-                    maxWidth: width,
-                    minWidth: width,
-                  ),
-                  child: backgroundImage(),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          widget.lang!.dictionary["general_information"]!,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Text(
-                          widget.lang!.dictionary["additional_information"]!,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 25,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            StringField(
-                              labelText: widget.lang!.dictionary["name"]!,
-                              callback: (value) => widget.estate.name = value,
-                              presetText: widget.estate.name,
-                            ),
-                            const SizedBox(height: 15),
-                            StringField(
-                              labelText: widget.lang!.dictionary["street"]!,
-                              callback: (value) => widget.estate.street = value,
-                              presetText: widget.estate.street,
-                            ),
-                            const SizedBox(height: 15),
-                            StringField(
-                              labelText: widget.lang!.dictionary["zip"]!,
-                              callback: (value) => widget.estate.zip = value,
-                              presetText: widget.estate.zip,
-                            ),
-                            const SizedBox(height: 15),
-                            StringField(
-                              labelText: widget.lang!.dictionary["city"]!,
-                              callback: (value) => widget.estate.city = value,
-                              presetText: widget.estate.city,
-                            ),
-                            const SizedBox(height: 15),
-                            StringField(
-                              labelText: widget.lang!.dictionary["country"]!,
-                              callback: (value) =>
-                                  widget.estate.country = value,
-                              presetText: widget.estate.country,
-                            ),
-                            const SizedBox(height: 15),
-                            StringField(
-                              labelText:
-                                  widget.lang!.dictionary["phone_number"]!,
-                              callback: (value) => widget.estate.phone = value,
-                              presetText: widget.estate.phone,
-                            ),
-                            const SizedBox(height: 15),
-                            StringField(
-                              labelText:
-                                  widget.lang!.dictionary["description"]!,
-                              callback: (value) =>
-                                  widget.estate.description = value,
-                              presetText: widget.estate.description,
-                              multiline: 5,
-                            ),
-                            /*const SizedBox(height: 30),
-                            widget.isNew
-                                ? GradientButton(
-                                    buttonText: widget
-                                        .lang!.dictionary["create_estate"]!,
-                                    callback: createEstate,
-                                  )
-                                : GradientButton(
-                                    buttonText: widget
-                                        .lang!.dictionary["save_changes"]!,
-                                    callback: saveChanges,
-                                  ),*/
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Column(
-                          children: [
-                            DropdownField(
-                              labelText: widget.lang!.dictionary["allow_pets"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.petsAllowed =
-                                      value == "True";
-                                });
-                              },
-                              selected: widget.estate.preferences.petsAllowed
-                                  ? "True"
-                                  : "False",
-                              choices: const ["True", "False"],
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText:
-                                  widget.lang!.dictionary["allow_smoking"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.smokingAllowed =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected: widget.estate.preferences.smokingAllowed
-                                  ? "True"
-                                  : "False",
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText: widget
-                                  .lang!.dictionary["handicap_accessible"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.handicapAccessible =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected:
-                                  widget.estate.preferences.handicapAccessible
-                                      ? "True"
-                                      : "False",
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText:
-                                  widget.lang!.dictionary["air_conditioning"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.airConditioning =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected:
-                                  widget.estate.preferences.airConditioning
-                                      ? "True"
-                                      : "False",
-                            ),
-                            const SizedBox(height: 20),
-                            DropdownField(
-                              labelText: widget.lang!.dictionary["wifi"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.wifi =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected: widget.estate.preferences.wifi
-                                  ? "True"
-                                  : "False",
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText: widget.lang!.dictionary["pool"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.pool =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected: widget.estate.preferences.pool
-                                  ? "True"
-                                  : "False",
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText: widget.lang!.dictionary["kitchen"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.kitchen =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected: widget.estate.preferences.kitchen
-                                  ? "True"
-                                  : "False",
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Column(
-                          children: [
-                            DropdownField(
-                              labelText: widget
-                                  .lang!.dictionary["accepting_payment_cards"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences
-                                      .acceptingPaymentCards = value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected: widget
-                                      .estate.preferences.acceptingPaymentCards
-                                  ? "True"
-                                  : "False",
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText:
-                                  widget.lang!.dictionary["washing_machine"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.washingMachine =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected: widget.estate.preferences.washingMachine
-                                  ? "True"
-                                  : "False",
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText:
-                                  widget.lang!.dictionary["drying_machine"]!,
-                              callback: (String? value) {
-                                if (value == null) return;
-                                setState(() {
-                                  widget.estate.preferences.dryingMachine =
-                                      value == "True";
-                                });
-                              },
-                              choices: const ["True", "False"],
-                              selected: widget.estate.preferences.dryingMachine
-                                  ? "True"
-                                  : "False",
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              choices: const ['0', '1', '2', '3', '3+'],
-                              labelText: widget.lang!
-                                  .dictionary["designated_parking_spots"]!,
-                              selected: widget
-                                  .estate.preferences.designatedParkingSpots,
-                              callback: (String? value) {
-                                if (value == null) return;
+        child: widget.estate.id.isEmpty
+            ? displayBody(width, height)
+            : StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('estates')
+                    .doc(widget.estate.id)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator(
+                      color: PalleteCommon.gradient2,
+                      semanticsLabel: widget.lang!.dictionary["loading"],
+                      backgroundColor: PalleteCommon.backgroundColor,
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    final estateMap = snapshot.data?.data();
+                    if (estateMap == null)
+                      return Text('Error: ${snapshot.error}');
+                    estateMap['id'] = snapshot.data!.id;
 
-                                setState(() {
-                                  widget.estate.preferences
-                                      .designatedParkingSpots = value;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText:
-                                  widget.lang!.dictionary["outlet_type"]!,
-                              choices: const [
-                                "A",
-                                "B",
-                                "C",
-                                "D",
-                                "E",
-                                "F",
-                                "G",
-                                "H",
-                                "I",
-                                "J",
-                                "K",
-                                "L",
-                              ],
-                              selected: widget.estate.preferences.outletType,
-                              callback: (String? value) {
-                                if (value == null) return;
+                    Estate? estate = Estate.toEstate(estateMap);
+                    if (estate == null) {
+                      return const Text('Error: Can\'t proccess data!');
+                    }
 
-                                setState(() {
-                                  widget.estate.preferences.outletType = value;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 15),
-                            DropdownField(
-                              labelText:
-                                  widget.lang!.dictionary["house_orientation"]!,
-                              choices: const [
-                                "N",
-                                "NE",
-                                "E",
-                                "SE",
-                                "S",
-                                "SW",
-                                "W",
-                                "NW",
-                              ],
-                              selected:
-                                  widget.estate.preferences.houseOrientation,
-                              callback: (String? value) {
-                                if (value == null) return;
-
-                                setState(() {
-                                  widget.estate.preferences.houseOrientation =
-                                      value;
-                                });
-                              },
-                            ),
-                            /*const SizedBox(height: 30),
-                            GradientButton(
-                              buttonText:
-                                  widget.lang!.dictionary["edit_presentation"]!,
-                              callback: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ManagePresentationPage(
-                                    estate: widget.estate,
-                                  ),
-                                ),
-                              ),
-                            ),*/
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 45,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Expanded(child: SizedBox()),
-                    Expanded(
-                      flex: 3,
-                      child: widget.isNew
-                          ? GradientButton(
-                              buttonText:
-                                  widget.lang!.dictionary["create_estate"]!,
-                              callback: createEstate,
-                            )
-                          : GradientButton(
-                              buttonText:
-                                  widget.lang!.dictionary["save_changes"]!,
-                              callback: updateEstate,
-                            ),
-                    ),
-                    const Expanded(
-                      flex: 2,
-                      child: SizedBox(),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: GradientButton(
-                        buttonText:
-                            widget.lang!.dictionary["edit_presentation"]!,
-                        callback: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ManagePresentationPage(
-                              estate: widget.estate,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 2,
-                      child: SizedBox(),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: !widget.isNew
-                          ? GradientButton(
-                              buttonText:
-                                  widget.lang!.dictionary["delete_estate"]!,
-                              callback: () => showDialog(
-                                context: context,
-                                builder: (BuildContext context) =>
-                                    showDeleteAlert(width, height),
-                              ),
-                            )
-                          : const SizedBox(),
-                    ),
-                    const Expanded(child: SizedBox()),
-                  ],
-                ),
-                const SizedBox(
-                  height: 65,
-                ),
-              ],
-            ),
-          ),
-        ),
+                    widget.estate = estate;
+                    return displayBody(width, height);
+                  }
+                },
+              ),
       ),
     );
   }
@@ -521,32 +116,497 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     });
   }
 
-  Widget backgroundImage() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 50),
-      decoration: widget.estate.images.isNotEmpty
-          ? BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.fitWidth,
-                image: Image(
-                  fit: BoxFit.contain,
-                  image: widget.estate.images.isNotEmpty
-                      ? Image.network(widget.estate.images[0]).image
-                      : Image.asset("images/test.png").image,
-                ).image,
-              ),
-            )
-          : const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 1, 105, 88),
-                  Color.fromARGB(255, 20, 207, 61)
-                ],
-                begin: Alignment.centerLeft,
-                end: Alignment.bottomRight,
-              ),
+  Widget displayBody(double width, double height) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ImagesDisplay(
+              estate: widget.estate,
+              lang: widget.lang!,
+              showAvatar: false,
             ),
+            SizedBox(
+              width: width,
+              height: height * 0.1,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      widget.lang!.dictionary["general_information"]!,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: Text(
+                      widget.lang!.dictionary["additional_information"]!,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 25,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        StringField(
+                          labelText: widget.lang!.dictionary["name"]!,
+                          callback: (value) => widget.estate.name = value,
+                          presetText: widget.estate.name,
+                        ),
+                        const SizedBox(height: 15),
+                        StringField(
+                          labelText: widget.lang!.dictionary["street"]!,
+                          callback: (value) => widget.estate.street = value,
+                          presetText: widget.estate.street,
+                        ),
+                        const SizedBox(height: 15),
+                        StringField(
+                          labelText: widget.lang!.dictionary["zip"]!,
+                          callback: (value) => widget.estate.zip = value,
+                          presetText: widget.estate.zip,
+                        ),
+                        const SizedBox(height: 15),
+                        StringField(
+                          labelText: widget.lang!.dictionary["city"]!,
+                          callback: (value) => widget.estate.city = value,
+                          presetText: widget.estate.city,
+                        ),
+                        const SizedBox(height: 15),
+                        StringField(
+                          labelText: widget.lang!.dictionary["country"]!,
+                          callback: (value) => widget.estate.country = value,
+                          presetText: widget.estate.country,
+                        ),
+                        const SizedBox(height: 15),
+                        StringField(
+                          labelText: widget.lang!.dictionary["phone_number"]!,
+                          callback: (value) => widget.estate.phone = value,
+                          presetText: widget.estate.phone,
+                        ),
+                        const SizedBox(height: 15),
+                        StringField(
+                          labelText: widget.lang!.dictionary["description"]!,
+                          callback: (value) =>
+                              widget.estate.description = value,
+                          presetText: widget.estate.description,
+                          multiline: 5,
+                        ),
+                        /*const SizedBox(height: 30),
+                              widget.isNew
+                                  ? GradientButton(
+                                      buttonText: widget
+                                          .lang!.dictionary["create_estate"]!,
+                                      callback: createEstate,
+                                    )
+                                  : GradientButton(
+                                      buttonText: widget
+                                          .lang!.dictionary["save_changes"]!,
+                                      callback: saveChanges,
+                                    ),*/
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: Column(
+                      children: [
+                        DropdownField(
+                          labelText: widget.lang!.dictionary["allow_pets"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.petsAllowed =
+                                  value == "True";
+                            });
+                          },
+                          selected: widget.estate.preferences.petsAllowed
+                              ? "True"
+                              : "False",
+                          choices: const ["True", "False"],
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText: widget.lang!.dictionary["allow_smoking"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.smokingAllowed =
+                                  value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected: widget.estate.preferences.smokingAllowed
+                              ? "True"
+                              : "False",
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText:
+                              widget.lang!.dictionary["handicap_accessible"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.handicapAccessible =
+                                  value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected: widget.estate.preferences.handicapAccessible
+                              ? "True"
+                              : "False",
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText:
+                              widget.lang!.dictionary["air_conditioning"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.airConditioning =
+                                  value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected: widget.estate.preferences.airConditioning
+                              ? "True"
+                              : "False",
+                        ),
+                        const SizedBox(height: 20),
+                        DropdownField(
+                          labelText: widget.lang!.dictionary["wifi"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.wifi = value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected:
+                              widget.estate.preferences.wifi ? "True" : "False",
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText: widget.lang!.dictionary["pool"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.pool = value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected:
+                              widget.estate.preferences.pool ? "True" : "False",
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText: widget.lang!.dictionary["kitchen"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.kitchen =
+                                  value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected: widget.estate.preferences.kitchen
+                              ? "True"
+                              : "False",
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: Column(
+                      children: [
+                        DropdownField(
+                          labelText: widget
+                              .lang!.dictionary["accepting_payment_cards"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.acceptingPaymentCards =
+                                  value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected:
+                              widget.estate.preferences.acceptingPaymentCards
+                                  ? "True"
+                                  : "False",
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText:
+                              widget.lang!.dictionary["washing_machine"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.washingMachine =
+                                  value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected: widget.estate.preferences.washingMachine
+                              ? "True"
+                              : "False",
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText: widget.lang!.dictionary["drying_machine"]!,
+                          callback: (String? value) {
+                            if (value == null) return;
+                            setState(() {
+                              widget.estate.preferences.dryingMachine =
+                                  value == "True";
+                            });
+                          },
+                          choices: const ["True", "False"],
+                          selected: widget.estate.preferences.dryingMachine
+                              ? "True"
+                              : "False",
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          choices: const ['0', '1', '2', '3', '3+'],
+                          labelText: widget
+                              .lang!.dictionary["designated_parking_spots"]!,
+                          selected:
+                              widget.estate.preferences.designatedParkingSpots,
+                          callback: (String? value) {
+                            if (value == null) return;
+
+                            setState(() {
+                              widget.estate.preferences.designatedParkingSpots =
+                                  value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText: widget.lang!.dictionary["outlet_type"]!,
+                          choices: const [
+                            "A",
+                            "B",
+                            "C",
+                            "D",
+                            "E",
+                            "F",
+                            "G",
+                            "H",
+                            "I",
+                            "J",
+                            "K",
+                            "L",
+                          ],
+                          selected: widget.estate.preferences.outletType,
+                          callback: (String? value) {
+                            if (value == null) return;
+
+                            setState(() {
+                              widget.estate.preferences.outletType = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 15),
+                        DropdownField(
+                          labelText:
+                              widget.lang!.dictionary["house_orientation"]!,
+                          choices: const [
+                            "N",
+                            "NE",
+                            "E",
+                            "SE",
+                            "S",
+                            "SW",
+                            "W",
+                            "NW",
+                          ],
+                          selected: widget.estate.preferences.houseOrientation,
+                          callback: (String? value) {
+                            if (value == null) return;
+
+                            setState(() {
+                              widget.estate.preferences.houseOrientation =
+                                  value;
+                            });
+                          },
+                        ),
+                        /*const SizedBox(height: 30),
+                              GradientButton(
+                                buttonText:
+                                    widget.lang!.dictionary["edit_presentation"]!,
+                                callback: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ManagePresentationPage(
+                                      estate: widget.estate,
+                                    ),
+                                  ),
+                                ),
+                              ),*/
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 45,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(child: SizedBox()),
+                Expanded(
+                  flex: 3,
+                  child: widget.isNew
+                      ? GradientButton(
+                          buttonText: widget.lang!.dictionary["create_estate"]!,
+                          callback: createEstate,
+                        )
+                      : GradientButton(
+                          buttonText: widget.lang!.dictionary["save_changes"]!,
+                          callback: updateEstate,
+                        ),
+                ),
+                const Expanded(
+                  flex: 2,
+                  child: SizedBox(),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: GradientButton(
+                    buttonText: widget.lang!.dictionary["edit_presentation"]!,
+                    callback: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManagePresentationPage(
+                          estate: widget.estate,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(
+                  flex: 2,
+                  child: SizedBox(),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: !widget.isNew
+                      ? GradientButton(
+                          buttonText: widget.lang!.dictionary["delete_estate"]!,
+                          callback: () => showDialog(
+                            context: context,
+                            builder: (BuildContext context) =>
+                                showDeleteAlert(width, height),
+                          ),
+                        )
+                      : const SizedBox(),
+                ),
+                const Expanded(child: SizedBox()),
+              ],
+            ),
+            const SizedBox(
+              height: 65,
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Widget backgroundImageDisplay(BuildContext context) {
+    if (widget.estate.images.isEmpty || widget.estate.images[0].isEmpty) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 50),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Color(0xff0043ba), Color(0xff006df1)]),
+        ),
+      );
+    } else {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 50),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            scale: 0.01,
+            fit: BoxFit.fitWidth,
+            image: Image.network(widget.estate.images[0]).image,
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget cameraIconDisplay(bool avatarImage) {
+    if (avatarImage) {
+      return Positioned(
+        bottom: 0,
+        right: 0,
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          child: Container(
+            margin: const EdgeInsets.all(8.0),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.camera_alt),
+          ),
+        ),
+      );
+    } else {
+      return Positioned(
+        bottom: 60,
+        right: 15,
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          child: Container(
+            margin: const EdgeInsets.all(8.0),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.camera_alt),
+          ),
+        ),
+      );
+    }
   }
 
   List<Widget> getImages(double width) {

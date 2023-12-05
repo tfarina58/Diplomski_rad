@@ -1,3 +1,4 @@
+import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,8 +10,10 @@ import 'dart:math';
 
 class MapsWidget extends StatefulWidget {
   List<Estate> estates;
+  // String? customerId;
 
-  MapsWidget({Key? key, this.estates = const []}) : super(key: key);
+  MapsWidget({Key? key, this.estates = const []})
+      : super(key: key);
 
   @override
   State<MapsWidget> createState() => _MapsWidgetState();

@@ -48,10 +48,7 @@ abstract class User {
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
       );
-      /*res.birthday = DateFormat(res.preferences.dateFormat)
-          .format((user['birthday'] as Timestamp).toDate());*/
       Timestamp x = user['birthday'];
-
       res.birthday =
           DateTime.fromMillisecondsSinceEpoch(x.millisecondsSinceEpoch);
       res.street = user['street'] ?? "";

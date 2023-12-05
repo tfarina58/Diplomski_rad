@@ -1,4 +1,5 @@
 import 'package:diplomski_rad/interfaces/estate/estate.dart';
+import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/components/header.dart';
 import 'package:diplomski_rad/widgets/card.dart';
@@ -12,7 +13,11 @@ import 'package:diplomski_rad/services/language.dart';
 enum UserChoice { list, map }
 
 class EstatesPage extends StatefulWidget {
+  // If user searches for its own estates, only the userId will be set (for StreamBuilder and HeaderComponent)
   String? userId;
+  // If customer is also set, the user searches for other people's estates, hence the userId will be used only for HeaderComponent
+  String? customerId;
+
   List<Estate> estates = [];
   final bool showEmptyCard;
   UserChoice choice = UserChoice.list;
@@ -22,7 +27,7 @@ class EstatesPage extends StatefulWidget {
   EstatesPage({
     Key? key,
     this.showEmptyCard = true,
-    this.userId,
+    this.customerId = "",
   }) : super(key: key);
 
   @override
@@ -113,7 +118,7 @@ class _EstatesPageState extends State<EstatesPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = widget.userId ?? prefs.getString("userId");
+      String? tmpUserId = prefs.getString("userId");
       String? tmpTypeOfUser = prefs.getString("typeOfUser");
       String? tmpAvatarImage = prefs.getString("avatarImage");
       String? tmpLanguage = prefs.getString("language");
@@ -143,10 +148,8 @@ class _EstatesPageState extends State<EstatesPage> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EstateDetailsPage(
-                isNew: true,
-                estate: Estate(),
-              ),
+              builder: (context) =>
+                  EstateDetailsPage(isNew: true, estate: Estate()),
             ),
           ),
           child: MouseRegion(
@@ -172,7 +175,10 @@ class _EstatesPageState extends State<EstatesPage> {
       StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('estates')
-            .where('ownerId', isEqualTo: widget.userId)
+            .where('ownerId',
+                isEqualTo: widget.customerId!.isNotEmpty
+                    ? widget.customerId
+                    : widget.userId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -291,7 +297,8 @@ class _EstatesPageState extends State<EstatesPage> {
       ),
       height: height * 0.8,
       width: width * 0.8,
-      child: MapsWidget(estates: widget.estates),
+      child: MapsWidget(
+          estates: widget.estates /*, customerId: widget.customerId*/),
     );
   }
 

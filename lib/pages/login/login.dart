@@ -8,6 +8,7 @@ import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/pages/home/home.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:diplomski_rad/interfaces/user/user.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
@@ -41,9 +42,9 @@ class _LoginPageState extends State<LoginPage> {
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height * 0.1,
               ),
-              const Text(
-                'Sign in',
-                style: TextStyle(
+              Text(
+                widget.lang.dictionary["sign_in"]!,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 50,
                 ),
@@ -63,16 +64,16 @@ class _LoginPageState extends State<LoginPage> {
                 horizontalPadding: 100,
               ),*/
               const SizedBox(height: 15),
-              const Text(
-                'or',
-                style: TextStyle(
+              Text(
+                widget.lang.dictionary["or"]!,
+                style: const TextStyle(
                   fontSize: 17,
                 ),
               ),
               const SizedBox(height: 15),
               StringField(
                 presetText: widget.email,
-                labelText: 'Email',
+                labelText: widget.lang.dictionary["email"]!,
                 callback: (value) => setState(() {
                   widget.email = value;
                 }),
@@ -134,13 +135,12 @@ class _LoginPageState extends State<LoginPage> {
 
   void signIn(double width, double height, String email, String password,
       bool keepLoggedIn) async {
-    Map<String, dynamic>? user =
-        await UserRepository.loginUser(email, password);
+    User? user = await UserRepository.loginUser(email, password);
 
     // TODO: fix colors!
     SnackBar feedback;
     if (user != null) {
-      if (user["banned"]) {
+      if (user is Customer && user.banned == true) {
         feedback = SnackBar(
           content: Text(
             widget.lang.dictionary["banned_by_admin"]!,
@@ -155,11 +155,11 @@ class _LoginPageState extends State<LoginPage> {
           ),
           closeIconColor: PalleteCommon.gradient2,
           action: SnackBarAction(
-            label: 'Dismiss',
+            label: widget.lang.dictionary["dismiss"]!,
             onPressed: () {},
           ),
         );
-      } else if (user["blocked"]) {
+      } else if (user is Customer && user.blocked == true) {
         feedback = SnackBar(
           content: Text(
             widget.lang.dictionary["blocked_by_admin"]!,
@@ -174,16 +174,35 @@ class _LoginPageState extends State<LoginPage> {
           ),
           closeIconColor: PalleteCommon.gradient2,
           action: SnackBarAction(
-            label: 'Dismiss',
+            label: widget.lang.dictionary["dismiss"]!,
             onPressed: () {},
           ),
         );
       } else {
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString("userId", user["id"]);
-        await prefs.setString("typeOfUser", user["typeOfUser"] ?? "");
-        await prefs.setString("language", user["language"] ?? "en");
-        await prefs.setString("avatarImage", user["avatarImage"] ?? "");
+        await prefs.setString("userId", user.id);
+        if (user is Individual) {
+          await prefs.setString("typeOfUser", "ind");
+          await prefs.setString(
+              "language",
+              user.preferences.language.isEmpty
+                  ? user.preferences.language
+                  : "en");
+          await prefs.setString(
+              "avatarImage", user.avatarImage.isEmpty ? user.avatarImage : "");
+        } else if (user is Company) {
+          await prefs.setString("typeOfUser", "com");
+          await prefs.setString(
+            "language",
+            user.preferences.language.isEmpty
+                ? user.preferences.language
+                : "en",
+          );
+          await prefs.setString(
+            "avatarImage",
+            user.avatarImage.isEmpty ? user.avatarImage : "",
+          );
+        }
 
         Navigator.push(
           context,

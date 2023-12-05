@@ -181,14 +181,34 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void signUp(double width, double height) async {
-    Map<String, dynamic> userMap = {
-      "firstname": widget.firstname,
-      "lastname": widget.lastname,
-      "birthday": widget.birthday,
-      "email": widget.email,
-      "typeOfUser": widget.typeOfUser,
-      "password": widget.password,
-    };
+    Map<String, dynamic> userMap;
+    if (widget.typeOfUser == 'ind') {
+      userMap = {
+        "firstname": widget.firstname,
+        "lastname": widget.lastname,
+        "birthday": widget.birthday,
+        "email": widget.email,
+        "typeOfUser": widget.typeOfUser,
+        "password": widget.password,
+        "banned": false,
+        "blocked": false,
+        "numOfEstates": 0,
+      };
+    } else if (widget.typeOfUser == 'com') {
+      userMap = {
+        "ownerFirstname": widget.firstname,
+        "ownerLastname": widget.lastname,
+        "companyName": widget.companyName,
+        "email": widget.email,
+        "typeOfUser": widget.typeOfUser,
+        "password": widget.password,
+        "banned": false,
+        "blocked": false,
+        "numOfEstates": 0,
+      };
+    } else {
+      userMap = {};
+    }
 
     User? user = await UserRepository.createCustomer(userMap);
     if (user == null) {

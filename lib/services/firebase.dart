@@ -5,7 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'dart:io';
+import 'dart:developer';
 
 class FirebaseStorageService {
   var storage = FirebaseStorage.instance.ref();
@@ -15,13 +17,34 @@ class FirebaseStorageService {
     storage = FirebaseStorage.instance.ref(instance);
   }
 
-  Future<void> uploadFile(String id, String name, Uint8List bytes) async {
-    final Reference folder = storage.child("$id/$name");
-    if (kIsWeb) {
-      final TaskSnapshot uploadTask =
-          await folder.putData(bytes).whenComplete(() async {
-        String url = await folder.getDownloadURL();
-      });
+  Future<void> uploadFile(
+      dynamic object, String name, Uint8List bytes, bool choice) async {
+    if (object is Estate) {
+      final Reference folder = storage.child("${(object as Estate).id}/$name");
+      if (kIsWeb) {
+        await folder.putData(bytes).whenComplete(() async {
+          String url = await folder.getDownloadURL();
+
+          Map<String, dynamic> updateObject = {
+            "images": [url]
+          };
+          bool success = await EstateRepository.updateEstate(
+              updateObject, (object as Estate).id);
+        });
+      }
+    } else if (object is User) {
+      final Reference folder = storage.child("${(object as User).id}/$name");
+      if (kIsWeb) {
+        await folder.putData(bytes).whenComplete(() async {
+          String url = await folder.getDownloadURL();
+
+          Map<String, dynamic> updateObject = {
+            "email": (object as User).email,
+            (choice ? "avatarImage" : "backgroundImage"): url
+          };
+          bool success = await UserRepository.updateUser(updateObject);
+        });
+      }
     }
   }
 
@@ -30,6 +53,23 @@ class FirebaseStorageService {
     final Reference fileRef = folder.child(name);
     String url = await fileRef.getDownloadURL();
     return url;
+  }
+
+  Future<void> deleteFile(
+      User user, String name, Uint8List bytes, bool choice) async {
+    final Reference folder = storage.child("${user.id}/$name");
+    if (kIsWeb) {
+      final TaskSnapshot uploadTask =
+          await folder.putData(bytes).whenComplete(() async {
+        String url = await folder.getDownloadURL();
+
+        Map<String, dynamic> updateObject = {
+          "email": user.email,
+          (choice ? "avatarImage" : "backgroundImage"): url
+        };
+        bool success = await UserRepository.updateUser(updateObject);
+      });
+    }
   }
 }
 
@@ -122,10 +162,8 @@ class UserRepository {
     return userMap;
   }
 
-  static Future<Map<String, dynamic>?> loginUser(
-      String email, String password) async {
+  static Future<User?> loginUser(String email, String password) async {
     if (password.length < 8) return null;
-
     // TODO: Front-end shouldn't check if there are more docs with the same email
     QuerySnapshot<Map<String, dynamic>> querySnapshot = await users
         .where("email", isEqualTo: email)
@@ -137,7 +175,9 @@ class UserRepository {
     if (querySnapshot.docs.length == 1) {
       Map<String, dynamic> userMap = querySnapshot.docs[0].data();
       userMap["id"] = querySnapshot.docs[0].id;
-      return userMap;
+      User? user = User.toUser(userMap);
+      if (user == null) return null;
+      return user;
     }
     return null;
   }

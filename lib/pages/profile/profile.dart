@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
-import 'package:diplomski_rad/widgets/image_picker_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/components/header.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart';
@@ -555,12 +554,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-enum UserChoice { profilePicture, backgroundPicture }
-
 class ImagesDisplay extends StatefulWidget {
   User user;
   LanguageService lang;
-  UserChoice choice = UserChoice.profilePicture;
   String droppedFileName = "";
   Uint8List? droppedFileBytes;
 
@@ -589,7 +585,22 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
       ),
       child: Stack(
         children: [
-          backgroundImage(context, widget.user),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => showDialog(
+                context: context,
+                builder: (BuildContext context) =>
+                    showImagesDialog(context, false),
+              ),
+              child: Stack(
+                children: [
+                  backgroundImageDisplay(context, widget.user),
+                  cameraIconDisplay(false),
+                ],
+              ),
+            ),
+          ),
           Padding(
             padding: EdgeInsets.fromLTRB(width * 0.12, 0, 0, 0),
             child: Align(
@@ -600,49 +611,15 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                   onTap: () => showDialog(
                     context: context,
                     builder: (BuildContext context) =>
-                        showImagesDialog(context),
+                        showImagesDialog(context, true),
                   ),
                   child: SizedBox(
                     width: 150,
                     height: 150,
                     child: Stack(
                       children: [
-                        // User's image
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              fit: BoxFit.cover,
-                              image: widget.user is Customer &&
-                                      (widget.user as Customer)
-                                          .avatarImage
-                                          .isNotEmpty
-                                  ? Image.network(
-                                      (widget.user as Customer).avatarImage,
-                                    ).image
-                                  : Image.asset('images/default_user.png')
-                                      .image,
-                            ),
-                          ),
-                        ),
-                        // Camera icon
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor:
-                                Theme.of(context).scaffoldBackgroundColor,
-                            child: Container(
-                              margin: const EdgeInsets.all(8.0),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.camera_alt),
-                            ),
-                          ),
-                        ),
+                        avatarImageDisplay(),
+                        cameraIconDisplay(true),
                       ],
                     ),
                   ),
@@ -655,7 +632,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     );
   }
 
-  Widget backgroundImage(BuildContext context, User user) {
+  Widget backgroundImageDisplay(BuildContext context, User user) {
     if (user is Admin ||
         widget.user is Customer &&
             (widget.user as Customer).backgroundImage.isEmpty) {
@@ -683,29 +660,61 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     }
   }
 
-  Widget optionButton(
-      double width, double height, Function onPressed, String title) {
-    return SizedBox(
-      width: width * 0.4,
-      height: height * 0.05,
-      child: ElevatedButton(
-        style: const ButtonStyle(
-          backgroundColor:
-              MaterialStatePropertyAll(PalleteCommon.backgroundColor),
-        ),
-        onPressed: () => onPressed(),
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: PalleteCommon.gradient2,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget avatarImageDisplay() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black,
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          fit: BoxFit.cover,
+          image: widget.user is Customer &&
+                  (widget.user as Customer).avatarImage.isNotEmpty
+              ? Image.network(
+                  (widget.user as Customer).avatarImage,
+                ).image
+              : Image.asset('images/default_user.png').image,
         ),
       ),
     );
   }
 
-  Widget showImagesDialog(BuildContext context) {
+  Widget cameraIconDisplay(bool avatarImage) {
+    if (avatarImage) {
+      return Positioned(
+        bottom: 0,
+        right: 0,
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          child: Container(
+            margin: const EdgeInsets.all(8.0),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.camera_alt),
+          ),
+        ),
+      );
+    } else {
+      return Positioned(
+        bottom: 60,
+        right: 15,
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          child: Container(
+            margin: const EdgeInsets.all(8.0),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.camera_alt),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget showImagesDialog(BuildContext context, bool choice) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
@@ -727,30 +736,17 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
                 // Header options
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    optionButton(
-                      width,
-                      height,
-                      () => setState(() {
-                        widget.choice = UserChoice.profilePicture;
-                      }),
-                      widget.lang.dictionary["profile_image"]!,
-                    ),
-                    optionButton(
-                      width,
-                      height,
-                      () => setState(() {
-                        widget.choice = UserChoice.backgroundPicture;
-                      }),
-                      widget.lang.dictionary["background_image"]!,
-                    ),
-                  ],
+                SizedBox(height: height * 0.025),
+                Center(
+                  child: Text(
+                    widget.lang.dictionary[
+                        choice ? "avatar_image" : "background_image"]!,
+                    style: const TextStyle(fontSize: 32),
+                  ),
                 ),
-                SizedBox(height: height * 0.05),
+                SizedBox(height: height * 0.025),
                 // Body features
-                if (widget.choice == UserChoice.profilePicture)
+                if (choice)
                   if (widget.droppedFileBytes == null)
                     DropzoneWidget(
                       lang: widget.lang,
@@ -763,13 +759,44 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                         });
                       },
                     )
-                  /*ImagePickerWidget(
-                      onDroppedFile: (File? file) {
+                  else
+                    Row(
+                      children: [
+                        Container(
+                          width: width * 0.5,
+                          height: height * 0.5,
+                          margin: const EdgeInsets.all(8.0),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                          ),
+                          child: Image.memory(widget.droppedFileBytes!),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            optionSaveImage(width, height, choice),
+                            SizedBox(height: height * 0.08),
+                            optionDiscardImage(width, height),
+                            SizedBox(height: height * 0.08),
+                            optionCancel(width, height),
+                          ],
+                        ),
+                      ],
+                    )
+                else if (!choice)
+                  if (widget.droppedFileBytes == null)
+                    DropzoneWidget(
+                      lang: widget.lang,
+                      onDroppedFile: (Map<String, dynamic>? file) {
+                        if (file == null) return;
+
                         setState(() {
-                          widget.droppedFile = file;
+                          widget.droppedFileName = file['name'];
+                          widget.droppedFileBytes = file['bytes'];
                         });
                       },
-                    )*/
+                    )
                   else
                     Row(
                       children: [
@@ -787,7 +814,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            optionSaveImage(width, height),
+                            optionSaveImage(width, height, choice),
                             SizedBox(height: height * 0.08),
                             optionDiscardImage(width, height),
                             SizedBox(height: height * 0.08),
@@ -796,13 +823,6 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                         ),
                       ],
                     )
-                else
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(50, 50, 50, 50),
-                    child: Center(
-                      child: Text("changeImage"),
-                    ),
-                  ),
               ],
             ),
           );
@@ -811,7 +831,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     );
   }
 
-  Widget optionSaveImage(double width, double height) {
+  Widget optionSaveImage(double width, double height, bool choice) {
     return ElevatedButton(
       style: ButtonStyle(
         minimumSize: MaterialStatePropertyAll(
@@ -827,8 +847,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
       onPressed: () async {
         if (widget.droppedFileBytes == null) return;
         FirebaseStorageService storage = FirebaseStorageService();
-        storage.uploadFile(
-            widget.user.id, widget.droppedFileName, widget.droppedFileBytes!);
+        storage.uploadFile(widget.user, widget.droppedFileName,
+            widget.droppedFileBytes!, choice);
         Navigator.pop(context);
       },
       child: Text(widget.lang.dictionary["save_image"]!),

@@ -14,7 +14,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/firebase.dart';
-import 'package:async/async.dart';
 
 class UsersPage extends StatefulWidget {
   User? user;
@@ -22,6 +21,7 @@ class UsersPage extends StatefulWidget {
   Map<String, dynamic> headerValues = <String, dynamic>{};
 
   List<Customer> customers = [];
+  int lastAddedCustomer = 0;
 
   int currentPage = 0;
   int numOfPages = 0;
@@ -314,9 +314,10 @@ class _UsersPageState extends State<UsersPage> {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == "True") {
+                          if (value == widget.lang!.dictionary["show"]) {
                             blocked = true;
-                          } else if (value == "False") {
+                          } else if (value ==
+                              widget.lang!.dictionary["dont_show"]) {
                             blocked = false;
                           } else {
                             blocked = null;
@@ -325,11 +326,15 @@ class _UsersPageState extends State<UsersPage> {
                           // if (blocked == false) banned = false;
                         });
                       },
-                      choices: const ["-", "True", "False"],
+                      choices: [
+                        "-",
+                        widget.lang!.dictionary["show"],
+                        widget.lang!.dictionary["dont_show"]
+                      ],
                       selected: blocked == true
-                          ? "True"
+                          ? widget.lang!.dictionary["show"]
                           : blocked == false
-                              ? "False"
+                              ? widget.lang!.dictionary["dont_show"]
                               : "-",
                     ),
                     DropdownField(
@@ -339,15 +344,20 @@ class _UsersPageState extends State<UsersPage> {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == "True") {
+                          if (value == widget.lang!.dictionary["show"]) {
                             individual = true;
                           } else {
                             individual = false;
                           }
                         });
                       },
-                      choices: const ["True", "False"],
-                      selected: individual == true ? "True" : "False",
+                      choices: [
+                        widget.lang!.dictionary["show"],
+                        widget.lang!.dictionary["dont_show"]
+                      ],
+                      selected: individual == true
+                          ? widget.lang!.dictionary["show"]
+                          : widget.lang!.dictionary["dont_show"],
                     ),
                   ],
                 ),
@@ -365,9 +375,10 @@ class _UsersPageState extends State<UsersPage> {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == "True") {
+                          if (value == widget.lang!.dictionary["show"]) {
                             banned = true;
-                          } else if (value == "False") {
+                          } else if (value ==
+                              widget.lang!.dictionary["dont_show"]) {
                             banned = false;
                           } else {
                             banned = null;
@@ -376,11 +387,15 @@ class _UsersPageState extends State<UsersPage> {
                           // if (banned == true) blocked = true;
                         });
                       },
-                      choices: const ["-", "True", "False"],
+                      choices: [
+                        "-",
+                        widget.lang!.dictionary["show"],
+                        widget.lang!.dictionary["dont_show"]
+                      ],
                       selected: banned == true
-                          ? "True"
+                          ? widget.lang!.dictionary["show"]
                           : banned == false
-                              ? "False"
+                              ? widget.lang!.dictionary["dont_show"]
                               : "-",
                     ),
                     DropdownField(
@@ -390,15 +405,21 @@ class _UsersPageState extends State<UsersPage> {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == "True") {
+                          if (value == widget.lang!.dictionary["show"]) {
                             company = true;
-                          } else if (value == "False") {
+                          } else if (value ==
+                              widget.lang!.dictionary["dont_show"]) {
                             company = false;
                           }
                         });
                       },
-                      choices: const ["True", "False"],
-                      selected: company == true ? "True" : "False",
+                      choices: [
+                        widget.lang!.dictionary["show"],
+                        widget.lang!.dictionary["dont_show"]
+                      ],
+                      selected: company == true
+                          ? widget.lang!.dictionary["show"]
+                          : widget.lang!.dictionary["dont_show"],
                     ),
                   ],
                 ),
@@ -517,8 +538,21 @@ class _UsersPageState extends State<UsersPage> {
           flex: 3,
           child: SizedBox(
             height: height,
-            child: Center(
-              child: Text(widget.lang!.dictionary["name"]!),
+            child: InkWell(
+              onHover: (value) {},
+              onTap: () {
+                setState(() {
+                  if (widget.orderBy == "name") {
+                    widget.asc = !widget.asc;
+                  } else {
+                    widget.asc = true;
+                    widget.orderBy = "name";
+                  }
+                });
+              },
+              child: const Center(
+                child: Text("Name"),
+              ),
             ),
           ),
         ),
@@ -728,7 +762,7 @@ class _UsersPageState extends State<UsersPage> {
         } else {
           widget.customers = [];
 
-          snapshot.data.map((doc) {
+          snapshot.data.map((Map<String, dynamic> doc) {
             User? tmp = User.toUser(doc);
             if (tmp == null) return;
 
@@ -770,13 +804,18 @@ class _UsersPageState extends State<UsersPage> {
 
           List<Widget> rows = [];
 
-          for (int i =
-                  widget.currentPage * widget.user!.preferences.usersPerPage;
+          for (int i = widget.currentPage *
+                      widget.user!.preferences.usersPerPage,
+                  j = 0;
               i <
                       (widget.currentPage + 1) *
                           widget.user!.preferences.usersPerPage &&
                   i < widget.customers.length;
               ++i) {
+            if (!checkFilterMatching(widget.customers[i])) {
+              j++;
+              continue;
+            }
             rows.add(
               InkWell(
                 onHover: (_) {},
@@ -800,7 +839,7 @@ class _UsersPageState extends State<UsersPage> {
                       child: SizedBox(
                         height: height * 0.08,
                         child: Center(
-                          child: Text((i + 1).toString()),
+                          child: Text((i + 1 - j).toString()),
                         ),
                       ),
                     ),
@@ -962,21 +1001,54 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  bool checkSearchbarTextMatching(Map<String, dynamic> hashUser) {
-    if ((hashUser["email"] as String).contains(widget.searchbarText)) {
-      return true;
-    } else if ((hashUser["phone"] as String).contains(widget.searchbarText)) {
-      return true;
-    } else if ((hashUser["typeOfUser"] as String) == "ind" &&
-        ("${hashUser["firstname"] as String} ${hashUser["lastname"] as String}")
+  bool checkFilterMatching(Customer customer) {
+    int points = 0;
+
+    // Searchbar filtering
+    if (widget.searchbarText.isEmpty) {
+      points++;
+    } else if (customer.email.contains(widget.searchbarText)) {
+      points++;
+    } else if (customer.phone.contains(widget.searchbarText)) {
+      points++;
+    } else if ((customer is Individual) &&
+        ("${customer.firstname} ${customer.lastname}")
             .contains(widget.searchbarText)) {
-      return true;
-    } else if ((hashUser["typeOfUser"] as String) == "com" &&
-        ("${hashUser["ownerFirstname"] as String} ${hashUser["ownerLastname"] as String}")
+      points++;
+    } else if ((customer is Company) &&
+        ("${customer.ownerFirstname} ${customer.ownerLastname}")
             .contains(widget.searchbarText)) {
-      return true;
+      points++;
+    } else {
+      return false;
     }
-    return false;
+
+    if (widget.from == null ||
+        widget.from != null && widget.from! <= customer.numOfEstates) {
+      points++;
+    }
+    if (widget.to == null ||
+        widget.to != null && widget.to! >= customer.numOfEstates) {
+      points++;
+    }
+    if (widget.blocked == null || widget.blocked == customer.blocked) {
+      points++;
+    }
+    if (widget.banned == null || widget.banned == customer.banned) {
+      points++;
+    }
+    if (!widget.individual && !widget.company ||
+        widget.individual && widget.company) {
+      points += 2;
+    } else {
+      if (widget.individual && customer is Individual) {
+        points += 2;
+      } else if (widget.company && customer is Company) {
+        points += 2;
+      }
+    }
+
+    return points == 7;
   }
 
   bool checkNumOfEstatesRange(int numOfEstates) {
@@ -997,70 +1069,36 @@ class _UsersPageState extends State<UsersPage> {
         FirebaseFirestore.instance.collection('users');
 
     // Combine the two streams using the merge operator
-    if (checkFiltersInactivity()) {
-      print("Inactive");
-      Stream<QuerySnapshot<Map<String, dynamic>>> indQuery = users
-          .where("typeOfUser", isEqualTo: "ind")
-          .orderBy(widget.orderBy, descending: !widget.asc)
-          .snapshots();
+    // if (checkFiltersInactivity()) {
+    Stream<QuerySnapshot<Map<String, dynamic>>> indQuery =
+        users.where("typeOfUser", isEqualTo: "ind").snapshots();
 
-      Stream<QuerySnapshot<Map<String, dynamic>>> comQuery = users
-          .where("typeOfUser", isEqualTo: "com")
-          .orderBy(widget.orderBy, descending: !widget.asc)
-          .snapshots();
+    Stream<QuerySnapshot<Map<String, dynamic>>> comQuery =
+        users.where("typeOfUser", isEqualTo: "com").snapshots();
 
-      return Rx.combineLatest2(indQuery, comQuery,
-          (QuerySnapshot<Map<String, dynamic>> snapshot1,
-              QuerySnapshot<Map<String, dynamic>> snapshot2) {
-        List<Map<String, dynamic>> list = [];
+    return Rx.combineLatest2(indQuery, comQuery,
+        (QuerySnapshot<Map<String, dynamic>> snapshot1,
+            QuerySnapshot<Map<String, dynamic>> snapshot2) {
+      Map<String, dynamic> userMap;
+      List<Map<String, dynamic>> array1 = [];
+      for (int i = 0; i < snapshot1.docs.length; ++i) {
+        userMap = snapshot1.docs[i].data();
+        userMap["id"] = snapshot1.docs[i].id;
+        array1.add(userMap);
+      }
 
-        // Merge sort by widget.orderBy, already sorted by widget.asc
-        int i = 0, j = 0;
-        while (i < snapshot1.docs.length && j < snapshot2.docs.length) {
-          int comparation = (snapshot1.docs[i][widget.orderBy].toString())
-              .compareTo(snapshot2.docs[j][widget.orderBy].toString());
+      List<Map<String, dynamic>> array2 = [];
+      for (int i = 0; i < snapshot2.docs.length; ++i) {
+        userMap = snapshot2.docs[i].data();
+        userMap["id"] = snapshot2.docs[i].id;
+        array2.add(userMap);
+      }
 
-          if (widget.asc && comparation < 0 || !widget.asc && comparation > 0) {
-            Map<String, dynamic> tmpHashUser = snapshot1.docs[i].data();
-            tmpHashUser["id"] = snapshot1.docs[i].id;
-            if (checkSearchbarTextMatching(tmpHashUser) &&
-                checkNumOfEstatesRange(tmpHashUser["numOfEstates"] as int)) {
-              list.add(tmpHashUser);
-            }
-            ++i;
-          } else {
-            Map<String, dynamic> tmpHashUser = snapshot2.docs[j].data();
-            tmpHashUser["id"] = snapshot2.docs[j].id;
-            if (checkSearchbarTextMatching(tmpHashUser) &&
-                checkNumOfEstatesRange(tmpHashUser["numOfEstates"] as int)) {
-              list.add(tmpHashUser);
-            }
-            ++j;
-          }
-        }
-
-        while (i < snapshot1.docs.length) {
-          Map<String, dynamic> tmpHashUser = snapshot1.docs[i].data();
-          tmpHashUser["id"] = snapshot1.docs[i].id;
-          if (checkSearchbarTextMatching(tmpHashUser) &&
-              checkNumOfEstatesRange(tmpHashUser["numOfEstates"])) {
-            list.add(tmpHashUser);
-          }
-          ++i;
-        }
-
-        while (j < snapshot2.docs.length) {
-          Map<String, dynamic> tmpHashUser = snapshot2.docs[j].data();
-          tmpHashUser["id"] = snapshot2.docs[j].id;
-          if (checkSearchbarTextMatching(tmpHashUser) &&
-              checkNumOfEstatesRange(tmpHashUser["numOfEstates"])) {
-            list.add(tmpHashUser);
-          }
-          ++j;
-        }
-        return list;
-      });
-    } else {
+      array1 = mergeSort(array1);
+      array2 = mergeSort(array2);
+      return mergeArrays(array1, array2);
+    });
+    /*} else {
       Stream<QuerySnapshot<Map<String, dynamic>>> popupQuery;
       Query<Map<String, dynamic>>? tmpQuery;
 
@@ -1128,7 +1166,108 @@ class _UsersPageState extends State<UsersPage> {
         }
         return list;
       });
+    }*/
+  }
+
+  List<Map<String, dynamic>> mergeArrays(
+      List<Map<String, dynamic>> array1, List<Map<String, dynamic>> array2) {
+    List<Map<String, dynamic>> list = [];
+
+    int i = 0, j = 0;
+    while (i < array1.length && j < array2.length) {
+      int comparation = compare(array1[i], array2[j]);
+
+      if (!widget.asc && comparation > 0 || widget.asc && comparation < 0) {
+        list.add(array1[i]);
+        i++;
+      } else {
+        list.add(array2[j]);
+        j++;
+      }
     }
+
+    while (i < array1.length) {
+      list.add(array1[i]);
+      i++;
+    }
+
+    while (j < array2.length) {
+      list.add(array2[j]);
+      j++;
+    }
+
+    return list;
+  }
+
+  int compare(Map<String, dynamic> object1, Map<String, dynamic> object2) {
+    if (widget.orderBy == 'name') {
+      String name1, name2;
+
+      if (object1['typeOfUser'] == 'com') {
+        name1 = "${object1['ownerFirstname']} ${object1['ownerLastname']}";
+      } else {
+        name1 = "${object1['firstname']} ${object1['lastname']}";
+      }
+
+      if (object2['typeOfUser'] == 'com') {
+        name2 = "${object2['ownerFirstname']} ${object2['ownerLastname']}";
+      } else {
+        name2 = "${object2['firstname']} ${object2['lastname']}";
+      }
+      return name1.compareTo(name2);
+    } else {
+      return (object1[widget.orderBy].toString())
+          .compareTo(object2[widget.orderBy].toString());
+    }
+  }
+
+  List<Map<String, dynamic>> mergeSort(List<Map<String, dynamic>> array) {
+    // Stop recursion if array contains only one element
+    if (array.length <= 1) {
+      return array;
+    }
+
+    // split in the middle of the array
+    int splitIndex = array.length ~/ 2;
+
+    // recursively call merge sort on left and right array
+    List<Map<String, dynamic>> leftArray =
+        mergeSort(array.sublist(0, splitIndex));
+    List<Map<String, dynamic>> rightArray =
+        mergeSort(array.sublist(splitIndex));
+
+    return merge(leftArray, rightArray);
+  }
+
+  List<Map<String, dynamic>> merge(List<Map<String, dynamic>> leftArray,
+      List<Map<String, dynamic>> rightArray) {
+    List<Map<String, dynamic>> result = [];
+    int i = 0;
+    int j = 0;
+
+    while (i < leftArray.length && j < rightArray.length) {
+      int comparation = compare(leftArray[i], rightArray[j]);
+
+      if (!widget.asc && comparation > 0 || widget.asc && comparation < 0) {
+        result.add(leftArray[i]);
+        i++;
+      } else {
+        result.add(rightArray[j]);
+        j++;
+      }
+    }
+
+    while (i < leftArray.length) {
+      result.add(leftArray[i]);
+      i++;
+    }
+
+    while (j < rightArray.length) {
+      result.add(rightArray[j]);
+      j++;
+    }
+
+    return result;
   }
 
   void changeBlockedValue(Customer customer) async {
@@ -1153,15 +1292,6 @@ class _UsersPageState extends State<UsersPage> {
     setState(() {
       customer.banned = res["value"];
     });
-  }
-
-  bool checkFiltersInactivity() {
-    return widget.banned == null &&
-        widget.blocked == null &&
-        (!widget.individual && !widget.company ||
-            widget.individual && widget.company) &&
-        widget.from == null &&
-        widget.to == null;
   }
 
   Widget getNumOfUsersSelection() {
@@ -1339,13 +1469,13 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  void goToEstatesPage(String? userId) {
+  void goToEstatesPage(String? customerId) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => EstatesPage(
           showEmptyCard: false,
-          userId: userId,
+          customerId: customerId,
         ),
       ),
     );

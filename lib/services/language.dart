@@ -132,6 +132,11 @@ class LanguageService {
           "new_password": "New password",
           "delete_account_warning_message":
               "Are you sure you want to delete your account? Your data will be permanently lost!",
+          "avatar_image": "Avatar image",
+          "or": "or",
+          "email": "Email",
+          "show": "Show",
+          "dont_show": "Don't show",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -252,6 +257,7 @@ class LanguageService {
           "sign_up": "Anmelden",
           "have_account_login_here":
               "Haben Sie bereits ein Konto? Melden Sie sich hier an.",
+          "keep_me_logged_in": "Eingeloggt bleiben.",
           "cant_register":
               "Beim Versuch, Ihr Konto zu erstellen, ist ein Problem aufgetreten. Bitte versuchen Sie es später erneut.",
           "account_successfully_created":
@@ -261,6 +267,11 @@ class LanguageService {
           "sign_in": "Anmelden",
           "sign_in_with_google": "Mit Google anmelden",
           "sign_in_with_facebook": "Mit Facebook anmelden",
+          "avatar_image": "Profilbild",
+          "or": "oder",
+          "email": "Email",
+          "show": "Zeigen",
+          "dont_show": "Nicht zeigen",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -382,11 +393,17 @@ class LanguageService {
               "Došlo je do problema prilikom pokušaja kreiranja vašeg računa. Pokušajte ponovno kasnije.",
           "account_successfully_created":
               "Vaš račun za plin uspješno je kreiran!",
+          "keep_me_logged_in": "Zadrži me prijavljenim.",
           "dont_have_account_register_here":
               "Nemate račun? Prijavite se ovdje.",
           "sign_in": "Prijava",
           "sign_in_with_google": "Prijavite se s Googleom",
           "sign_in_with_facebook": "Prijavite se putem Facebooka",
+          "avatar_image": "Profilna slika",
+          "or": "ili",
+          "email": "Email",
+          "show": "Prikaži",
+          "dont_show": "Nemoj prikazati",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
