@@ -204,6 +204,7 @@ class _UsersPageState extends State<UsersPage> {
               onTap: () {
                 setState(() {
                   widget.searchbarText = "";
+                  widget.updated = false;
                 });
               },
               child: const Icon(Icons.close),
@@ -213,8 +214,7 @@ class _UsersPageState extends State<UsersPage> {
           onChanged: (String value) => setState(() {
             widget.searchbarText = value;
             widget.currentPage = 0;
-            widget.numOfPages = widget.customers.length ~/
-                widget.user!.preferences.usersPerPage;
+            widget.updated = false;
           }),
         ),
         SizedBox(
@@ -441,6 +441,8 @@ class _UsersPageState extends State<UsersPage> {
                 widget.banned = banned;
                 widget.individual = individual;
                 widget.company = company;
+                widget.currentPage = 0;
+                widget.updated = false;
               });
               Navigator.pop(context);
             },
@@ -760,14 +762,7 @@ class _UsersPageState extends State<UsersPage> {
           print(snapshot.error);
           return Text('Error: ${snapshot.error}');
         } else {
-          widget.customers = [];
-
-          snapshot.data.map((Map<String, dynamic> doc) {
-            User? tmp = User.toUser(doc);
-            if (tmp == null) return;
-
-            widget.customers.add(tmp as Customer);
-          }).toList();
+          widget.customers = snapshot.data;
 
           // TODO: find a solution
           if (!widget.updated) {
@@ -804,18 +799,13 @@ class _UsersPageState extends State<UsersPage> {
 
           List<Widget> rows = [];
 
-          for (int i = widget.currentPage *
-                      widget.user!.preferences.usersPerPage,
-                  j = 0;
+          for (int i =
+                  widget.currentPage * widget.user!.preferences.usersPerPage;
               i <
                       (widget.currentPage + 1) *
                           widget.user!.preferences.usersPerPage &&
                   i < widget.customers.length;
               ++i) {
-            if (!checkFilterMatching(widget.customers[i])) {
-              j++;
-              continue;
-            }
             rows.add(
               InkWell(
                 onHover: (_) {},
@@ -839,7 +829,8 @@ class _UsersPageState extends State<UsersPage> {
                       child: SizedBox(
                         height: height * 0.08,
                         child: Center(
-                          child: Text((i + 1 - j).toString()),
+                          child: Text(
+                              (i + 1).toString()), // TODO: set correct # number
                         ),
                       ),
                     ),
@@ -1064,7 +1055,7 @@ class _UsersPageState extends State<UsersPage> {
     return true;
   }
 
-  Stream<List<Map<String, dynamic>>> streamQueryBuilder() {
+  Stream<List<Customer>> streamQueryBuilder() {
     CollectionReference<Map<String, dynamic>> users =
         FirebaseFirestore.instance.collection('users');
 
@@ -1080,18 +1071,27 @@ class _UsersPageState extends State<UsersPage> {
         (QuerySnapshot<Map<String, dynamic>> snapshot1,
             QuerySnapshot<Map<String, dynamic>> snapshot2) {
       Map<String, dynamic> userMap;
-      List<Map<String, dynamic>> array1 = [];
+      Customer customer;
+      List<Customer> array1 = [];
       for (int i = 0; i < snapshot1.docs.length; ++i) {
         userMap = snapshot1.docs[i].data();
         userMap["id"] = snapshot1.docs[i].id;
-        array1.add(userMap);
+        customer = User.toUser(userMap) as Customer;
+        if (!checkFilterMatching(customer)) {
+          continue;
+        }
+        array1.add(customer);
       }
 
-      List<Map<String, dynamic>> array2 = [];
+      List<Customer> array2 = [];
       for (int i = 0; i < snapshot2.docs.length; ++i) {
         userMap = snapshot2.docs[i].data();
         userMap["id"] = snapshot2.docs[i].id;
-        array2.add(userMap);
+        customer = User.toUser(userMap) as Customer;
+        if (!checkFilterMatching(customer)) {
+          continue;
+        }
+        array2.add(customer);
       }
 
       array1 = mergeSort(array1);
@@ -1169,9 +1169,8 @@ class _UsersPageState extends State<UsersPage> {
     }*/
   }
 
-  List<Map<String, dynamic>> mergeArrays(
-      List<Map<String, dynamic>> array1, List<Map<String, dynamic>> array2) {
-    List<Map<String, dynamic>> list = [];
+  List<Customer> mergeArrays(List<Customer> array1, List<Customer> array2) {
+    List<Customer> list = [];
 
     int i = 0, j = 0;
     while (i < array1.length && j < array2.length) {
@@ -1199,29 +1198,46 @@ class _UsersPageState extends State<UsersPage> {
     return list;
   }
 
-  int compare(Map<String, dynamic> object1, Map<String, dynamic> object2) {
+  int compare(Customer customer1, Customer customer2) {
     if (widget.orderBy == 'name') {
       String name1, name2;
 
-      if (object1['typeOfUser'] == 'com') {
-        name1 = "${object1['ownerFirstname']} ${object1['ownerLastname']}";
+      if (customer1 is Company) {
+        name1 = "${customer1.ownerFirstname} ${customer1.ownerLastname}";
       } else {
-        name1 = "${object1['firstname']} ${object1['lastname']}";
+        name1 =
+            "${(customer1 as Individual).firstname} ${(customer1).lastname}";
       }
 
-      if (object2['typeOfUser'] == 'com') {
-        name2 = "${object2['ownerFirstname']} ${object2['ownerLastname']}";
+      if (customer2 is Company) {
+        name2 = "${customer2.ownerFirstname} ${customer2.ownerLastname}";
       } else {
-        name2 = "${object2['firstname']} ${object2['lastname']}";
+        name2 = "${(customer2 as Individual).firstname} ${customer2.lastname}";
       }
+
       return name1.compareTo(name2);
+    } else if (widget.orderBy == 'email') {
+      return (customer1.email).compareTo(customer2.email);
+    } else if (widget.orderBy == 'phone') {
+      return (customer1.phone).compareTo(customer2.phone);
+    } else if (widget.orderBy == 'numOfEstates') {
+      return (customer1.numOfEstates.toString())
+          .compareTo(customer2.numOfEstates.toString());
+    } else if (widget.orderBy == 'typeOfUser') {
+      return ((customer1 is Individual ? 'ind' : 'com'))
+          .compareTo((customer2 is Individual ? 'ind' : 'com'));
+    } else if (widget.orderBy == 'blocked') {
+      return (customer1.blocked.toString())
+          .compareTo(customer2.blocked.toString());
+    } else if (widget.orderBy == 'banned') {
+      return (customer1.banned.toString())
+          .compareTo(customer2.banned.toString());
     } else {
-      return (object1[widget.orderBy].toString())
-          .compareTo(object2[widget.orderBy].toString());
+      return 0;
     }
   }
 
-  List<Map<String, dynamic>> mergeSort(List<Map<String, dynamic>> array) {
+  List<Customer> mergeSort(List<Customer> array) {
     // Stop recursion if array contains only one element
     if (array.length <= 1) {
       return array;
@@ -1231,17 +1247,14 @@ class _UsersPageState extends State<UsersPage> {
     int splitIndex = array.length ~/ 2;
 
     // recursively call merge sort on left and right array
-    List<Map<String, dynamic>> leftArray =
-        mergeSort(array.sublist(0, splitIndex));
-    List<Map<String, dynamic>> rightArray =
-        mergeSort(array.sublist(splitIndex));
+    List<Customer> leftArray = mergeSort(array.sublist(0, splitIndex));
+    List<Customer> rightArray = mergeSort(array.sublist(splitIndex));
 
     return merge(leftArray, rightArray);
   }
 
-  List<Map<String, dynamic>> merge(List<Map<String, dynamic>> leftArray,
-      List<Map<String, dynamic>> rightArray) {
-    List<Map<String, dynamic>> result = [];
+  List<Customer> merge(List<Customer> leftArray, List<Customer> rightArray) {
+    List<Customer> result = [];
     int i = 0;
     int j = 0;
 
@@ -1303,8 +1316,6 @@ class _UsersPageState extends State<UsersPage> {
         callback: (int value) {
           setState(() {
             widget.user!.preferences.usersPerPage = value;
-            widget.numOfPages = widget.customers.length ~/
-                widget.user!.preferences.usersPerPage;
             widget.currentPage = 0;
           });
         },
