@@ -142,7 +142,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                               ),
                               alignment: Alignment.topRight,
                               child: SizedBox(
-                                height: height * 0.18,
+                                height: height * 0.2,
                                 width: width * 0.1,
                                 child: ListView(
                                   scrollDirection: Axis.vertical,
