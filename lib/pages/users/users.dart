@@ -26,6 +26,7 @@ class UsersPage extends StatefulWidget {
   int currentPage = 0;
   int numOfPages = 0;
   String searchbarText = "";
+  int offset = 0;
 
   String orderBy = "email";
   bool asc = true;
@@ -33,7 +34,6 @@ class UsersPage extends StatefulWidget {
   int? from, to;
   bool? blocked, banned;
   bool individual = false, company = false;
-  bool updated = false;
 
   UsersPage({Key? key}) : super(key: key);
 
@@ -45,17 +45,15 @@ class _UsersPageState extends State<UsersPage> {
   List<bool> upDownFilters = [true, false];
   List<bool> isHovering = [false, false, false];
 
+  late TextEditingController textController;
   late ScrollController scrollController;
-  late BehaviorSubject<QuerySnapshot<Map<String, dynamic>>>
-      mergedStreamController;
 
   @override
   void initState() {
     super.initState();
 
     scrollController = ScrollController();
-    mergedStreamController =
-        BehaviorSubject<QuerySnapshot<Map<String, dynamic>>>();
+    textController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -86,6 +84,7 @@ class _UsersPageState extends State<UsersPage> {
   @override
   void dispose() {
     scrollController.dispose(); // dispose the controller
+    textController.dispose();
     super.dispose();
   }
 
@@ -100,6 +99,10 @@ class _UsersPageState extends State<UsersPage> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
+    textController.text = widget.searchbarText;
+    textController.selection = TextSelection.fromPosition(
+                TextPosition(offset: textController.text.length));
+
     if (widget.lang == null || widget.user == null) {
       return const SizedBox();
     }
@@ -113,34 +116,10 @@ class _UsersPageState extends State<UsersPage> {
       body: SingleChildScrollView(
         controller: scrollController,
         scrollDirection: Axis.vertical,
-        child:
-            // Table header
-
-            StreamBuilder(
-          stream: streamQueryBuilder(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return SizedBox(
-                width: height * 0.15,
-                height: height * 0.15,
-                child: const CircularProgressIndicator(
-                  color: PalleteCommon.gradient2,
-                  semanticsLabel: "Loading",
-                  backgroundColor: PalleteCommon.backgroundColor,
-                ),
-              );
-            } else if (snapshot.hasError) {
-              print(snapshot.error);
-              return Text('Error: ${snapshot.error}');
-            } else {
-              if (snapshot.data == null) {
-                widget.customers = [];
-              } else {
-                widget.customers = snapshot.data!;
-              }
-              widget.numOfPages = widget.customers.length ~/
-                  widget.user!.preferences.usersPerPage;
-
+        child: StreamBuilder(
+            initialData: widget.customers,
+            stream: streamQueryBuilder(),
+            builder: (context, snapshot) {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -173,7 +152,8 @@ class _UsersPageState extends State<UsersPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Expanded(child: SizedBox()),
-                      Expanded(flex: 40, child: getRows(width, height)),
+                      Expanded(
+                          flex: 40, child: getRows(width, height, snapshot)),
                       const Expanded(child: SizedBox()),
                     ],
                   ),
@@ -209,9 +189,7 @@ class _UsersPageState extends State<UsersPage> {
                   ),
                 ],
               );
-            }
-          },
-        ),
+            }),
       ),
     );
   }
@@ -222,31 +200,30 @@ class _UsersPageState extends State<UsersPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SearchBar(
-          hintText: "john.doe@mail.com",
+          controller: textController,
+          hintText: widget.lang!.dictionary["search_text"]!,
           leading: const Icon(Icons.search),
           trailing: [
-            Tooltip(
-              message: widget.lang!.dictionary["search_text"]!,
-              triggerMode: TooltipTriggerMode.tap,
-              child: const Icon(Icons.info),
-            ),
-            const SizedBox(width: 15),
             GestureDetector(
               onTap: () {
-                setState(() {
-                  widget.searchbarText = "";
-                  widget.updated = false;
-                });
+                widget.searchbarText = "";
+                widget.offset = 0;
+                textController.text = "";
+                textController.selection = TextSelection.fromPosition(
+                    TextPosition(offset: textController.text.length));
               },
               child: const Icon(Icons.close),
             ),
             const SizedBox(width: 15),
           ],
-          onChanged: (String value) => setState(() {
-            widget.searchbarText = value;
-            widget.currentPage = 0;
-            widget.updated = false;
-          }),
+          onChanged: (String value) {
+            setState(() {
+              textController.selection = TextSelection.fromPosition(
+                  TextPosition(offset: textController.text.length));
+              widget.searchbarText = value;
+              widget.currentPage = 0;
+            });
+          },
         ),
         SizedBox(
           width: width * 0.02,
@@ -473,7 +450,6 @@ class _UsersPageState extends State<UsersPage> {
                 widget.individual = individual;
                 widget.company = company;
                 widget.currentPage = 0;
-                widget.updated = false;
               });
               Navigator.pop(context);
             },
@@ -775,210 +751,237 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  Widget getRows(double width, double height) {
-    if (widget.customers.isEmpty) {
+  Widget getRows(
+      double width, double height, AsyncSnapshot<List<Customer>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
       return SizedBox(
-        height: height * 0.4,
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(child: SizedBox()),
-            Expanded(
-              child: Center(
-                child: Text(
-                  "No users to display",
-                  style: TextStyle(fontSize: 30),
-                ),
-              ),
-            ),
-            Expanded(child: SizedBox()),
-          ],
+        width: height * 0.15,
+        height: height * 0.15,
+        child: const CircularProgressIndicator(
+          color: PalleteCommon.gradient2,
+          semanticsLabel: "Loading",
+          backgroundColor: PalleteCommon.backgroundColor,
         ),
       );
-    }
+    } else if (snapshot.hasError) {
+      print(snapshot.error);
+      return Text('Error: ${snapshot.error}');
+    } else {
+      if (snapshot.data == null) {
+        widget.customers = [];
+      } else {
+        widget.customers = snapshot.data!;
+      }
+      widget.numOfPages =
+          widget.customers.length ~/ widget.user!.preferences.usersPerPage;
 
-    List<Widget> rows = [];
-
-    for (int i = widget.currentPage * widget.user!.preferences.usersPerPage;
-        i < (widget.currentPage + 1) * widget.user!.preferences.usersPerPage &&
-            i < widget.customers.length;
-        ++i) {
-      rows.add(
-        InkWell(
-          onHover: (_) {},
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfilePage(
-                  userId: widget.customers[i].id,
-                ),
-              ),
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      if (widget.customers.isEmpty) {
+        return SizedBox(
+          height: height * 0.4,
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Expanded(flex: 1, child: SizedBox()),
+              Expanded(child: SizedBox()),
               Expanded(
-                flex: 1,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: Center(
-                    child:
-                        Text((i + 1).toString()), // TODO: set correct # number
+                child: Center(
+                  child: Text(
+                    "No users to display",
+                    style: TextStyle(fontSize: 30),
                   ),
                 ),
               ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Image
-              Expanded(
-                flex: 2,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: Center(
-                    child: widget.customers[i].avatarImage.isNotEmpty
-                        ? Image.network(widget.customers[i].avatarImage)
-                        : Image.asset("images/default_user.png"),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Name
-              Expanded(
-                flex: 3,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: Center(
-                    child: Text(
-                      (widget.customers[i] is Individual)
-                          ? "${(widget.customers[i] as Individual).firstname} ${(widget.customers[i] as Individual).lastname}"
-                          : "${(widget.customers[i] as Company).ownerFirstname} ${(widget.customers[i] as Company).ownerLastname}",
-                    ),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Email
-              Expanded(
-                flex: 3,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: Center(
-                    child: Text(widget.customers[i].email),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Phone
-              Expanded(
-                flex: 3,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: Center(
-                    child: Text(widget.customers[i].phone),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Estates
-              Expanded(
-                flex: 2,
-                child: InkWell(
-                  onHover: (value) {},
-                  child: SizedBox(
-                    height: height * 0.08,
-                    child: ElevatedButton(
-                      style: const ButtonStyle(
-                        backgroundColor: MaterialStatePropertyAll(
-                          PalleteCommon.gradient1,
-                        ),
-                      ),
-                      onPressed: () => goToEstatesPage(widget.customers[i].id),
-                      child: Text(
-                        widget.customers[i].numOfEstates.toString(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Banned
-              Expanded(
-                flex: 1,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: Tooltip(
-                    message: widget.customers[i] is Individual
-                        ? widget.lang!.dictionary["individual"]!
-                        : widget.lang!.dictionary["company"]!,
-                    child: Icon(
-                      widget.customers[i] is Individual
-                          ? Icons.person
-                          : Icons.location_city,
-                      color: PalleteCommon.gradient2,
-                      size: 32,
-                    ),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Blocked
-              Expanded(
-                flex: 1,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: InkWell(
-                    onHover: (value) {},
-                    onTap: () {
-                      changeBlockedValue(widget.customers[i]);
-                    },
-                    child: Icon(
-                      widget.customers[i].blocked ? Icons.done : Icons.close,
-                      color: PalleteCommon.gradient2,
-                      size: 32,
-                    ),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
-              // Banned
-              Expanded(
-                flex: 1,
-                child: SizedBox(
-                  height: height * 0.08,
-                  child: InkWell(
-                    onHover: (value) {},
-                    onTap: () {
-                      changeBannedValue(widget.customers[i]);
-                    },
-                    child: Icon(
-                      widget.customers[i].banned ? Icons.done : Icons.close,
-                      color: PalleteCommon.gradient2,
-                      size: 32,
-                    ),
-                  ),
-                ),
-              ),
-              const Expanded(flex: 1, child: SizedBox()),
+              Expanded(child: SizedBox()),
             ],
           ),
-        ),
-      );
-      rows.add(
-        const Divider(
-          height: 20,
-          thickness: 3,
-          color: PalleteCommon.gradient2,
-        ),
+        );
+      }
+
+      List<Widget> rows = [];
+
+      for (int i = widget.currentPage * widget.user!.preferences.usersPerPage;
+          i <
+                  (widget.currentPage + 1) *
+                      widget.user!.preferences.usersPerPage &&
+              i < widget.customers.length;
+          ++i) {
+        rows.add(
+          InkWell(
+            onHover: (_) {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfilePage(
+                    userId: widget.customers[i].id,
+                  ),
+                ),
+              );
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(flex: 1, child: SizedBox()),
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: Center(
+                      child: Text(
+                          (i + 1).toString()), // TODO: set correct # number
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Image
+                Expanded(
+                  flex: 2,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: Center(
+                      child: widget.customers[i].avatarImage.isNotEmpty
+                          ? Image.network(widget.customers[i].avatarImage)
+                          : Image.asset("images/default_user.png"),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Name
+                Expanded(
+                  flex: 3,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: Center(
+                      child: Text(
+                        (widget.customers[i] is Individual)
+                            ? "${(widget.customers[i] as Individual).firstname} ${(widget.customers[i] as Individual).lastname}"
+                            : "${(widget.customers[i] as Company).ownerFirstname} ${(widget.customers[i] as Company).ownerLastname}",
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Email
+                Expanded(
+                  flex: 3,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: Center(
+                      child: Text(widget.customers[i].email),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Phone
+                Expanded(
+                  flex: 3,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: Center(
+                      child: Text(widget.customers[i].phone),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Estates
+                Expanded(
+                  flex: 2,
+                  child: InkWell(
+                    onHover: (value) {},
+                    child: SizedBox(
+                      height: height * 0.08,
+                      child: ElevatedButton(
+                        style: const ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                            PalleteCommon.gradient1,
+                          ),
+                        ),
+                        onPressed: () =>
+                            goToEstatesPage(widget.customers[i].id),
+                        child: Text(
+                          widget.customers[i].numOfEstates.toString(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Banned
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: Tooltip(
+                      message: widget.customers[i] is Individual
+                          ? widget.lang!.dictionary["individual"]!
+                          : widget.lang!.dictionary["company"]!,
+                      child: Icon(
+                        widget.customers[i] is Individual
+                            ? Icons.person
+                            : Icons.location_city,
+                        color: PalleteCommon.gradient2,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Blocked
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: InkWell(
+                      onHover: (value) {},
+                      onTap: () {
+                        changeBlockedValue(widget.customers[i]);
+                      },
+                      child: Icon(
+                        widget.customers[i].blocked ? Icons.done : Icons.close,
+                        color: PalleteCommon.gradient2,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+                // Banned
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    height: height * 0.08,
+                    child: InkWell(
+                      onHover: (value) {},
+                      onTap: () {
+                        changeBannedValue(widget.customers[i]);
+                      },
+                      child: Icon(
+                        widget.customers[i].banned ? Icons.done : Icons.close,
+                        color: PalleteCommon.gradient2,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+                const Expanded(flex: 1, child: SizedBox()),
+              ],
+            ),
+          ),
+        );
+        rows.add(
+          const Divider(
+            height: 20,
+            thickness: 3,
+            color: PalleteCommon.gradient2,
+          ),
+        );
+      }
+
+      return Column(
+        children: rows,
       );
     }
-
-    return Column(
-      children: rows,
-    );
   }
 
   bool checkFilterMatching(Customer customer) {
