@@ -40,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(
                 child: null,
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.1,
+                height: MediaQuery.of(context).size.height * 0.2,
               ),
               Text(
                 widget.lang.dictionary["sign_in"]!,
@@ -50,26 +50,26 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 50),
-              SocialButton(
+              /*SocialButton(
                 iconPath: 'svgs/google.svg',
                 label: widget.lang.dictionary["sign_in_with_google"]!,
                 method: () {},
                 horizontalPadding: 110,
-              ),
+              ),*/
               /*const SizedBox(height: 20),
               SocialButton(
                 iconPath: 'svgs/facebook.svg',
                 label: widget.lang.dictionary["sign_in_with_facebook"]!,
                 method: () {},
                 horizontalPadding: 100,
-              ),*/
+              ),
               const SizedBox(height: 15),
               Text(
                 widget.lang.dictionary["or"]!,
                 style: const TextStyle(
                   fontSize: 17,
                 ),
-              ),
+              ),*/
               const SizedBox(height: 15),
               StringField(
                 presetText: widget.email,

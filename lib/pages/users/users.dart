@@ -7,6 +7,7 @@ import 'package:diplomski_rad/other/pallete.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:diplomski_rad/widgets/dropdown_field.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
+import 'package:diplomski_rad/widgets/sequential_field.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/interfaces/user/user.dart';
@@ -101,7 +102,7 @@ class _UsersPageState extends State<UsersPage> {
 
     textController.text = widget.searchbarText;
     textController.selection = TextSelection.fromPosition(
-                TextPosition(offset: textController.text.length));
+        TextPosition(offset: textController.text.length));
 
     if (widget.lang == null || widget.user == null) {
       return const SizedBox();
@@ -345,14 +346,14 @@ class _UsersPageState extends State<UsersPage> {
                               ? widget.lang!.dictionary["dont_show"]
                               : "-",
                     ),
-                    DropdownField(
+                    SequentialField(
                       maxWidth: 200,
                       labelText: widget.lang!.dictionary["individual"]!,
-                      callback: (String? value) {
+                      callback: (int? value) {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == widget.lang!.dictionary["show"]) {
+                          if (value == 0) {
                             individual = true;
                           } else {
                             individual = false;
@@ -363,9 +364,7 @@ class _UsersPageState extends State<UsersPage> {
                         widget.lang!.dictionary["show"],
                         widget.lang!.dictionary["dont_show"]
                       ],
-                      selected: individual == true
-                          ? widget.lang!.dictionary["show"]
-                          : widget.lang!.dictionary["dont_show"],
+                      selected: individual == true ? 0 : 1,
                     ),
                   ],
                 ),
@@ -406,17 +405,16 @@ class _UsersPageState extends State<UsersPage> {
                               ? widget.lang!.dictionary["dont_show"]
                               : "-",
                     ),
-                    DropdownField(
+                    SequentialField(
                       maxWidth: 200,
                       labelText: widget.lang!.dictionary["company"]!,
-                      callback: (String? value) {
+                      callback: (int? value) {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == widget.lang!.dictionary["show"]) {
+                          if (value == 0) {
                             company = true;
-                          } else if (value ==
-                              widget.lang!.dictionary["dont_show"]) {
+                          } else if (value == 1) {
                             company = false;
                           }
                         });
@@ -425,9 +423,7 @@ class _UsersPageState extends State<UsersPage> {
                         widget.lang!.dictionary["show"],
                         widget.lang!.dictionary["dont_show"]
                       ],
-                      selected: company == true
-                          ? widget.lang!.dictionary["show"]
-                          : widget.lang!.dictionary["dont_show"],
+                      selected: company == true ? 0 : 1,
                     ),
                   ],
                 ),
@@ -814,6 +810,7 @@ class _UsersPageState extends State<UsersPage> {
                 MaterialPageRoute(
                   builder: (context) => ProfilePage(
                     userId: widget.customers[i].id,
+                    enableEditing: false,
                   ),
                 ),
               );

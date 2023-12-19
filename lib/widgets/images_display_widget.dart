@@ -13,6 +13,7 @@ class ImagesDisplay extends StatefulWidget {
   Estate? estate;
   LanguageService lang;
   bool showAvatar;
+  bool enableEditing;
   String droppedFileName = "";
   Uint8List? droppedFileBytes;
 
@@ -21,6 +22,7 @@ class ImagesDisplay extends StatefulWidget {
     this.user,
     this.estate,
     required this.showAvatar,
+    required this.enableEditing,
     required this.lang,
   }) : assert(user != null && estate == null || user == null && estate != null);
 
@@ -46,15 +48,18 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              onTap: () => showDialog(
-                context: context,
-                builder: (BuildContext context) =>
-                    showImagesDialog(context, false),
-              ),
+              onTap: () {
+                if (!widget.enableEditing) return;
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) =>
+                      showImagesDialog(context, false),
+                );
+              },
               child: Stack(
                 children: [
                   backgroundImageDisplay(context),
-                  cameraIconDisplay(false),
+                  if (widget.enableEditing) cameraIconDisplay(false),
                 ],
               ),
             ),
@@ -67,18 +72,21 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                 child: MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (BuildContext context) =>
-                          showImagesDialog(context, true),
-                    ),
+                    onTap: () {
+                      if (!widget.enableEditing) return;
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) =>
+                            showImagesDialog(context, true),
+                      );
+                    },
                     child: SizedBox(
                       width: 150,
                       height: 150,
                       child: Stack(
                         children: [
                           avatarImageDisplay(),
-                          cameraIconDisplay(true),
+                          if (widget.enableEditing) cameraIconDisplay(true),
                         ],
                       ),
                     ),

@@ -21,27 +21,32 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: colors,
-          begin: Alignment.bottomLeft,
-          end: Alignment.topRight,
-        ),
-        borderRadius: BorderRadius.circular(7),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: 400,
       ),
-      child: ElevatedButton(
-        onPressed: () => callback(),
-        style: ElevatedButton.styleFrom(
-          fixedSize: const Size(395, 55),
-          backgroundColor: Colors.transparent,
-          shadowColor: const Color.fromARGB(0, 165, 136, 136),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: colors,
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+          ),
+          borderRadius: BorderRadius.circular(7),
         ),
-        child: Text(
-          buttonText,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 17,
+        child: ElevatedButton(
+          onPressed: () => callback(),
+          style: ElevatedButton.styleFrom(
+            fixedSize: const Size(395, 55),
+            backgroundColor: Colors.transparent,
+            shadowColor: const Color.fromARGB(0, 165, 136, 136),
+          ),
+          child: Text(
+            buttonText,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 17,
+            ),
           ),
         ),
       ),

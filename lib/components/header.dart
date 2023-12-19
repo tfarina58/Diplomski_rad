@@ -156,7 +156,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => ProfilePage(),
+                                            builder: (context) => ProfilePage(enableEditing: true,),
                                           ),
                                         );
                                       },
