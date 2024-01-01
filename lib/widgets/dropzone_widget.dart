@@ -4,16 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/services/language.dart';
-import 'package:diplomski_rad/services/firebase.dart';
-import 'package:reflectable/reflectable.dart';
-import 'dart:io';
 import 'dart:typed_data';
 
 class DropzoneWidget extends StatefulWidget {
   final ValueChanged<Map<String, dynamic>> onDroppedFile;
   LanguageService lang;
+  double width, height;
 
-  DropzoneWidget({Key? key, required this.onDroppedFile, required this.lang})
+  DropzoneWidget(
+      {Key? key,
+      required this.onDroppedFile,
+      required this.lang,
+      this.width = 0,
+      this.height = 0})
       : super(key: key);
 
   @override
@@ -26,8 +29,12 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
+    if (widget.width == 0) {
+      widget.width = MediaQuery.of(context).size.width * 0.55;
+    }
+    if (widget.height == 0) {
+      widget.height = MediaQuery.of(context).size.height * 0.55;
+    }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -42,8 +49,8 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
             ),
             color: highlighted ? Colors.red : Colors.transparent,
           ),
-          width: width * 0.55,
-          height: height * 0.55,
+          width: widget.width,
+          height: widget.height,
           child: Stack(
             children: [
               Builder(
@@ -93,18 +100,18 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
                   onDropMultiple: (ev) {},
                 ),
               ),
-              const Center(child: Text("Drop image here!")),
+              Center(child: Text(widget.lang.dictionary["drop_image_here"]!)),
             ],
           ),
         ),
-        SizedBox(height: height * 0.05),
+        SizedBox(height: widget.height * 0.05),
 
         // Pick file
         GradientButton(
           callback: () async {
             final result = await FilePicker.platform
                 .pickFiles(type: FileType.image, allowMultiple: false);
-                
+
             if (result != null && result.files.isNotEmpty) {
               Uint8List? bytes = result.files.first.bytes;
               String name = result.files.first.name;

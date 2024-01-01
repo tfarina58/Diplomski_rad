@@ -235,9 +235,9 @@ class _EstatesPageState extends State<EstatesPage> {
   }
 
   Widget getRow(double cardSize, int index) {
-    if (widget.estates[index].images.isNotEmpty) {
+    if (widget.estates[index].image.isNotEmpty) {
       return Hero(
-        tag: widget.estates[index].images[0],
+        tag: widget.estates[index].image,
         child: GestureDetector(
           onTap: () => Navigator.push(
             context,
@@ -256,7 +256,7 @@ class _EstatesPageState extends State<EstatesPage> {
               width: cardSize,
               height: cardSize * 0.5625,
               coordinates: widget.estates[index].coordinates,
-              backgroundImage: widget.estates[index].images[0],
+              backgroundImage: widget.estates[index].image,
             ),
           ),
         ),

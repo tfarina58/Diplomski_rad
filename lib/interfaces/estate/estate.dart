@@ -1,57 +1,37 @@
 import 'package:latlong2/latlong.dart';
 import 'package:diplomski_rad/interfaces/preferences/estate-preferences.dart';
-import 'package:diplomski_rad/services/firebase.dart';
+import 'package:diplomski_rad/interfaces/presentation/presentation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Estate {
   String id;
   String ownerId;
   String name;
-  List<String> images;
+  String image;
   String street;
   String zip;
   String city;
   String country;
   LatLng? coordinates;
   String phone;
-  int templateCount;
   String description;
   EstatePreferences preferences;
+  List<Slide> presentation;
 
   Estate({
     this.id = "",
     this.ownerId = "",
     this.name = "",
-    this.images = const [],
+    this.image = "",
     this.street = "",
     this.zip = "",
     this.city = "",
     this.country = "",
     this.coordinates,
     this.phone = "",
-    this.templateCount = -1,
     this.description = "",
+    this.presentation = const [],
   }) : preferences = EstatePreferences();
-
-  static List<String>? convertArray(List<dynamic>? images) {
-    if (images == null || images.isEmpty /*|| id == null || id.isEmpty*/) {
-      return null;
-    }
-
-    List<String>? res = [];
-    /*FirebaseStorageService storage = FirebaseStorageService();
-
-    for (dynamic element in images) {
-      String url = await storage.downloadFile(id, element.toString());
-      res.add(url);
-    }*/
-
-    for (dynamic element in images) {
-      res.add(element.toString());
-    }
-
-    return res;
-  }
 
   static Estate? toEstate(Map<String, dynamic>? estate) {
     if (estate == null) return null;
@@ -59,8 +39,7 @@ class Estate {
     Estate newEstate = Estate();
     newEstate.id = estate['id'] ?? "";
     newEstate.ownerId = estate['ownerId'] ?? "";
-    newEstate.images = convertArray(estate['images']) ?? [];
-    newEstate.templateCount = estate['templateCount'] ?? -1;
+    newEstate.image = estate['image'] ?? "";
     if (estate['coordinates'] != null) {
       newEstate.coordinates = LatLng(
           (estate['coordinates'] as GeoPoint).latitude,
@@ -89,6 +68,30 @@ class Estate {
       washingMachine: estate['washingMachine'] ?? false,
       dryingMachine: estate['dryingMachine'] ?? false,
     );
+    newEstate.presentation = [];
+    if (estate['presentation'].isEmpty) {
+      newEstate.presentation.add(
+        Slide(
+          title: "",
+          subtitle: "",
+          description: "",
+          image: "",
+          template: 0,
+        ),
+      );
+    } else {
+      for (int i = 0; i < estate['presentation'].length; ++i) {
+        newEstate.presentation.add(
+          Slide(
+            title: estate['presentation'][i]['title'],
+            subtitle: estate['presentation'][i]['subtitle'],
+            description: estate['presentation'][i]['description'],
+            image: estate['presentation'][i]['image'],
+            template: estate['presentation'][i]['template'],
+          ),
+        );
+      }
+    }
 
     return newEstate;
   }
@@ -96,10 +99,18 @@ class Estate {
   static Map<String, dynamic>? toJSON(Estate? estate) {
     if (estate == null) return null;
 
+    dynamic presentation = [];
+    for (int i = 0; i < estate.presentation.length; ++i) {
+      presentation.add({
+        'title': estate.presentation[i].title,
+        'subtitle': estate.presentation[i].subtitle,
+        'description': estate.presentation[i].description,
+        'image': estate.presentation[i].image,
+        'template': estate.presentation[i].template,
+      });
+    }
+
     return {
-      // "avatarImage": avatarImage,
-      // "backgroundImage": backgroundImage,
-      // "ownerId": estate.ownerId, // Should not change?
       "name": estate.name,
       "street": estate.street,
       "zip": estate.zip,
@@ -110,6 +121,7 @@ class Estate {
               estate.coordinates!.latitude, estate.coordinates!.longitude)
           : null,
       "phone": estate.phone,
+      "presentation": presentation,
       "acceptingPaymentCards": estate.preferences.acceptingPaymentCards,
       "airConditioning": estate.preferences.airConditioning,
       "designatedParkingSpots": estate.preferences.designatedParkingSpots,
@@ -126,10 +138,12 @@ class Estate {
     };
   }
 
-  String asString(Estate estate) {
-    return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\ndescription: ${estate.description}\npetsAllowed: ${estate.preferences.petsAllowed}\nsmokingAllowed: ${estate.preferences.smokingAllowed}\nairConditioning: ${estate.preferences.airConditioning}\nhandicapAccessible: ${estate.preferences.handicapAccessible}\ndesignatedParkingSpots: ${estate.preferences.designatedParkingSpots}\nhouseOrientation: ${estate.preferences.houseOrientation}\nacceptingPaymentCards: ${estate.preferences.acceptingPaymentCards}\nwifi: ${estate.preferences.wifi}\npool: ${estate.preferences.pool}\nkitchen: ${estate.preferences.kitchen}\nwashingMachine: ${estate.preferences.washingMachine}\ndryingMachine: ${estate.preferences.dryingMachine}\n";
-
-    // res.images = user['images'] ?? "";
-    // res.templateCount = user['templateCount'] ?? "";
+  static String asString(Estate estate) {
+    String presentation = "";
+    for (int i = 0; i < estate.presentation.length; ++i) {
+      presentation +=
+          "presentation $i: {\n\ttitle: ${estate.presentation[i].title}\n\tsubtitle: ${estate.presentation[i].subtitle}\n\tdescription: ${estate.presentation[i].description}\n\timage: ${estate.presentation[i].image}\n\ttemplate: ${estate.presentation[i].template}\n}\n";
+    }
+    return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\ndescription: ${estate.description}\n$presentation";
   }
 }

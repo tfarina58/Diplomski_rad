@@ -137,6 +137,11 @@ class LanguageService {
           "email": "Email",
           "show": "Show",
           "dont_show": "Don't show",
+          "slides": "Slides",
+          "title": "Title",
+          "subtitle": "Subtitle",
+          "drop_image_here": "Drop image here!",
+          "template": "Template",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -272,6 +277,11 @@ class LanguageService {
           "email": "Email",
           "show": "Zeigen",
           "dont_show": "Nicht zeigen",
+          "slides": "Folien",
+          "title": "Titel",
+          "subtitle": "Untertitel",
+          "drop_image_here": "Bild hier einfügen!",
+          "template": "Vorlage",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -404,6 +414,11 @@ class LanguageService {
           "email": "Email",
           "show": "Prikaži",
           "dont_show": "Nemoj prikazati",
+          "slides": "Slajdovi",
+          "title": "Naslov",
+          "subtitle": "Podnaslov",
+          "drop_image_here": "Ispustite sliku ovdje!",
+          "template": "Predložak",
         };
 
         /*if (specific != null && specific.isNotEmpty) {

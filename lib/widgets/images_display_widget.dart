@@ -101,7 +101,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
 
   Widget backgroundImageDisplay(BuildContext context) {
     if (widget.estate != null) {
-      if (widget.estate!.images.isEmpty) {
+      if (widget.estate!.image.isEmpty) {
         return Container(
           margin: const EdgeInsets.only(bottom: 50),
           decoration: const BoxDecoration(
@@ -118,7 +118,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
             image: DecorationImage(
               scale: 0.01,
               fit: BoxFit.fitWidth,
-              image: Image.network(widget.estate!.images[0]).image,
+              image: Image.network(widget.estate!.image).image,
             ),
           ),
         );
