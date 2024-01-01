@@ -236,7 +236,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
         ),
       ),
       onPressed: () {
-        if (widget.currentPage < widget.estate.presentation.length) {
+        if (widget.currentPage < widget.estate.presentation.length - 1) {
           controller.animateToPage(
             widget.currentPage + 1,
             duration: const Duration(milliseconds: 350),
@@ -445,6 +445,9 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                   MaterialStatePropertyAll(PalleteCommon.backgroundColor),
             ),
             onPressed: () {
+              print(
+                "currentPage: ${widget.currentPage} | length: ${widget.estate.presentation.length}",
+              );
               setState(() {
                 widget.estate.presentation.removeAt(widget.currentPage);
                 if (widget.estate.presentation.isEmpty) {
@@ -453,7 +456,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 if (widget.currentPage >= widget.estate.presentation.length) {
                   widget.currentPage = widget.estate.presentation.length - 1;
                 }
-                print(Estate.asString(widget.estate));
+                // print(Estate.asString(widget.estate));
               });
             },
             child: Text(
