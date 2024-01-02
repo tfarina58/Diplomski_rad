@@ -1,11 +1,10 @@
-import 'package:diplomski_rad/interfaces/user/user.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:diplomski_rad/interfaces/estate/estate.dart';
-import 'package:diplomski_rad/pages/estates/estate-details/estate-details.dart';
+import 'package:diplomski_rad/interfaces/estate.dart';
+import 'package:diplomski_rad/pages/estates/estate-details.dart';
 import 'dart:math';
 
 class MapsWidget extends StatefulWidget {

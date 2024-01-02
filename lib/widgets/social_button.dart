@@ -1,4 +1,3 @@
-import 'package:diplomski_rad/services/firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:flutter_svg/flutter_svg.dart';

@@ -1,7 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:latlong2/latlong.dart';
 
 class OpenWeatherMap {
   static String key = "60a327a5990e24e4c309de648bd01fbe";

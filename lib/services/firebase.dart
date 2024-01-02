@@ -1,13 +1,11 @@
-import 'package:diplomski_rad/interfaces/estate/estate.dart';
-import 'package:diplomski_rad/interfaces/user/user.dart' as local;
+import 'package:diplomski_rad/interfaces/estate.dart';
+import 'package:diplomski_rad/interfaces/user.dart' as local;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:diplomski_rad/interfaces/user/user.dart';
-import 'dart:io';
-import 'dart:developer';
+import 'package:diplomski_rad/interfaces/user.dart';
 
 class FirebaseStorageService {
   var storage = FirebaseStorage.instance.ref();

@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:diplomski_rad/interfaces/user/user.dart';
-import 'package:diplomski_rad/interfaces/estate/estate.dart';
+import 'package:diplomski_rad/interfaces/user.dart';
+import 'package:diplomski_rad/interfaces/estate.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 

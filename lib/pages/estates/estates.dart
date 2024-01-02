@@ -1,10 +1,9 @@
-import 'package:diplomski_rad/interfaces/estate/estate.dart';
-import 'package:diplomski_rad/interfaces/user/user.dart';
+import 'package:diplomski_rad/interfaces/estate.dart';
 import 'package:flutter/material.dart';
-import 'package:diplomski_rad/components/header.dart';
-import 'package:diplomski_rad/widgets/card.dart';
+import 'package:diplomski_rad/widgets/header_widget.dart';
+import 'package:diplomski_rad/widgets/card_widget.dart';
 import 'package:diplomski_rad/other/pallete.dart';
-import 'package:diplomski_rad/pages/estates/estate-details/estate-details.dart';
+import 'package:diplomski_rad/pages/estates/estate-details.dart';
 import 'package:diplomski_rad/widgets/maps.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +15,7 @@ class EstatesPage extends StatefulWidget {
   // If user searches for its own estates, only the userId will be set (for StreamBuilder and HeaderComponent)
   String? userId;
   // If customer is also set, the user searches for other people's estates, hence the userId will be used only for HeaderComponent
-  String? customerId;
+  String? searchedCustomerId;
 
   List<Estate> estates = [];
   final bool showEmptyCard;
@@ -27,7 +26,7 @@ class EstatesPage extends StatefulWidget {
   EstatesPage({
     Key? key,
     this.showEmptyCard = true,
-    this.customerId = "",
+    this.searchedCustomerId = "",
   }) : super(key: key);
 
   @override
@@ -63,36 +62,37 @@ class _EstatesPageState extends State<EstatesPage> {
                 const SizedBox(
                   height: 26,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Expanded(child: SizedBox()),
-                    Expanded(
-                      flex: 2,
-                      child: optionButton(
-                        width,
-                        height,
-                        () => setState(() {
-                          widget.choice = UserChoice.list;
-                        }),
-                        widget.lang!.dictionary["list"]!,
+                if (widget.estates.isNotEmpty)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Expanded(child: SizedBox()),
+                      Expanded(
+                        flex: 2,
+                        child: optionButton(
+                          width,
+                          height,
+                          () => setState(() {
+                            widget.choice = UserChoice.list;
+                          }),
+                          widget.lang!.dictionary["list"]!,
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: optionButton(
-                        width,
-                        height,
-                        () => setState(() {
-                          widget.choice = UserChoice.map;
-                        }),
-                        widget.lang!.dictionary["map"]!,
+                      Expanded(
+                        flex: 2,
+                        child: optionButton(
+                          width,
+                          height,
+                          () => setState(() {
+                            widget.choice = UserChoice.map;
+                          }),
+                          widget.lang!.dictionary["map"]!,
+                        ),
                       ),
-                    ),
-                    const Expanded(child: SizedBox()),
-                  ],
-                ),
+                      const Expanded(child: SizedBox()),
+                    ],
+                  ),
                 const SizedBox(
                   height: 26,
                 ),
@@ -176,8 +176,8 @@ class _EstatesPageState extends State<EstatesPage> {
         stream: FirebaseFirestore.instance
             .collection('estates')
             .where('ownerId',
-                isEqualTo: widget.customerId!.isNotEmpty
-                    ? widget.customerId
+                isEqualTo: widget.searchedCustomerId!.isNotEmpty
+                    ? widget.searchedCustomerId
                     : widget.userId)
             .snapshots(),
         builder: (context, snapshot) {
@@ -207,10 +207,12 @@ class _EstatesPageState extends State<EstatesPage> {
               tmp = Estate.toEstate(tmpMap);
               if (tmp == null) return;
 
+              print(tmp);
               tmpEstates.add(tmp!);
             }).toList();
 
             widget.estates = tmpEstates;
+            print("Estates: ${widget.estates}");
 
             if (widget.estates.isEmpty) {
               return Text(widget.lang!.dictionary["no_estates"]!);

@@ -142,6 +142,8 @@ class LanguageService {
           "subtitle": "Subtitle",
           "drop_image_here": "Drop image here!",
           "template": "Template",
+          "successfull_delete_account":
+              "You successfully deleted your account!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -282,6 +284,8 @@ class LanguageService {
           "subtitle": "Untertitel",
           "drop_image_here": "Bild hier einfügen!",
           "template": "Vorlage",
+          "successfull_delete_account":
+              "Sie haben Ihr Konto erfolgreich gelöscht!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -419,6 +423,7 @@ class LanguageService {
           "subtitle": "Podnaslov",
           "drop_image_here": "Ispustite sliku ovdje!",
           "template": "Predložak",
+          "successfull_delete_account": "Uspješno ste izbrisali svoj račun!",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
