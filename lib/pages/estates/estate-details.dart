@@ -80,7 +80,6 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                     }
 
                     widget.estate = estate;
-                    print(Estate.asString(widget.estate));
                     return displayBody(width, height);
                   }
                 },
@@ -190,6 +189,14 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             SizedBox(
               height: height * 0.08,
             ),
+            StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return showSlideMap(width, setState);
+              },
+            ),
+            SizedBox(
+              height: height * 0.08,
+            ),
             optionButtons(width, height),
             const SizedBox(
               height: 65,
@@ -248,34 +255,56 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     );
   }
 
+  Widget showSlideMap(double width, StateSetter setState) {
+    return DataTable(
+      columnSpacing: width * 0.15,
+      columns: [
+        const DataColumn(
+          label: Text("#"),
+        ),
+        DataColumn(
+          label: Text(widget.lang!.dictionary["key"]!),
+        ),
+        DataColumn(
+          label: Text(widget.lang!.dictionary["value"]!),
+        ),
+        DataColumn(
+          label: Text(widget.lang!.dictionary["from"]!),
+        ),
+        DataColumn(
+          label: Text(widget.lang!.dictionary["to"]!),
+        ),
+      ],
+      rows: [
+        DataRow(cells: [
+          DataCell(Text("1")),
+          DataCell(Text("family")),
+          DataCell(Text("Wilzkopf")),
+          DataCell(Text("12.10.2022.")),
+          DataCell(Text("19.10.2022.")),
+        ]),
+      ],
+    );
+  }
+
   Widget optionButtons(double width, double height) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Expanded(child: SizedBox()),
-        Expanded(
-          flex: 3,
-          child: widget.isNew
-              ? GradientButton(
-                  buttonText: widget.lang!.dictionary["create_estate"]!,
-                  callback: createEstate,
-                )
-              : GradientButton(
-                  buttonText: widget.lang!.dictionary["save_changes"]!,
-                  callback: updateEstate,
-                ),
-        ),
-        const Expanded(
-          flex: 2,
-          child: SizedBox(),
-        ),
-        if (!widget.isNew)
+        if (!widget.isNew) ...[
+          const Expanded(flex: 2, child: SizedBox()),
+          Expanded(
+            flex: 3,
+            child: GradientButton(
+              buttonText: widget.lang!.dictionary["save_changes"]!,
+              callback: updateEstate,
+            ),
+          ),
           const Expanded(
             flex: 2,
             child: SizedBox(),
           ),
-        if (!widget.isNew)
           Expanded(
             flex: 3,
             child: GradientButton(
@@ -287,7 +316,19 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
               ),
             ),
           ),
-        const Expanded(child: SizedBox()),
+          const Expanded(flex: 2, child: SizedBox()),
+        ],
+        if (widget.isNew) ...[
+          const Expanded(flex: 3, child: SizedBox()),
+          Expanded(
+            flex: 2,
+            child: GradientButton(
+              buttonText: widget.lang!.dictionary["create_estate"]!,
+              callback: createEstate,
+            ),
+          ),
+          const Expanded(flex: 3, child: SizedBox()),
+        ],
       ],
     );
   }
@@ -414,10 +455,9 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 duration: const Duration(milliseconds: 350),
                 curve: Curves.linear,
               );
-              print(Estate.asString(widget.estate));
             },
             child: Text(
-              "Add slide as previous",
+              widget.lang!.dictionary["add_prev_slide"]!,
               style: const TextStyle(
                 color: PalleteCommon.gradient2,
                 fontWeight: FontWeight.bold,
@@ -444,9 +484,6 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                   MaterialStatePropertyAll(PalleteCommon.backgroundColor),
             ),
             onPressed: () {
-              print(
-                "currentPage: ${widget.currentPage} | length: ${widget.estate.slides.length}",
-              );
               setState(() {
                 widget.estate.slides.removeAt(widget.currentPage);
                 if (widget.estate.slides.isEmpty) {
@@ -455,11 +492,10 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 if (widget.currentPage >= widget.estate.slides.length) {
                   widget.currentPage = widget.estate.slides.length - 1;
                 }
-                // print(Estate.asString(widget.estate));
               });
             },
             child: Text(
-              "Delete slide",
+              widget.lang!.dictionary["delete_slide"]!,
               style: const TextStyle(
                 color: PalleteCommon.gradient2,
                 fontWeight: FontWeight.bold,
@@ -495,10 +531,9 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 duration: const Duration(milliseconds: 350),
                 curve: Curves.linear,
               );
-              print(Estate.asString(widget.estate));
             },
             child: Text(
-              "Add slide as next",
+              widget.lang!.dictionary["add_next_slide"]!,
               style: const TextStyle(
                 color: PalleteCommon.gradient2,
                 fontWeight: FontWeight.bold,
@@ -627,18 +662,22 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
                 // Showing locally obtained image
                 Stack(
-                  alignment: AlignmentDirectional.center,
+                  alignment: AlignmentDirectional.topCenter,
                   children: [
                     Center(
                       child: Container(
+                        margin: const EdgeInsets.only(bottom: 50),
                         width: width * 0.3,
                         height: height * 0.3,
-                        margin: const EdgeInsets.all(8.0),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            scale: 0.01,
+                            fit: BoxFit.fitWidth,
+                            image: Image.memory(
+                                    widget.estate.slides[i].tmpImageBytes!)
+                                .image,
+                          ),
                         ),
-                        child: Image.memory(
-                            widget.estate.slides[i].tmpImageBytes!),
                       ),
                     ),
 
@@ -652,6 +691,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                           onTap: () {
                             setState(() {
                               widget.estate.slides[i].tmpImageBytes = null;
+                              widget.estate.slides[i].tmpImageName = null;
                             });
                           },
                           child: const Align(
@@ -779,14 +819,17 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
     Map<String, dynamic>? estateMap = Estate.toJSON(widget.estate);
     if (estateMap == null) return;
+    print("X");
 
     estateMap["ownerId"] = widget.userId;
 
     Estate? res = await EstateRepository.createEstate(estateMap);
-    if (res == null) {}
+    if (res == null) return;
+
+    print("Y");
 
     setState(() {
-      widget.estate = res!;
+      widget.estate = res;
       widget.isNew = false;
     });
 

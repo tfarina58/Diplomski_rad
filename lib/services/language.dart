@@ -144,6 +144,11 @@ class LanguageService {
           "template": "Template",
           "successfull_delete_account":
               "You successfully deleted your account!",
+          "add_next_slide": "Add slide as next",
+          "delete_slide": "Delete slide",
+          "add_prev_slide": "Add slide as previous",
+          "key": "Abbreviation",
+          "value": "Text",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -286,6 +291,11 @@ class LanguageService {
           "template": "Vorlage",
           "successfull_delete_account":
               "Sie haben Ihr Konto erfolgreich gelöscht!",
+          "add_next_slide": "Als nächstes Folie hinzufügen",
+          "delete_slide": "Folie löschen",
+          "add_prev_slide": "Folie wie zuvor hinzufügen",
+          "key": "Abkürzung",
+          "value": "Text",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -424,6 +434,11 @@ class LanguageService {
           "drop_image_here": "Ispustite sliku ovdje!",
           "template": "Predložak",
           "successfull_delete_account": "Uspješno ste izbrisali svoj račun!",
+          "add_next_slide": "Dodaj slajd kao sljedeći",
+          "delete_slide": "Izbriši slajd",
+          "add_prev_slide": "Dodaj slajd kao prethodni",
+          "key": "Skraćenica",
+          "value": "Tekst",
         };
 
         /*if (specific != null && specific.isNotEmpty) {

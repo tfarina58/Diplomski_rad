@@ -23,9 +23,7 @@ class FirebaseStorageService {
         await folder.putData(bytes).whenComplete(() async {
           String url = await folder.getDownloadURL();
 
-          Map<String, dynamic> updateObject = {
-            "images": [url]
-          };
+          Map<String, dynamic> updateObject = {"image": url};
           bool success = await EstateRepository.updateEstate(
               updateObject, (object as Estate).id);
         });
