@@ -207,12 +207,10 @@ class _EstatesPageState extends State<EstatesPage> {
               tmp = Estate.toEstate(tmpMap);
               if (tmp == null) return;
 
-              print(tmp);
               tmpEstates.add(tmp!);
             }).toList();
 
             widget.estates = tmpEstates;
-            print("Estates: ${widget.estates}");
 
             if (widget.estates.isEmpty) {
               return Text(widget.lang!.dictionary["no_estates"]!);

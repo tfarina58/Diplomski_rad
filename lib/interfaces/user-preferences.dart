@@ -26,4 +26,14 @@ class UserPreferences {
   static double K2C(double k) {
     return k - 272.15;
   }
+
+    // Kelvin to Fahrenheit
+  static double Km2Mi(double km) {
+    return km * 0.6213;
+  }
+
+  // Kelvin to Celsius
+  static double Mi2Km(double mi) {
+    return mi * 1.6093;
+  }
 }

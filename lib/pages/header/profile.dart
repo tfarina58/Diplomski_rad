@@ -325,6 +325,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get31() {
     if (widget.user is Individual) {
       return CalendarField(
+        selectingBirthday: true,
         dateFormat: widget.user!.preferences.dateFormat,
         selectedDate: (widget.user as Individual).birthday,
         labelText: widget.lang!.dictionary["date_of_birth"]!,
@@ -500,14 +501,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (userMap == null) return;
 
-    bool res = await UserRepository.updateUser(userMap);
+    bool res = await UserRepository.updateUser(widget.user!.id, userMap);
     if (res) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString("language", widget.user!.preferences.language);
-      await prefs.setString(
-        "avatarImage",
-        widget.user is Customer ? (widget.user as Customer).avatarImage : "",
-      );
+      await prefs.setString("avatarImage", widget.user is Customer ? (widget.user as Customer).avatarImage : "",);
 
       LanguageService tmpLang =
           LanguageService.getInstance(widget.user!.preferences.language);

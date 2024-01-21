@@ -6,6 +6,7 @@ import 'package:diplomski_rad/other/pallete.dart';
 class CalendarField extends StatefulWidget {
   final String labelText;
   final Function callback;
+  bool selectingBirthday;
   late DateTime? firstDate = DateTime.utc(1998, 3, 12);
   late DateTime? lastDate = DateTime.now();
   final String dateFormat;
@@ -16,6 +17,7 @@ class CalendarField extends StatefulWidget {
     Key? key,
     required this.labelText,
     required this.callback,
+    this.selectingBirthday = false,
     this.firstDate,
     this.lastDate,
     this.dateFormat = "yyyy-MM-dd",
@@ -85,7 +87,7 @@ class _CalendarFieldState extends State<CalendarField> {
                     child: CalendarDatePicker(
                       firstDate: widget.firstDate ?? DateTime(1900),
                       initialDate: widget.tmpDate!,
-                      lastDate: widget.lastDate ?? DateTime.now(),
+                      lastDate: widget.lastDate ?? (widget.selectingBirthday ? DateTime.now() : DateTime(2100)),
                       onDateChanged: (DateTime value) {
                         widget.tmpDate = value;
                       },

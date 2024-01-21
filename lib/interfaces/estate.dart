@@ -1,5 +1,4 @@
 import 'package:latlong2/latlong.dart';
-import 'package:diplomski_rad/interfaces/presentation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Estate {
@@ -14,7 +13,6 @@ class Estate {
   LatLng? coordinates;
   String phone;
   String description;
-  List<Slide> slides;
 
   Estate({
     this.id = "",
@@ -28,7 +26,6 @@ class Estate {
     this.coordinates,
     this.phone = "",
     this.description = "",
-    this.slides = const [],
   }) : super(); // : preferences = EstatePreferences();
 
   static Estate? toEstate(Map<String, dynamic>? estate) {
@@ -52,47 +49,11 @@ class Estate {
     newEstate.name = estate['name'] ?? "";
     newEstate.phone = estate['phone'] ?? "";
 
-    newEstate.slides = [];
-    if (estate['slides'].length == 0) {
-      newEstate.slides.add(
-        Slide(
-          title: "",
-          subtitle: "",
-          description: "",
-          image: "",
-          template: 0,
-        ),
-      );
-    } else {
-      for (int i = 0; i < estate['slides'].length; ++i) {
-        newEstate.slides.add(
-          Slide(
-            title: estate['slides'][i]['title'],
-            subtitle: estate['slides'][i]['subtitle'],
-            description: estate['slides'][i]['description'],
-            image: estate['slides'][i]['image'],
-            template: estate['slides'][i]['template'],
-          ),
-        );
-      }
-    }
-
     return newEstate;
   }
 
   static Map<String, dynamic>? toJSON(Estate? estate) {
     if (estate == null) return null;
-
-    dynamic slides = [];
-    for (int i = 0; i < estate.slides.length; ++i) {
-      slides.add({
-        'title': estate.slides[i].title,
-        'subtitle': estate.slides[i].subtitle,
-        'description': estate.slides[i].description,
-        'image': estate.slides[i].image,
-        'template': estate.slides[i].template,
-      });
-    }
 
     return {
       "name": estate.name,
@@ -105,16 +66,10 @@ class Estate {
               estate.coordinates!.latitude, estate.coordinates!.longitude)
           : null,
       "phone": estate.phone,
-      "slides": slides,
     };
   }
 
   static String asString(Estate estate) {
-    String slides = "";
-    for (int i = 0; i < estate.slides.length; ++i) {
-      slides +=
-          "presentation $i: {\n\ttitle: ${estate.slides[i].title}\n\tsubtitle: ${estate.slides[i].subtitle}\n\tdescription: ${estate.slides[i].description}\n\timage: ${estate.slides[i].image}\n\ttemplate: ${estate.slides[i].template}\n}\n";
-    }
-    return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\ndescription: ${estate.description}\n$slides";
+    return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\ndescription: ${estate.description}\n";
   }
 }

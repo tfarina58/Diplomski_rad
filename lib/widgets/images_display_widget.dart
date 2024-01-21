@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:diplomski_rad/interfaces/presentation.dart';
 import 'package:diplomski_rad/interfaces/user.dart';
 import 'package:diplomski_rad/interfaces/estate.dart';
 import 'package:diplomski_rad/other/pallete.dart';
@@ -11,6 +12,7 @@ import 'package:diplomski_rad/services/firebase.dart';
 class ImagesDisplay extends StatefulWidget {
   User? user;
   Estate? estate;
+  Presentation? presentation;
   LanguageService lang;
   bool showAvatar;
   bool enableEditing;
@@ -21,10 +23,11 @@ class ImagesDisplay extends StatefulWidget {
     Key? key,
     this.user,
     this.estate,
+    this.presentation,
     required this.showAvatar,
     required this.enableEditing,
     required this.lang,
-  }) : assert(user != null && estate == null || user == null && estate != null);
+  }) : assert(user != null && estate == null && presentation == null || user == null && estate != null && presentation == null || user == null && estate == null && presentation != null);
 
   @override
   State<ImagesDisplay> createState() => _ImagesDisplayState();
@@ -52,8 +55,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                 if (!widget.enableEditing) return;
                 showDialog(
                   context: context,
-                  builder: (BuildContext context) =>
-                      showImagesDialog(context, false),
+                  builder: (BuildContext context) => showImagesDialog(context, false),
                 );
               },
               child: Stack(
@@ -76,8 +78,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                       if (!widget.enableEditing) return;
                       showDialog(
                         context: context,
-                        builder: (BuildContext context) =>
-                            showImagesDialog(context, true),
+                        builder: (BuildContext context) => showImagesDialog(context, true),
                       );
                     },
                     child: SizedBox(
@@ -124,9 +125,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
         );
       }
     } else if (widget.user != null) {
-      if (widget.user is Admin ||
-          widget.user is Customer &&
-              (widget.user as Customer).backgroundImage.isEmpty) {
+      if (widget.user is Admin || widget.user is Customer && (widget.user as Customer).backgroundImage.isEmpty) {
         return Container(
           margin: const EdgeInsets.only(bottom: 50),
           decoration: const BoxDecoration(
@@ -161,11 +160,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
         shape: BoxShape.circle,
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: widget.user is Customer &&
-                  (widget.user as Customer).avatarImage.isNotEmpty
-              ? Image.network(
-                  (widget.user as Customer).avatarImage,
-                ).image
+          image: widget.user is Customer && (widget.user as Customer).avatarImage.isNotEmpty
+              ? Image.network((widget.user as Customer).avatarImage).image
               : Image.asset('images/default_user.png').image,
         ),
       ),
@@ -233,8 +229,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                 SizedBox(height: height * 0.025),
                 Center(
                   child: Text(
-                    widget.lang.dictionary[
-                        choice ? "avatar_image" : "background_image"]!,
+                    widget.lang.dictionary[choice ? "avatar_image" : "background_image"]!,
                     style: const TextStyle(fontSize: 32),
                   ),
                 ),
@@ -328,26 +323,20 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
   Widget optionSaveImage(double width, double height, bool choice) {
     return ElevatedButton(
       style: ButtonStyle(
-        minimumSize: MaterialStatePropertyAll(
-          Size(width * 0.25, height * 0.08),
-        ),
-        maximumSize: MaterialStatePropertyAll(
-          Size(width * 0.25, height * 0.4),
-        ),
-        backgroundColor: const MaterialStatePropertyAll(
-          Color.fromARGB(125, 85, 85, 85),
-        ),
+        minimumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.08)),
+        maximumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.4)),
+        backgroundColor: const MaterialStatePropertyAll(Color.fromARGB(125, 85, 85, 85)),
       ),
       onPressed: () async {
         if (widget.droppedFileBytes == null) return;
 
         FirebaseStorageService storage = FirebaseStorageService();
         if (widget.estate != null) {
-          storage.uploadFile(widget.estate! as Estate, widget.droppedFileName,
-              widget.droppedFileBytes!, choice);
+          storage.uploadImageForEstate(widget.estate as Estate, widget.droppedFileName, widget.droppedFileBytes!);
         } else if (widget.user != null) {
-          storage.uploadFile(widget.user as User, widget.droppedFileName,
-              widget.droppedFileBytes!, choice);
+          storage.uploadImageForCustomer(widget.user as Customer, widget.droppedFileName, widget.droppedFileBytes!, choice);
+        } else if (widget.presentation != null) {
+          storage.uploadImageForPresentation(widget.presentation as Presentation, widget.droppedFileName, widget.droppedFileBytes!);
         }
 
         Navigator.pop(context);
@@ -359,15 +348,9 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
   Widget optionDiscardImage(double width, double height) {
     return ElevatedButton(
       style: ButtonStyle(
-        minimumSize: MaterialStatePropertyAll(
-          Size(width * 0.25, height * 0.08),
-        ),
-        maximumSize: MaterialStatePropertyAll(
-          Size(width * 0.25, height * 0.4),
-        ),
-        backgroundColor: const MaterialStatePropertyAll(
-          Color.fromARGB(125, 85, 85, 85),
-        ),
+        minimumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.08)),
+        maximumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.4)),
+        backgroundColor: const MaterialStatePropertyAll(Color.fromARGB(125, 85, 85, 85)),
       ),
       onPressed: () {
         setState(() {
@@ -382,15 +365,9 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
   Widget optionCancel(double width, double height) {
     return ElevatedButton(
       style: ButtonStyle(
-        minimumSize: MaterialStatePropertyAll(
-          Size(width * 0.25, height * 0.08),
-        ),
-        maximumSize: MaterialStatePropertyAll(
-          Size(width * 0.25, height * 0.4),
-        ),
-        backgroundColor: const MaterialStatePropertyAll(
-          Color.fromARGB(125, 85, 85, 85),
-        ),
+        minimumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.08)),
+        maximumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.4)),
+        backgroundColor: const MaterialStatePropertyAll(Color.fromARGB(125, 85, 85, 85)),
       ),
       onPressed: () {
         setState(() {

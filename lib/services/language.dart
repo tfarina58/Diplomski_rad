@@ -149,6 +149,7 @@ class LanguageService {
           "add_prev_slide": "Add slide as previous",
           "key": "Abbreviation",
           "value": "Text",
+          "variables": "Variables",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -296,6 +297,7 @@ class LanguageService {
           "add_prev_slide": "Folie wie zuvor hinzufügen",
           "key": "Abkürzung",
           "value": "Text",
+          "variables": "Variablen",
         };
 
         /*if (specific != null && specific.isNotEmpty) {
@@ -439,6 +441,7 @@ class LanguageService {
           "add_prev_slide": "Dodaj slajd kao prethodni",
           "key": "Skraćenica",
           "value": "Tekst",
+          "variables": "Varijable",
         };
 
         /*if (specific != null && specific.isNotEmpty) {

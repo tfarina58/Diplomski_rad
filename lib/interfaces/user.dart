@@ -8,21 +8,8 @@ abstract class User {
   abstract String phone;
   abstract UserPreferences preferences;
 
-  static List<String>? convertArray(List<dynamic>? input) {
-    if (input == null || input.isEmpty) {
-      return null;
-    }
-
-    List<String>? output = [];
-    for (dynamic element in input) {
-      output.add(element.toString());
-    }
-
-    return output;
-  }
-
   static User? toUser(Map<String, dynamic> user) {
-        if (user['typeOfUser'] == "ind") {
+    if (user['typeOfUser'] == "ind") {
       Individual res = Individual();
 
       res.avatarImage = user['avatarImage'] ?? "";
@@ -46,10 +33,10 @@ abstract class User {
         temperature: user['temperature'] ?? "C",
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
+        usersPerPage: user['usersPerPage'] ?? 10,
+        estatesPerPage: user['estatesPerPage'] ?? 5,
       );
-      Timestamp x = user['birthday'];
-      res.birthday =
-          DateTime.fromMillisecondsSinceEpoch(x.millisecondsSinceEpoch);
+      res.birthday = DateTime.fromMillisecondsSinceEpoch((user['birthday'] as Timestamp).millisecondsSinceEpoch);
       res.street = user['street'] ?? "";
       res.zip = user['zip'] ?? "";
       res.numOfEstates = user['numOfEstates'] ?? 0;
@@ -65,8 +52,10 @@ abstract class User {
       res.blocked = user['blocked'] ?? false;
       res.city = user['city'] ?? "";
       if (user['coordinates'] != null) {
-        res.coordinates = LatLng((user['coordinates'] as GeoPoint).latitude,
-            (user['coordinates'] as GeoPoint).longitude);
+        res.coordinates = LatLng(
+          (user['coordinates'] as GeoPoint).latitude,
+          (user['coordinates'] as GeoPoint).longitude
+        );
       }
       res.country = user['country'] ?? "";
       res.email = user['email'] ?? "";
@@ -79,6 +68,8 @@ abstract class User {
         temperature: user['temperature'] ?? "C",
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
+        usersPerPage: user['usersPerPage'] ?? 10,
+        estatesPerPage: user['estatesPerPage'] ?? 5,
       );
       res.companyName = user['email'] ?? "";
       res.street = user['street'] ?? "";
@@ -97,6 +88,8 @@ abstract class User {
         temperature: user['temperature'] ?? "C",
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
+        usersPerPage: user['usersPerPage'] ?? 10,
+        estatesPerPage: user['estatesPerPage'] ?? 5,
       );
 
       return res;

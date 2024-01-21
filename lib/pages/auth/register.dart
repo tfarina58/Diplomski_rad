@@ -104,6 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 15),
               widget.typeOfUser == "ind"
                   ? CalendarField(
+                      selectingBirthday: true,
                       selectedDate: widget.birthday,
                       labelText: widget.lang.dictionary["date_of_birth"]!,
                       callback: (DateTime value) => widget.birthday = value,

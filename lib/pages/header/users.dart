@@ -89,8 +89,7 @@ class _UsersPageState extends State<UsersPage> {
 
   // This function is triggered when the user presses the back-to-top button
   void scrollToTop() {
-    scrollController.animateTo(0,
-        duration: const Duration(milliseconds: 350), curve: Curves.linear);
+    scrollController.animateTo(0, duration: const Duration(milliseconds: 350), curve: Curves.linear);
   }
 
   @override
@@ -151,8 +150,7 @@ class _UsersPageState extends State<UsersPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Expanded(child: SizedBox()),
-                      Expanded(
-                          flex: 40, child: getRows(width, height, snapshot)),
+                      Expanded(flex: 40, child: getRows(width, height, snapshot),),
                       const Expanded(child: SizedBox()),
                     ],
                   ),
@@ -209,7 +207,8 @@ class _UsersPageState extends State<UsersPage> {
                 widget.offset = 0;
                 textController.text = "";
                 textController.selection = TextSelection.fromPosition(
-                    TextPosition(offset: textController.text.length));
+                  TextPosition(offset: textController.text.length),
+                );
               },
               child: const Icon(Icons.close),
             ),
@@ -218,7 +217,8 @@ class _UsersPageState extends State<UsersPage> {
           onChanged: (String value) {
             setState(() {
               textController.selection = TextSelection.fromPosition(
-                  TextPosition(offset: textController.text.length));
+                TextPosition(offset: textController.text.length),
+              );
               widget.searchbarText = value;
               widget.currentPage = 0;
             });
@@ -382,8 +382,7 @@ class _UsersPageState extends State<UsersPage> {
 
                           if (value == widget.lang!.dictionary["show"]) {
                             banned = true;
-                          } else if (value ==
-                              widget.lang!.dictionary["dont_show"]) {
+                          } else if (value == widget.lang!.dictionary["dont_show"]) {
                             banned = false;
                           } else {
                             banned = null;
@@ -745,8 +744,7 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  Widget getRows(
-      double width, double height, AsyncSnapshot<List<Customer>> snapshot) {
+  Widget getRows(double width, double height, AsyncSnapshot<List<Customer>> snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
       return SizedBox(
         width: height * 0.15,
@@ -766,8 +764,7 @@ class _UsersPageState extends State<UsersPage> {
       } else {
         widget.customers = snapshot.data!;
       }
-      widget.numOfPages =
-          widget.customers.length ~/ widget.user!.preferences.usersPerPage;
+      widget.numOfPages = widget.customers.length ~/ widget.user!.preferences.usersPerPage;
 
       if (widget.customers.isEmpty) {
         return SizedBox(
@@ -794,11 +791,7 @@ class _UsersPageState extends State<UsersPage> {
       List<Widget> rows = [];
 
       for (int i = widget.currentPage * widget.user!.preferences.usersPerPage;
-          i <
-                  (widget.currentPage + 1) *
-                      widget.user!.preferences.usersPerPage &&
-              i < widget.customers.length;
-          ++i) {
+      i < (widget.currentPage + 1) * widget.user!.preferences.usersPerPage && i < widget.customers.length; ++i) {
         rows.add(
           InkWell(
             onHover: (_) {},
@@ -823,8 +816,7 @@ class _UsersPageState extends State<UsersPage> {
                   child: SizedBox(
                     height: height * 0.08,
                     child: Center(
-                      child: Text(
-                          (i + 1).toString()), // TODO: set correct # number
+                      child: Text((i + 1).toString()), // TODO: set correct # number
                     ),
                   ),
                 ),
@@ -888,15 +880,10 @@ class _UsersPageState extends State<UsersPage> {
                       height: height * 0.08,
                       child: ElevatedButton(
                         style: const ButtonStyle(
-                          backgroundColor: MaterialStatePropertyAll(
-                            PalleteCommon.gradient1,
-                          ),
+                          backgroundColor: MaterialStatePropertyAll(PalleteCommon.gradient1,),
                         ),
-                        onPressed: () =>
-                            goToEstatesPage(widget.customers[i].id),
-                        child: Text(
-                          widget.customers[i].numOfEstates.toString(),
-                        ),
+                        onPressed: () => goToEstatesPage(widget.customers[i].id),
+                        child: Text(widget.customers[i].numOfEstates.toString(),),
                       ),
                     ),
                   ),
@@ -990,12 +977,10 @@ class _UsersPageState extends State<UsersPage> {
     } else if (customer.phone.contains(widget.searchbarText)) {
       points++;
     } else if ((customer is Individual) &&
-        ("${customer.firstname} ${customer.lastname}")
-            .contains(widget.searchbarText)) {
+        ("${customer.firstname} ${customer.lastname}").contains(widget.searchbarText)) {
       points++;
     } else if ((customer is Company) &&
-        ("${customer.ownerFirstname} ${customer.ownerLastname}")
-            .contains(widget.searchbarText)) {
+        ("${customer.ownerFirstname} ${customer.ownerLastname}").contains(widget.searchbarText)) {
       points++;
     } else {
       return false;
@@ -1047,26 +1032,20 @@ class _UsersPageState extends State<UsersPage> {
         FirebaseFirestore.instance.collection('users');
 
     // Combine the two streams using the merge operator
-    // if (checkFiltersInactivity()) {
-    Stream<QuerySnapshot<Map<String, dynamic>>> indQuery =
-        users.where("typeOfUser", isEqualTo: "ind").snapshots();
+    Stream<QuerySnapshot<Map<String, dynamic>>> indQuery = users.where("typeOfUser", isEqualTo: "ind").snapshots();
+    Stream<QuerySnapshot<Map<String, dynamic>>> comQuery = users.where("typeOfUser", isEqualTo: "com").snapshots();
 
-    Stream<QuerySnapshot<Map<String, dynamic>>> comQuery =
-        users.where("typeOfUser", isEqualTo: "com").snapshots();
-
-    return Rx.combineLatest2(indQuery, comQuery,
-        (QuerySnapshot<Map<String, dynamic>> snapshot1,
-            QuerySnapshot<Map<String, dynamic>> snapshot2) {
+    return Rx.combineLatest2(indQuery, comQuery, (QuerySnapshot<Map<String, dynamic>> snapshot1, QuerySnapshot<Map<String, dynamic>> snapshot2) {
       Map<String, dynamic> userMap;
       Customer customer;
       List<Customer> array1 = [];
       for (int i = 0; i < snapshot1.docs.length; ++i) {
         userMap = snapshot1.docs[i].data();
         userMap["id"] = snapshot1.docs[i].id;
+
         customer = User.toUser(userMap) as Customer;
-        if (!checkFilterMatching(customer)) {
-          continue;
-        }
+        if (!checkFilterMatching(customer)) continue;
+
         array1.add(customer);
       }
 
@@ -1074,86 +1053,18 @@ class _UsersPageState extends State<UsersPage> {
       for (int i = 0; i < snapshot2.docs.length; ++i) {
         userMap = snapshot2.docs[i].data();
         userMap["id"] = snapshot2.docs[i].id;
+
         customer = User.toUser(userMap) as Customer;
-        if (!checkFilterMatching(customer)) {
-          continue;
-        }
+        if (!checkFilterMatching(customer)) continue;
+
         array2.add(customer);
       }
 
       array1 = mergeSort(array1);
       array2 = mergeSort(array2);
+      
       return mergeArrays(array1, array2);
     });
-    /*} else {
-      Stream<QuerySnapshot<Map<String, dynamic>>> popupQuery;
-      Query<Map<String, dynamic>>? tmpQuery;
-
-      // Because of STUPID Firebase API limitations, I am not allowed to set more than 1 inequality statement
-      // The one and only inequality statement is reserved for 'numOfEstates' field
-      // Admin is automatically removed from the list since its values "blocked" and "banned" are null (not defined)
-
-      if (widget.individual && widget.company ||
-          !widget.individual && !widget.company) {
-        // tmpQuery = users.where("typeOfUser", isNotEqualTo: "amd");
-      } else if (widget.individual && !widget.company) {
-        tmpQuery = users.where("typeOfUser", isEqualTo: "ind");
-      } else if (!widget.individual && widget.company) {
-        tmpQuery = users.where("typeOfUser", isEqualTo: "com");
-      }
-
-      if (widget.banned == true) {
-        tmpQuery = (tmpQuery ?? users).where("banned", isEqualTo: true);
-      } else if (widget.blocked == true) {
-        tmpQuery = (tmpQuery ?? users).where("blocked", isEqualTo: true);
-      } else if (widget.blocked == false) {
-        tmpQuery = (tmpQuery ?? users).where("blocked", isEqualTo: false);
-      }
-
-      // If an inequality statement is used for a certain user attribute, the result can only be ordered by (orderBy() function) the same attribute.
-      // This limits the use of Firebase Storage API, hence some operations need to be done on the app's front-end.
-      // In this case, "numOfEstates" is the attribute that needs to be filtered on the front-end...
-
-      /*if (widget.from != null && widget.to != null) {
-        tmpQuery = (tmpQuery ?? users)
-            .where("numOfEstates",
-                isGreaterThanOrEqualTo:
-                    widget.from! > widget.to! ? widget.to : widget.from)
-            .where("numOfEstates",
-                isLessThanOrEqualTo:
-                    widget.from! > widget.to! ? widget.from : widget.to);
-      } else if (widget.from != null) {
-        tmpQuery = (tmpQuery ?? users)
-            .where("numOfEstates", isGreaterThan: widget.from);
-      } else if (widget.to != null) {
-        tmpQuery = (tmpQuery ?? users)
-            .where("numOfEstates", isLessThanOrEqualTo: widget.to);
-      }*/
-
-      if (widget.orderBy == "name") {}
-
-      popupQuery = (tmpQuery ?? users)
-          .orderBy(widget.orderBy, descending: !widget.asc)
-          .snapshots();
-
-      return Rx.combineLatest([popupQuery],
-          (List<QuerySnapshot<Map<String, dynamic>>> elem) {
-        List<Map<String, dynamic>> list = [];
-        for (int i = 0; i < elem[0].docs.length; ++i) {
-          if (elem[0].docs[i]["typeOfUser"] == "adm") continue;
-
-          Map<String, dynamic> tmpHashUser = elem[0].docs[i].data();
-          tmpHashUser["id"] = elem[0].docs[i].id;
-
-          // Checking if there is a substring in name + surname, email or phone number equal to widget.searchbarText
-          if (checkSearchbarTextMatching(tmpHashUser) &&
-              checkNumOfEstatesRange(tmpHashUser["numOfEstates"])) {
-            list.add(tmpHashUser);
-          }
-        }
-        return list;
-      });
-    }*/
   }
 
   List<Customer> mergeArrays(List<Customer> array1, List<Customer> array2) {
@@ -1208,17 +1119,13 @@ class _UsersPageState extends State<UsersPage> {
     } else if (widget.orderBy == 'phone') {
       return (customer1.phone).compareTo(customer2.phone);
     } else if (widget.orderBy == 'numOfEstates') {
-      return (customer1.numOfEstates.toString())
-          .compareTo(customer2.numOfEstates.toString());
+      return (customer1.numOfEstates.toString()).compareTo(customer2.numOfEstates.toString());
     } else if (widget.orderBy == 'typeOfUser') {
-      return ((customer1 is Individual ? 'ind' : 'com'))
-          .compareTo((customer2 is Individual ? 'ind' : 'com'));
+      return ((customer1 is Individual ? 'ind' : 'com')).compareTo((customer2 is Individual ? 'ind' : 'com'));
     } else if (widget.orderBy == 'blocked') {
-      return (customer1.blocked.toString())
-          .compareTo(customer2.blocked.toString());
+      return (customer1.blocked.toString()).compareTo(customer2.blocked.toString());
     } else if (widget.orderBy == 'banned') {
-      return (customer1.banned.toString())
-          .compareTo(customer2.banned.toString());
+      return (customer1.banned.toString()).compareTo(customer2.banned.toString());
     } else {
       return 0;
     }
@@ -1271,26 +1178,24 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void changeBlockedValue(Customer customer) async {
-    Map<String, dynamic> res =
-        await UserRepository.blockUser(customer.id, !customer.blocked);
-    if (!res["success"]) return;
+    bool res = await UserRepository.blockUser(customer.id, !customer.blocked);
+    if (res) return;
 
     // TODO: change banned value if blocked == false
 
     setState(() {
-      customer.blocked = res["value"];
+      customer.blocked = !customer.blocked;
     });
   }
 
   void changeBannedValue(Customer customer) async {
-    Map<String, dynamic> res =
-        await UserRepository.banUser(customer.id, !customer.banned);
-    if (!res["success"]) return;
+    bool res = await UserRepository.banUser(customer.id, !customer.banned);
+    if (!res) return;
 
     // TODO: change blocked value if banned == true
 
     setState(() {
-      customer.banned = res["value"];
+      customer.banned = !customer.banned;
     });
   }
 
