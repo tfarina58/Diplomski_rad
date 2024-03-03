@@ -51,128 +51,7 @@ class _EstatesPageState extends State<EstatesPage> {
         lang: widget.lang!,
         headerValues: widget.headerValues,
       ),
-      body: SizedBox(
-        child: Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 26,
-                ),
-                if (widget.estates.isNotEmpty)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(child: SizedBox()),
-                      Expanded(
-                        flex: 2,
-                        child: optionButton(
-                          width,
-                          height,
-                          () => setState(() {
-                            widget.choice = UserChoice.list;
-                          }),
-                          widget.lang!.dictionary["list"]!,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: optionButton(
-                          width,
-                          height,
-                          () => setState(() {
-                            widget.choice = UserChoice.map;
-                          }),
-                          widget.lang!.dictionary["map"]!,
-                        ),
-                      ),
-                      const Expanded(child: SizedBox()),
-                    ],
-                  ),
-                const SizedBox(
-                  height: 26,
-                ),
-                if (widget.choice == UserChoice.map)
-                  getMap(width, height)
-                else
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: getList(cardSize),
-                  )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = prefs.getString("userId");
-      String? tmpTypeOfUser = prefs.getString("typeOfUser");
-      String? tmpAvatarImage = prefs.getString("avatarImage");
-      String? tmpLanguage = prefs.getString("language");
-
-      if (tmpUserId == null || tmpUserId.isEmpty) return;
-      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
-      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
-
-      LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
-
-      setState(() {
-        widget.userId = tmpUserId;
-        widget.lang = tmpLang;
-        widget.headerValues["userId"] = tmpUserId;
-        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
-      });
-    });
-  }
-
-  List<Widget> getList(double cardSize) {
-    List<Widget> res = [];
-
-    if (widget.showEmptyCard == true) {
-      res.add(
-        GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  EstateDetailsPage(isNew: true, estate: Estate()),
-            ),
-          ),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: CardWidget(
-              isEmptyCard: true,
-              width: cardSize,
-              lang: widget.lang!,
-              height: cardSize * 0.5625,
-            ),
-          ),
-        ),
-      );
-    }
-    res.add(
-      SizedBox(
-        height: 36,
-        width: MediaQuery.of(context).size.width,
-      ),
-    );
-
-    res.add(
-      StreamBuilder(
+      body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('estates')
             .where('ownerId',
@@ -216,48 +95,169 @@ class _EstatesPageState extends State<EstatesPage> {
               return Text(widget.lang!.dictionary["no_estates"]!);
             }
 
-            return Column(
-              children: [
-                for (int i = 0; i < widget.estates.length; ++i) ...[
-                  getRow(cardSize, i),
-                  SizedBox(
-                    height: 36,
-                    width: MediaQuery.of(context).size.width,
+            return SizedBox(
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        height: 26,
+                      ),
+                      if (widget.estates.isNotEmpty)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Expanded(child: SizedBox()),
+                            Expanded(
+                              flex: 2,
+                              child: optionButton(
+                                width,
+                                height,
+                                () => setState(() {
+                                  widget.choice = UserChoice.list;
+                                }),
+                                widget.lang!.dictionary["list"]!,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: optionButton(
+                                width,
+                                height,
+                                () => setState(() {
+                                  widget.choice = UserChoice.map;
+                                }),
+                                widget.lang!.dictionary["map"]!,
+                              ),
+                            ),
+                            const Expanded(child: SizedBox()),
+                          ],
+                        ),
+          
+                      if (widget.estates.isNotEmpty)
+                        const SizedBox(height: 26,),
+          
+                      if (widget.choice == UserChoice.map) getMap(width, height)
+                      else Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: getList(cardSize),
+                      )
+                    ],
                   ),
-                ],
-              ],
+                ),
+              ),
             );
           }
-        },
+        }
       ),
     );
-    return res;
   }
 
-  Widget getRow(double cardSize, int index) {
-    if (widget.estates[index].image.isNotEmpty) {
-      return Hero(
-        tag: widget.estates[index].image,
-        child: GestureDetector(
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? tmpUserId = prefs.getString("userId");
+      String? tmpTypeOfUser = prefs.getString("typeOfUser");
+      String? tmpAvatarImage = prefs.getString("avatarImage");
+      String? tmpLanguage = prefs.getString("language");
+
+      if (tmpUserId == null || tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+
+      LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
+
+      setState(() {
+        widget.userId = tmpUserId;
+        widget.lang = tmpLang;
+        widget.headerValues["userId"] = tmpUserId;
+        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
+        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
+      });
+    });
+  }
+
+  List<Widget> getList(double cardSize) {
+    List<Widget> res = [];
+
+    if (widget.showEmptyCard == true) {
+      res.add(
+        GestureDetector(
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  EstateDetailsPage(estate: widget.estates[index]),
+              builder: (context) => EstateDetailsPage(isNew: true, estate: Estate()),
             ),
           ),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: CardWidget(
-              lang: widget.lang!,
-              city: widget.estates[index].city,
-              country: widget.estates[index].country,
-              name: widget.estates[index].name,
+              type: 'est',
+              isEmptyCard: true,
               width: cardSize,
+              lang: widget.lang!,
               height: cardSize * 0.5625,
-              coordinates: widget.estates[index].coordinates,
-              backgroundImage: widget.estates[index].image,
             ),
+          ),
+        ),
+      );
+    }
+
+    res.add(
+      SizedBox(
+        height: 36,
+        width: MediaQuery.of(context).size.width,
+      ),
+    );
+
+    List<Widget> column = [];
+    for (int i = 0; i < widget.estates.length; ++i) {
+      column.add(getRow(cardSize, i),);
+      column.add(SizedBox(
+        height: 36,
+        width: MediaQuery.of(context).size.width,
+      ),);
+    }
+    
+    res.add(
+      Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: column
+      ),
+    );
+
+    return res;
+  }
+
+  Widget getRow(double cardSize, int index) {
+    if (widget.estates[index].image.isNotEmpty) {
+      return GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EstateDetailsPage(estate: widget.estates[index],),
+          ),
+        ),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: CardWidget(
+            type: 'est',
+            lang: widget.lang!,
+            title: "${widget.estates[index].city}, ${widget.estates[index].country}",
+            subtitle: widget.estates[index].name,
+            width: cardSize,
+            height: cardSize * 0.5625,
+            coordinates: widget.estates[index].coordinates,
+            backgroundImage: widget.estates[index].image,
           ),
         ),
       );
@@ -273,10 +273,10 @@ class _EstatesPageState extends State<EstatesPage> {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: CardWidget(
+            type: 'est',
             lang: widget.lang!,
-            city: widget.estates[index].city,
-            country: widget.estates[index].country,
-            name: widget.estates[index].name,
+            title: "${widget.estates[index].city}, ${widget.estates[index].country}",
+            subtitle: widget.estates[index].name,
             width: cardSize,
             height: cardSize * 0.5625,
             coordinates: widget.estates[index].coordinates,
@@ -302,8 +302,7 @@ class _EstatesPageState extends State<EstatesPage> {
     );
   }
 
-  Widget optionButton(
-      double width, double height, Function onPressed, String title) {
+  Widget optionButton(double width, double height, Function onPressed, String title) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(
@@ -317,8 +316,7 @@ class _EstatesPageState extends State<EstatesPage> {
       height: height * 0.05,
       child: ElevatedButton(
         style: const ButtonStyle(
-          backgroundColor:
-              MaterialStatePropertyAll(PalleteCommon.backgroundColor),
+          backgroundColor: MaterialStatePropertyAll(PalleteCommon.backgroundColor),
         ),
         onPressed: () => onPressed(),
         child: Text(

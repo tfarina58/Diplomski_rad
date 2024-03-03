@@ -1,18 +1,23 @@
+import 'dart:typed_data';
+import 'package:diplomski_rad/interfaces/category.dart';
 import 'package:diplomski_rad/interfaces/user-preferences.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/services/weather.dart';
+import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/other/pallete.dart';
+import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math';
+import 'package:diplomski_rad/widgets/dropzone_widget.dart';
+import 'package:diplomski_rad/widgets/string_field.dart';
 import 'dart:ui';
 
 class CardWidget extends StatefulWidget {
-  final String? city;
-  final String? country;
-  final String? name;
-  final String? backgroundImage;
+  final String title;
+  final String subtitle;
+  String backgroundImage;
   final bool isEmptyCard;
   final LatLng? coordinates;
   late final String? weather;
@@ -20,6 +25,7 @@ class CardWidget extends StatefulWidget {
   int? temperature;
   final String temperaturePreference;
   final LanguageService lang;
+  final String type;
 
   bool isDisposed = false;
 
@@ -29,7 +35,7 @@ class CardWidget extends StatefulWidget {
   final Color upperTextColor;
   final Color lowerTextColor;
 
-  final List<List<Color>> colorPairs = [
+    final List<List<Color>> colorPairs = [
     [
       const Color.fromARGB(15, 244, 65, 223),
       const Color.fromARGB(255, 78, 129, 235)
@@ -56,20 +62,23 @@ class CardWidget extends StatefulWidget {
     ],
   ];
 
+  Category? category;
+
   CardWidget({
     Key? key,
-    this.city,
-    this.country,
-    this.name,
+    this.title = "",
+    this.subtitle = "",
     required this.height,
     required this.width,
-    this.backgroundImage,
+    this.backgroundImage = "",
     this.isEmptyCard = false,
     this.upperTextColor = Colors.white,
     this.lowerTextColor = Colors.white,
     this.coordinates,
     this.temperaturePreference = "C",
+    this.category,
     required this.lang,
+    required this.type,
   }) : super(key: key);
 
   @override
@@ -86,7 +95,6 @@ class _CardWidgetState extends State<CardWidget> {
       child: SizedBox(
         child: Stack(
           children: [
-            //...addBlur(),
             Padding(
               padding: EdgeInsets.only(
                   left: widget.width * 0.04,
@@ -99,7 +107,7 @@ class _CardWidgetState extends State<CardWidget> {
                   Text(
                     widget.isEmptyCard
                         ? widget.lang.dictionary["add_new_estate"]!
-                        : '${widget.city != null ? "${widget.city}, " : ""}${widget.country ?? ""}',
+                        : widget.title,
                     style: TextStyle(
                       fontSize: widget.width * 0.036,
                       fontWeight: FontWeight.bold,
@@ -109,9 +117,9 @@ class _CardWidgetState extends State<CardWidget> {
                   SizedBox(
                     height: widget.height * 0.02,
                   ),
-                  widget.name != null
+                  widget.subtitle.isNotEmpty
                       ? Text(
-                          widget.name!,
+                          widget.subtitle,
                           style: TextStyle(
                             fontSize: widget.width * 0.026,
                             fontWeight: FontWeight.w300,
@@ -154,6 +162,29 @@ class _CardWidgetState extends State<CardWidget> {
                 ],
               ),
             ),
+            if (widget.type == 'cat')
+              Align(
+                alignment: Alignment.topRight,
+                child: SizedBox(
+                  width: widget.width * 0.066,
+                  height: widget.width * 0.066,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      showDialog(context: context, builder: (BuildContext context) {
+                        return showImagesDialog(context, false);
+                      });
+                    },
+                    style: const ButtonStyle(
+                      backgroundColor: MaterialStatePropertyAll(PalleteCommon.backgroundColor),
+                    ),
+                    child: Icon(
+                      Icons.settings,
+                      size: widget.width * 0.045,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -166,19 +197,13 @@ class _CardWidgetState extends State<CardWidget> {
       if (widget.coordinates == null) return;
       if (widget.isDisposed) return;
 
-      Map<String, dynamic>? tmpWeather =
-          await OpenWeatherMap.getWeather(widget.coordinates!);
+      Map<String, dynamic>? tmpWeather = await OpenWeatherMap.getWeather(widget.coordinates!);
 
       if (tmpWeather == null) return;
 
       setState(() {
-        widget.weather =
-            (tmpWeather["weather"][0]["main"][0] as String).toLowerCase() +
-                (tmpWeather["weather"][0]["main"] as String).substring(1);
-
-        widget.day = tmpWeather["sys"]["sunrise"] < tmpWeather["dt"] &&
-            tmpWeather["dt"] < tmpWeather["sys"]["sunset"];
-
+        widget.weather = (tmpWeather["weather"][0]["main"][0] as String).toLowerCase() + (tmpWeather["weather"][0]["main"] as String).substring(1);
+        widget.day = tmpWeather["sys"]["sunrise"] < tmpWeather["dt"] && tmpWeather["dt"] < tmpWeather["sys"]["sunset"];
         widget.temperature = widget.temperaturePreference == "F"
             ? UserPreferences.K2F(tmpWeather["main"]["temp"]).toInt()
             : UserPreferences.K2C(tmpWeather["main"]["temp"]).toInt();
@@ -193,51 +218,25 @@ class _CardWidgetState extends State<CardWidget> {
     super.dispose();
   }
 
-  List<Widget> addBlur() {
-    return [
-      ClipRRect(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(widget.width * 0.043),
-          topRight: Radius.circular(widget.width * 0.043),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Container(
-            height: widget.height * 0.23,
-          ),
-        ),
-      ),
-      Align(
-        alignment: Alignment.bottomCenter,
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(widget.width * 0.043),
-            bottomRight: Radius.circular(widget.width * 0.043),
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
-            child: Container(
-              height: widget.height * 0.2,
-            ),
-          ),
-        ),
-      ),
-    ];
-  }
-
-  List<Color> randomColorPair() {
-    var rng = Random();
-    return widget.colorPairs[rng.nextInt(widget.colorPairs.length)];
-  }
-
   BoxDecoration setDecoration() {
-    if (widget.backgroundImage != null && widget.backgroundImage!.isNotEmpty) {
+    if (widget.backgroundImage.isNotEmpty && !widget.backgroundImage.contains("#")) {
       return BoxDecoration(
         border: Border.all(color: Colors.white),
         borderRadius: BorderRadius.circular(widget.width * 0.043),
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: NetworkImage(widget.backgroundImage!),
+          image: NetworkImage(widget.backgroundImage),
+        ),
+      );
+    } else if (widget.backgroundImage.isNotEmpty) {
+      List<int> rgb = getRGBValues(widget.backgroundImage);
+      return BoxDecoration(
+        border: Border.all(color: Colors.white),
+        borderRadius: BorderRadius.circular(widget.width * 0.043),
+        gradient: LinearGradient(
+          colors: [Color.fromARGB(1, rgb[0], rgb[1], rgb[2])],
+          begin: Alignment.centerLeft,
+          end: Alignment.bottomRight,
         ),
       );
     } else {
@@ -254,4 +253,272 @@ class _CardWidgetState extends State<CardWidget> {
       );
     }
   }
+
+  List<int> getRGBValues(String rgbString) {
+    if (rgbString.isEmpty) return [255, 255, 255];
+
+    Map<String, int> hex = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15};
+    List<int> res = [];
+
+    rgbString = rgbString.toLowerCase();
+    
+    res[0] = hex[rgbString[1]]! * 16 + hex[rgbString[2]]!;
+    res[1] = hex[rgbString[3]]! * 16 + hex[rgbString[4]]!;
+    res[2] = hex[rgbString[5]]! * 16 + hex[rgbString[6]]!;
+
+    return res;
+  }
+
+  List<Color> randomColorPair() {
+    var rng = Random();
+    return widget.colorPairs[rng.nextInt(widget.colorPairs.length)];
+  }
+
+  Widget showImagesDialog(BuildContext context, bool choice) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
+    return Dialog(
+      backgroundColor: PalleteCommon.backgroundColor,
+      alignment: Alignment.center,
+      child: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Container(
+            constraints: BoxConstraints(
+              maxWidth: width * 0.8,
+              maxHeight: height * 0.8,
+              minWidth: width * 0.8,
+              minHeight: height * 0.8,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                SizedBox(height: height * 0.05,),
+                Center(
+                  child: Row(
+                    children: [
+                      Expanded(child: SizedBox()),
+                      Expanded(
+                        flex: 2,
+                        child: StringField(
+                          labelText: widget.lang.dictionary["title"]!,
+                          callback: (value) => widget.category!.title = value,
+                          presetText: widget.category!.title,
+                        ),
+                      ),
+                      Expanded(child: SizedBox()),
+                      Expanded(
+                        flex: 2,
+                        child: StringField(
+                          presetText: widget.category!.position != null ? widget.category!.position.toString() : '',
+                          inputType: TextInputType.number,
+                          maxWidth: 200,
+                          labelText: widget.lang.dictionary["position"]!,
+                          callback: (dynamic value) {
+                            setState(() {
+                              if (value == null) widget.category!.position = null;
+                              widget.category!.position = int.parse(value);
+                            });
+                          },
+                        ),
+                      ),
+                      Expanded(child: SizedBox()),
+                      Expanded(
+                        flex: 2,
+                        child: StringField(
+                          labelText: widget.lang.dictionary["type"]!,
+                          callback: (value) => widget.category!.elementsType = value,
+                          presetText: widget.category!.elementsType,
+                        ),
+                      ),
+                      Expanded(child: SizedBox()),
+                    ],
+                  ),
+                ),
+                SizedBox(height: height * 0.05,),
+                
+                if (widget.backgroundImage.isNotEmpty)
+                  // Showing image from Firebase
+                  Stack(
+                    alignment: AlignmentDirectional.topCenter,
+                    children: [
+                      Center(
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 50),
+                          width: width * 0.3,
+                          height: height * 0.3,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              scale: 0.01,
+                              fit: BoxFit.fitWidth,
+                              image: Image.network(widget.backgroundImage).image,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Delete image
+                      SizedBox(
+                        width: width * 0.3,
+                        height: height * 0.3,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                widget.backgroundImage = "";
+                                widget.category!.image = "";
+                              });
+                            },
+                            child: const Align(
+                              alignment: AlignmentDirectional.topEnd,
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else if (widget.category!.tmpImageBytes != null)
+
+                  // Showing locally obtained image
+                  Stack(
+                    alignment: AlignmentDirectional.topCenter,
+                    children: [
+                      Center(
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 50),
+                          width: width * 0.3,
+                          height: height * 0.3,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              scale: 0.01,
+                              fit: BoxFit.fitWidth,
+                              image: Image.memory(widget.category!.tmpImageBytes!).image,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Delete image
+                      SizedBox(
+                        width: width * 0.3,
+                        height: height * 0.3,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                widget.category!.tmpImageBytes = null;
+                                widget.category!.tmpImageName = "";
+                              });
+                            },
+                            child: const Align(
+                              alignment: AlignmentDirectional.topEnd,
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  // No image to show
+                  DropzoneWidget(
+                    width: width * 0.4,
+                    height: height * 0.4,
+                    lang: widget.lang,
+                    onDroppedFile: (Map<String, dynamic>? file) {
+                      if (file == null) return;
+
+                      setState(() {
+                        widget.category!.tmpImageName = file['name'];
+                        widget.category!.tmpImageBytes = file['bytes'];
+                      });
+                    },
+                  ),
+
+                SizedBox(height: height * 0.05,),
+                GradientButton(buttonText: widget.lang.dictionary["save_changes"]!, callback: saveChanges)
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> saveChanges() async {
+    if (widget.category!.image.isEmpty && widget.category!.tmpImageBytes != null) {
+      widget.category!.image = await uploadNewSlideImage();
+    }
+
+    Map<String, dynamic>? categoryMap = Category.toJSON(widget.category);
+
+    if (categoryMap == null) return;
+
+    bool res = await CategoryRepository.updateCategory(widget.category!.id, categoryMap);
+    if (res) {
+      final snackBar = SnackBar(
+        content: Text(widget.lang.dictionary["account_successfully_updated"]!),
+        backgroundColor: (Colors.white),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: widget.height * 0.85,
+          left: widget.width * 0.8,
+          right: widget.width * 0.02,
+          top: widget.height * 0.02,
+        ),
+        closeIconColor: PalleteCommon.gradient2,
+        action: SnackBarAction(
+          label: widget.lang.dictionary["dismiss"]!,
+          onPressed: () {},
+        ),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      return;
+    }
+
+    final snackBar = SnackBar(
+      backgroundColor: PalleteCommon.gradient2,
+      content: Text(widget.lang.dictionary["error_while_updating_user"]!),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.only(
+        bottom: widget.height * 0.85,
+        left: widget.width * 0.8,
+        right: widget.width * 0.02,
+        top: widget.height * 0.02,
+      ),
+      closeIconColor: PalleteCommon.gradient2,
+      action: SnackBarAction(
+        label: widget.lang.dictionary["dismiss"]!,
+        onPressed: () {},
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  Future<String> uploadNewSlideImage() async {
+    FirebaseStorageService storage = FirebaseStorageService();
+    await storage.uploadImageForCategory(
+      widget.category!,
+      widget.category!.tmpImageName!,
+      widget.category!.tmpImageBytes!
+    );
+    
+    return await storage.downloadImage(
+      widget.category!.id,
+      widget.category!.tmpImageName!,
+    );
+  }
 }
+

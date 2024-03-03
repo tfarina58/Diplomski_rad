@@ -13,7 +13,7 @@ class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
 
   bool keepLoggedIn = false;
-  String email = "tfarina58@gmail.com";
+  String email = "tfarina56@gmail.com";
   String password = "password";
   LanguageService lang = LanguageService.getInstance("en");
 
@@ -121,8 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () => toRegisterPage(),
-                  child: Text(widget
-                      .lang.dictionary["dont_have_account_register_here"]!),
+                  child: Text(widget.lang.dictionary["dont_have_account_register_here"]!),
                 ),
               ),
             ],
@@ -132,103 +131,63 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void signIn(double width, double height, String email, String password,
-      bool keepLoggedIn) async {
+  void signIn(double width, double height, String email, String password, bool keepLoggedIn) async {
     User? user = await UserRepository.loginUser(email, password);
 
     // TODO: fix colors!
-    SnackBar feedback;
+    // TODO: keepLoggedIn!
     if (user != null) {
       if (user is Customer && user.banned == true) {
-        feedback = SnackBar(
-          content: Text(
-            widget.lang.dictionary["banned_by_admin"]!,
-          ),
-          backgroundColor: (Colors.white),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: height * 0.85,
-            left: width * 0.8,
-            right: width * 0.02,
-            top: height * 0.02,
-          ),
-          closeIconColor: PalleteCommon.gradient2,
-          action: SnackBarAction(
-            label: widget.lang.dictionary["dismiss"]!,
-            onPressed: () {},
-          ),
-        );
+        showSnackBar(width, height, widget.lang.dictionary["banned_by_admin"]!);
       } else if (user is Customer && user.blocked == true) {
-        feedback = SnackBar(
-          content: Text(
-            widget.lang.dictionary["blocked_by_admin"]!,
-          ),
-          backgroundColor: (Colors.white),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: height * 0.85,
-            left: width * 0.8,
-            right: width * 0.02,
-            top: height * 0.02,
-          ),
-          closeIconColor: PalleteCommon.gradient2,
-          action: SnackBarAction(
-            label: widget.lang.dictionary["dismiss"]!,
-            onPressed: () {},
-          ),
-        );
+        showSnackBar(width, height, widget.lang.dictionary["blocked_by_admin"]!);
       } else {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("userId", user.id);
         if (user is Individual) {
           await prefs.setString("typeOfUser", "ind");
-          await prefs.setString(
-              "language",
-              user.preferences.language.isEmpty
-                  ? user.preferences.language
-                  : "en");
-          await prefs.setString(
-              "avatarImage", user.avatarImage.isEmpty ? user.avatarImage : "");
+          await prefs.setString("language", user.preferences.language.isEmpty ? user.preferences.language : "en");
+          await prefs.setString("avatarImage", user.avatarImage.isEmpty ? user.avatarImage : "");
         } else if (user is Company) {
           await prefs.setString("typeOfUser", "com");
-          await prefs.setString(
-            "language",
-            user.preferences.language.isEmpty
-                ? user.preferences.language
-                : "en",
-          );
-          await prefs.setString(
-            "avatarImage",
-            user.avatarImage.isEmpty ? user.avatarImage : "",
-          );
+          await prefs.setString("language", user.preferences.language.isEmpty ? user.preferences.language : "en",);
+          await prefs.setString("avatarImage", user.avatarImage.isEmpty ? user.avatarImage : "",);
         }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(),
-          ),
-        );
+        toHomePage();
       }
     } else {
-      feedback = SnackBar(
-        content: Text(widget.lang.dictionary["cant_log_in"]!),
-        backgroundColor: (Colors.white),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: height * 0.85,
-          left: width * 0.8,
-          right: width * 0.02,
-          top: height * 0.02,
-        ),
-        closeIconColor: PalleteCommon.gradient2,
-        action: SnackBarAction(
-          label: widget.lang.dictionary["dismiss"]!,
-          onPressed: () {},
-        ),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(feedback);
+      showSnackBar(width, height, widget.lang.dictionary["cant_log_in"]!);
     }
+  }
+
+  void showSnackBar(double width, double height, String text) {
+    SnackBar feedback = SnackBar(
+      content: Text(text),
+      backgroundColor: (Colors.white),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.only(
+        bottom: height * 0.85,
+        left: width * 0.8,
+        right: width * 0.02,
+        top: height * 0.02,
+      ),
+      closeIconColor: PalleteCommon.gradient2,
+      action: SnackBarAction(
+        label: widget.lang.dictionary["dismiss"]!,
+        onPressed: () {},
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(feedback);
+  }
+
+  void toHomePage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(),
+      ),
+    );
   }
 
   void toRegisterPage() {

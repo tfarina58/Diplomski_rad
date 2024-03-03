@@ -19,8 +19,7 @@ abstract class User {
       res.blocked = user['blocked'] ?? false;
       res.city = user['city'] ?? "";
       if (user['coordinates'] != null) {
-        res.coordinates = LatLng((user['coordinates'] as GeoPoint).latitude,
-            (user['coordinates'] as GeoPoint).longitude);
+        res.coordinates = LatLng((user['coordinates'] as GeoPoint).latitude, (user['coordinates'] as GeoPoint).longitude);
       }
       res.country = user['country'] ?? "";
       res.email = user['email'] ?? "";
@@ -97,6 +96,7 @@ abstract class User {
     return null;
   }
 
+  // Images are handled in firebase.dart service
   static Map<String, dynamic>? toJSON(User? user) {
     if (user == null) return null;
 
@@ -179,7 +179,7 @@ class Admin extends User {
   @override
   String phone;
   @override
-  UserPreferences preferences; //TODO: somehow remove?
+  UserPreferences preferences;
 
   String firstname;
 
@@ -244,7 +244,7 @@ class Company extends Customer {
   @override
   int numOfEstates;
   @override
-  UserPreferences preferences; //TODO: somehow remove ?
+  UserPreferences preferences;
 
   String ownerFirstname;
   String ownerLastname;
@@ -301,7 +301,7 @@ class Individual extends Customer {
   @override
   int numOfEstates;
   @override
-  UserPreferences preferences; //TODO: somehow remove ?
+  UserPreferences preferences;
 
   String firstname;
   String lastname;

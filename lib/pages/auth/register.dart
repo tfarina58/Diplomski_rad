@@ -152,13 +152,14 @@ class _RegisterPageState extends State<RegisterPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Checkbox(
-                      activeColor: PalleteCommon.gradient2,
-                      value: widget.keepLoggedIn,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          widget.keepLoggedIn = value!;
-                        });
-                      }),
+                    activeColor: PalleteCommon.gradient2,
+                    value: widget.keepLoggedIn,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        widget.keepLoggedIn = value!;
+                      });
+                    }
+                  ),
                   Text(widget.lang.dictionary["keep_me_logged_in"]!),
                 ],
               ),
@@ -167,8 +168,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () => toLoginPage(),
-                  child:
-                      Text(widget.lang.dictionary["have_account_login_here"]!),
+                  child: Text(widget.lang.dictionary["have_account_login_here"]!),
                 ),
               ),
             ],
@@ -205,34 +205,23 @@ class _RegisterPageState extends State<RegisterPage> {
         "numOfEstates": 0,
       };
     } else {
-      userMap = {};
+      return;
     }
 
     User? user = await UserRepository.createCustomer(userMap);
     if (user == null) {
       // TODO: fix colors!
-      final snackBar = SnackBar(
-        content: Text(widget.lang.dictionary["cant_register"]!),
-        backgroundColor: (Colors.white),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: height * 0.85,
-          left: width * 0.8,
-          right: width * 0.02,
-          top: height * 0.02,
-        ),
-        closeIconColor: PalleteCommon.gradient2,
-        action: SnackBarAction(
-          label: widget.lang.dictionary["dismiss"]!,
-          onPressed: () {},
-        ),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      showSnackBar(width, height, widget.lang.dictionary["cant_register"]!);
       return;
     }
     // TODO: fix colors!
-    final snackBar = SnackBar(
-      content: Text(widget.lang.dictionary["account_successfully_created"]!),
+    showSnackBar(width, height, widget.lang.dictionary["account_successfully_created"]!);
+    toHomePage();
+  }
+
+  void showSnackBar(double width, double height, String text) {
+    SnackBar feedback = SnackBar(
+      content: Text(text),
       backgroundColor: (Colors.white),
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.only(
@@ -247,8 +236,10 @@ class _RegisterPageState extends State<RegisterPage> {
         onPressed: () {},
       ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    ScaffoldMessenger.of(context).showSnackBar(feedback);
+  }
 
+  void toHomePage() {
     Navigator.push(
       context,
       MaterialPageRoute(

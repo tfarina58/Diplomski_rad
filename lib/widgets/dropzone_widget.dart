@@ -80,21 +80,6 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
                       'path': path,
                     };
                     widget.onDroppedFile(file);
-
-                    /*final result = await FilePicker.platform
-                        .pickFiles(type: FileType.image, allowMultiple: false);
-
-                    if (result != null && result.files.isNotEmpty) {
-                      final fileBytes = result.files.first.bytes;
-                      final fileName = result.files.first.name;
-
-                      if (fileBytes == null) return;
-
-                      setState(() {
-                        highlighted = false;
-                      });
-                      widget.onDroppedFile(result);
-                    }*/
                   },
                   onDropInvalid: (ev) {},
                   onDropMultiple: (ev) {},
@@ -109,8 +94,7 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
         // Pick file
         GradientButton(
           callback: () async {
-            final result = await FilePicker.platform
-                .pickFiles(type: FileType.image, allowMultiple: false);
+            final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
 
             if (result != null && result.files.isNotEmpty) {
               Uint8List? bytes = result.files.first.bytes;

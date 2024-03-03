@@ -56,8 +56,7 @@ class _SequentialFieldState extends State<SequentialField> {
               child: GestureDetector(
                 onTap: () {
                   setState(() {
-                    widget.selected =
-                        (widget.selected + 1) % widget.choices.length;
+                    widget.selected = (widget.selected + 1) % widget.choices.length;
                   });
                   widget.callback(widget.selected);
                 },

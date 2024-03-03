@@ -2,17 +2,18 @@ import 'dart:typed_data';
 
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:diplomski_rad/interfaces/presentation.dart';
 import 'package:diplomski_rad/interfaces/user.dart';
 import 'package:diplomski_rad/interfaces/estate.dart';
+import 'package:diplomski_rad/interfaces/category.dart' as localCategory;
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 
 class ImagesDisplay extends StatefulWidget {
   User? user;
   Estate? estate;
-  Presentation? presentation;
+  localCategory.Category? category;
   LanguageService lang;
   bool showAvatar;
   bool enableEditing;
@@ -23,11 +24,11 @@ class ImagesDisplay extends StatefulWidget {
     Key? key,
     this.user,
     this.estate,
-    this.presentation,
+    this.category,
     required this.showAvatar,
     required this.enableEditing,
     required this.lang,
-  }) : assert(user != null && estate == null && presentation == null || user == null && estate != null && presentation == null || user == null && estate == null && presentation != null);
+  }) : assert(user != null && estate == null && category == null || user == null && estate != null && category == null || user == null && estate == null && category != null);
 
   @override
   State<ImagesDisplay> createState() => _ImagesDisplayState();
@@ -144,6 +145,29 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
               fit: BoxFit.fitWidth,
               image: Image.network((widget.user as Customer).backgroundImage)
                   .image,
+            ),
+          ),
+        );
+      }
+    } else if (widget.category != null) {
+      if (widget.category!.image.isEmpty) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 50),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Color(0xff0043ba), Color(0xff006df1)]),
+          ),
+        );
+      } else {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 50),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              scale: 0.01,
+              fit: BoxFit.fitWidth,
+              image: Image.network(widget.category!.image).image,
             ),
           ),
         );
@@ -335,8 +359,8 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
           storage.uploadImageForEstate(widget.estate as Estate, widget.droppedFileName, widget.droppedFileBytes!);
         } else if (widget.user != null) {
           storage.uploadImageForCustomer(widget.user as Customer, widget.droppedFileName, widget.droppedFileBytes!, choice);
-        } else if (widget.presentation != null) {
-          storage.uploadImageForPresentation(widget.presentation as Presentation, widget.droppedFileName, widget.droppedFileBytes!);
+        } else if (widget.category != null) {
+          storage.uploadImageForCategory(widget.category as localCategory.Category, widget.droppedFileName, widget.droppedFileBytes!);
         }
 
         Navigator.pop(context);

@@ -1,6 +1,7 @@
 import 'package:diplomski_rad/interfaces/estate.dart';
-import 'package:diplomski_rad/interfaces/presentation.dart';
-import 'package:diplomski_rad/interfaces/user.dart' as local;
+import 'package:diplomski_rad/interfaces/category.dart' as localCategory;
+import 'package:diplomski_rad/interfaces/user.dart' as localUser;
+import 'package:diplomski_rad/interfaces/element.dart' as localElement;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart';
@@ -53,37 +54,19 @@ class FirebaseStorageService {
   }
 
   // TODO: comment
-  Future<void> uploadImageForPresentation(Presentation presentation, String name, Uint8List bytes) async {
+  Future<void> uploadImageForCategory(localCategory.Category category, String name, Uint8List bytes) async {
     try {
-      final Reference folder = storage.child("${presentation.id}/$name");
+      final Reference folder = storage.child("${category.id}/$name");
       await folder.putData(bytes).whenComplete(() async {
         String url = await folder.getDownloadURL();
 
-        List<Map<String, dynamic>> JSONSlides = [];
-        Map<String, dynamic>? JSONSlide;
-        for (int i = 0; i < presentation.slides.length; ++i) {
-          JSONSlide = Slide.toJSON(presentation.slides[i]);
-          if (JSONSlide != null) JSONSlides.add(JSONSlide);
-        }
+        Map<String, dynamic> updateObject = {"image": url};
 
-        Map<String, dynamic> updateObject = {"slides": JSONSlides};
-        bool success = await PresentationRepository.updatePresentation(presentation.id, updateObject);
+        bool success = await CategoryRepository.updateCategory(category.id, updateObject);
         // TODO: give feedback
       });
     } catch (err) {
       return;
-    }
-  }
-
-  // TODO: comment
-  Future<String> downloadImage(String id, String name) async {
-    try {
-      final Reference folder = storage.child(id);
-      final Reference fileRef = folder.child(name);
-      String url = await fileRef.getDownloadURL();
-      return url;
-    } catch (err) {
-      return "";
     }
   }
 
@@ -125,20 +108,34 @@ class FirebaseStorageService {
     }
   }
 
-  // TODO: comment
-  Future<void> deleteImageForPresentation(String id, String url, List<Map<String, dynamic>> slides) async {
+    // TODO: comment
+  Future<void> deleteImageForCategory(String id, String url) async {
     String name = extractFileName(url);
     Map<String, dynamic> updateObject = {
-      "slides": slides
+      "image": ""
     };
 
     try {
-      bool success = await PresentationRepository.updatePresentation(id, updateObject);
-      final Reference folder = storage.child("$id/$name");
-      await folder.delete();
-      // TODO: give feedback
+      bool success = await EstateRepository.updateEstate(id, updateObject);
+      if (success) {
+        final Reference folder = storage.child("$id/$name");
+        await folder.delete();
+        // TODO: give feedback
+      }
     } catch (err) {
       return;
+    }
+  }
+
+    // TODO: comment
+  Future<String> downloadImage(String id, String name) async {
+    try {
+      final Reference folder = storage.child(id);
+      final Reference fileRef = folder.child(name);
+      String url = await fileRef.getDownloadURL();
+      return url;
+    } catch (err) {
+      return "";
     }
   }
 
@@ -146,7 +143,7 @@ class FirebaseStorageService {
     String string = "https://firebasestorage.googleapis.com/v0/b/diplomski-rad-8bdb2.appspot.com/o/0f19RSr1FP5Z0832OWIK%2F1.jpeg?alt=media&token=ea22fd45-f7f1-4d63-8d2e-92ffea4d5da5";
     String substring = string.substring(78, string.indexOf('?', 98));
     return substring;
-  }
+  } 
 }
 
 class GoogleAuthService {
@@ -208,13 +205,13 @@ class UserRepository {
   static final users = FirebaseFirestore.instance.collection("users");
   
   // TODO: comment
-  static Future<local.User?> createCustomer(Map<String, dynamic> userMap) async {
+  static Future<localUser.User?> createCustomer(Map<String, dynamic> userMap) async {
     try {
       QuerySnapshot<Map<String, dynamic>> res = await users.where("email", isEqualTo: userMap["email"]).get();
 
       if (res.docs.isEmpty) {
         Map<String, dynamic>? res = (await (await users.add(userMap)).get()).data();
-        if (res != null) return local.User.toUser(res);
+        if (res != null) return localUser.User.toUser(res);
       }
       
       return null;
@@ -315,16 +312,41 @@ class UserRepository {
   }
 
   // TODO: comment
-  static Future<bool> banUser(String id, bool wantedState) async {
+  static Future<bool?> banUser(String id) async {
     if (id.isEmpty) return false;
 
     try {
       DocumentSnapshot<Map<String, dynamic>> res = await users.doc(id).get();
 
-      if (res["banned"] == wantedState) {
-        return true;
-      } else {
-        await users.doc(id).update({"banned": wantedState});
+      if (res["banned"] == true) {
+        return null;
+      } else if (res["banned"] == false) {
+        await users.doc(id).update({
+          "avatarImage": "",
+          "backgroundImage": "",
+          "banned": true,
+          "birthday": "",
+          "blocked": true,
+          "city": "",
+          "companyName": "",
+          "coordinates": null,
+          "country": "",
+          "dateFormat": "",
+          "distance": "",
+          "email": res["email"],
+          "firstname": "",
+          "language": "",
+          "lastname": "",
+          "numOfEstates": 0,
+          "ownerFirstname": "",
+          "ownerLastname": "",
+          "password": "",
+          "phone": "",
+          "street": "",
+          "temperature": "",
+          "typeOfUser": "",
+          "zip": ""
+        });
         return true;
       }
     } catch (err) {
@@ -342,7 +364,6 @@ class EstateRepository {
     try {
       DocumentSnapshot<Map<String, dynamic>> docSnapshot = await (await estates.add(estateMap)).get();
       Map<String, dynamic>? res = docSnapshot.data();
-
       if (res == null) return null;
 
       res["id"] = docSnapshot.id;
@@ -380,29 +401,29 @@ class EstateRepository {
 }
 
 // TODO: comment
-class PresentationRepository {
-  static final presentations = FirebaseFirestore.instance.collection("presentations");
+class CategoryRepository {
+  static final estates = FirebaseFirestore.instance.collection("categories");
 
-    // TODO: comment
-  static Future<Presentation?> createPresentation(Map<String, dynamic> presentationMap) async {
+  // TODO: comment
+  static Future<localCategory.Category?> createCategory(Map<String, dynamic> categoryMap) async {
     try {
-      DocumentReference<Map<String, dynamic>?> dr = await presentations.add(presentationMap);
-      DocumentSnapshot<Map<String, dynamic>?> ds = await dr.get();
-      Map<String, dynamic>? res = ds.data();
+      DocumentSnapshot<Map<String, dynamic>> docSnapshot = await (await estates.add(categoryMap)).get();
+      Map<String, dynamic>? res = docSnapshot.data();
+      if (res == null) return null;
+
+      res["id"] = docSnapshot.id;
+      return localCategory.Category.toCategory(res);
     } catch (err) {
-      print(err);
       return null;
     }
-    
-    return Presentation(); // TODO
   }
 
   // TODO: comment
-  static Future<bool> updatePresentation(String presentationId, Map<String, dynamic> presentationMap) async {
+  static Future<bool> updateCategory(String categoryId, Map<String, dynamic> categoryMap) async {
     bool success = false;
 
     try {
-      await presentations.doc(presentationId).update(presentationMap);
+      await estates.doc(categoryId).update(categoryMap);
       success = true;
     } catch (err) {
       success = false;
@@ -411,11 +432,55 @@ class PresentationRepository {
   }
 
   // TODO: comment
-  static Future<bool> deleteEstate(String presentationId) async {
+  static Future<bool> deleteCategory(String categoryId) async {
     bool success = false;
 
     try {
-      await presentations.doc(presentationId).delete();
+      await estates.doc(categoryId).delete();
+      success = true;
+    } catch (err) {
+      success = false;
+    }
+    return success;
+  }
+}
+
+class ElementRepository {
+  static final elements = FirebaseFirestore.instance.collection("elements");
+
+  // TODO: comment
+  static Future<localElement.Element?> createElement(Map<String, dynamic> elementMap) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> docSnapshot = await (await elements.add(elementMap)).get();
+      Map<String, dynamic>? res = docSnapshot.data();
+      if (res == null) return null;
+
+      res["id"] = docSnapshot.id;
+      return localElement.Element.toElement(res);
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // TODO: comment
+  static Future<bool> updateElement(String elementId, Map<String, dynamic> elementMap) async {
+    bool success = false;
+
+    try {
+      await elements.doc(elementId).update(elementMap);
+      success = true;
+    } catch (err) {
+      success = false;
+    }
+    return success;
+  }
+
+  // TODO: comment
+  static Future<bool> deleteElement(String elementId) async {
+    bool success = false;
+
+    try {
+      await elements.doc(elementId).delete();
       success = true;
     } catch (err) {
       success = false;

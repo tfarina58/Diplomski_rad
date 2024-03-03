@@ -41,9 +41,6 @@ class UsersPage extends StatefulWidget {
 }
 
 class _UsersPageState extends State<UsersPage> {
-  List<bool> upDownFilters = [true, false];
-  List<bool> isHovering = [false, false, false];
-
   late TextEditingController textController;
   late ScrollController scrollController;
 
@@ -272,12 +269,8 @@ class _UsersPageState extends State<UsersPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      "${widget.lang!.dictionary['number_of_estates']!}: ",
-                    ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    Text("${widget.lang!.dictionary['number_of_estates']!}: ",),
+                    const SizedBox(width: 16,),
                     StringField(
                       presetText: from != null ? from.toString() : '',
                       inputType: TextInputType.number,
@@ -290,9 +283,7 @@ class _UsersPageState extends State<UsersPage> {
                         });
                       },
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16,),
                     StringField(
                       presetText: to != null ? to.toString() : '',
                       inputType: TextInputType.number,
@@ -307,9 +298,7 @@ class _UsersPageState extends State<UsersPage> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 26,
-                ),
+                const SizedBox(height: 26,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -366,9 +355,7 @@ class _UsersPageState extends State<UsersPage> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 26,
-                ),
+                const SizedBox(height: 26,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -424,15 +411,11 @@ class _UsersPageState extends State<UsersPage> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 26,
-                ),
+                const SizedBox(height: 26,),
               ],
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10,),
           ElevatedButton(
             onPressed: () {
               setState(() {
@@ -1189,13 +1172,13 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void changeBannedValue(Customer customer) async {
-    bool res = await UserRepository.banUser(customer.id, !customer.banned);
-    if (!res) return;
-
-    // TODO: change blocked value if banned == true
+    if (customer.banned) return; // TODO: cant unban
+    bool? res = await UserRepository.banUser(customer.id);
+    if (res == null) return; // TODO: already banned
+    else if (!res) return; // TODO: cannot ban now
 
     setState(() {
-      customer.banned = !customer.banned;
+      customer.banned = true;
     });
   }
 

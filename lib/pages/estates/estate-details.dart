@@ -1,4 +1,6 @@
+import 'package:diplomski_rad/pages/estates/elements.dart';
 import 'package:diplomski_rad/widgets/calendar_field.dart';
+import 'package:diplomski_rad/widgets/card_widget.dart';
 import 'package:diplomski_rad/widgets/header_widget.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
@@ -6,18 +8,20 @@ import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/interfaces/estate.dart';
-import 'package:diplomski_rad/interfaces/presentation.dart';
+import 'package:diplomski_rad/interfaces/category.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/widgets/images_display_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:diplomski_rad/services/geocoding.dart';
 
 class EstateDetailsPage extends StatefulWidget {
   String? userId;
   Estate estate;
-  Presentation presentation = Presentation();
+  List<Category> categories = [];
   bool isNew;
   LanguageService? lang;
   Map<String, dynamic> headerValues = <String, dynamic>{};
@@ -26,7 +30,7 @@ class EstateDetailsPage extends StatefulWidget {
   EstateDetailsPage({
     Key? key,
     required this.estate,
-    this.isNew = false,
+    this.isNew = false
   }) : super(key: key);
 
   @override
@@ -36,6 +40,7 @@ class EstateDetailsPage extends StatefulWidget {
 class _EstateDetailsPageState extends State<EstateDetailsPage> {
   final controller = PageController(
     initialPage: 0,
+    viewportFraction: 0.7,
   );
 
   @override
@@ -127,172 +132,59 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 }
               },
             ),
-            if (!widget.isNew) SizedBox(
-              // width: width,
-              height: height * 0.1,
-            ),
-            if (!widget.isNew) showPresentationAndVariables(width, height),
-            SizedBox(
-              height: height * 0.075,
-            ),
-            optionButtons(width, height),
-            const SizedBox(
-              height: 65,
-            ),
+
+            if (!widget.isNew) 
+              StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('categories')
+                    .where('estateId', isEqualTo: widget.estate.id)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator(
+                      color: PalleteCommon.gradient2,
+                      semanticsLabel: "Loading",
+                      backgroundColor: PalleteCommon.backgroundColor,
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    final document = snapshot.data?.docs;
+                    if (document == null) return Text('Error: ${snapshot.error}');
+        
+                    widget.categories = [];
+
+                    Category? tmp;
+                    List<Category> tmpCategories = [];
+                    document.map((DocumentSnapshot doc) {
+                      Map<String, dynamic>? tmpMap = doc.data() as Map<String, dynamic>?;
+                      if (tmpMap == null) return;
+        
+                      tmpMap['id'] = doc.id;
+                      tmp = Category.toCategory(tmpMap);
+                      if (tmp == null) return;
+        
+                      tmpCategories.add(tmp!);
+                    }).toList();
+        
+                    widget.categories = tmpCategories;
+
+                    return showCategories(width, height);
+                  }
+                },
+              ),
+              
+              if (!widget.isNew) SizedBox(height: height * 0.075),
+              if (!widget.isNew) optionButtons(width, height),
+              if (!widget.isNew) SizedBox(height: height * 0.05),
           ],
         ),
       ),
     );
   }
 
-  Widget showPresentationAndVariables(double width, double height) {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection('presentations')
-          .where('estateId', isEqualTo: widget.estate.id)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator(
-            color: PalleteCommon.gradient2,
-            semanticsLabel: "Loading",
-            backgroundColor: PalleteCommon.backgroundColor,
-          );
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          final document = snapshot.data?.docs;
-
-          Presentation? tmpPresentation = Presentation();
-          if (document != null && document.isNotEmpty) {
-            document.map((DocumentSnapshot doc) {
-              Map<String, dynamic>? tmpMap = doc.data() as Map<String, dynamic>?;
-              if (tmpMap == null) return;
-
-              tmpMap['id'] = doc.id;
-
-              tmpPresentation = Presentation.toPresentation(tmpMap);
-              if (tmpPresentation == null) return;
-
-              widget.presentation = tmpPresentation!;
-            }).toList();
-          } else {
-            tmpPresentation.estateId = widget.estate.id;
-            tmpPresentation.isNew = true;
-            widget.presentation = tmpPresentation;
-          }
-
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Text(
-                        widget.lang!.dictionary["slides"]!,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Expanded(
-                    flex: 5,
-                    child: SizedBox(),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height * 0.05,
-              ),
-              StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      showPresentationOptions(width, height, setState),
-                      SizedBox(
-                        height: height * 0.025,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          buttonShowPrevSlide(width, height, setState),
-                          showPresentation(width, height, setState),
-                          buttonShowNextSlide(width, height, setState),
-                        ],
-                      ),
-                      SizedBox(height: height * 0.1),
-                      showSlideVariables(width, height, setState),
-                    ],
-                  );
-                },
-              ),
-            ],
-          );
-        }
-      },
-    );
-  }
-
-  Widget buttonShowPrevSlide(double width, double height, StateSetter setState) {
-    return ElevatedButton(
-      style: ButtonStyle(
-        backgroundColor:
-            const MaterialStatePropertyAll(PalleteCommon.backgroundColor),
-        minimumSize: MaterialStatePropertyAll(
-          Size(width * 0.1, height * 0.81),
-        ),
-      ),
-      onPressed: () {
-        if (widget.currentPage > 0) {
-          controller.animateToPage(
-            widget.currentPage - 1,
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.linear,
-          );
-          widget.currentPage -= 1;
-        }
-      },
-      child: const Text("Left"),
-    );
-  }
-
-  Widget buttonShowNextSlide(double width, double height, StateSetter setState) {
-    return ElevatedButton(
-      style: ButtonStyle(
-        backgroundColor:
-            const MaterialStatePropertyAll(PalleteCommon.backgroundColor),
-        minimumSize: MaterialStatePropertyAll(
-          Size(width * 0.1, height * 0.81),
-        ),
-      ),
-      onPressed: () {
-        if (widget.currentPage < widget.presentation.slides.length - 1) {
-          controller.animateToPage(
-            widget.currentPage + 1,
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.linear,
-          );
-          widget.currentPage += 1;
-        }
-      },
-      child: const Text("Right"),
-    );
-  }
-
-  Widget showSlideVariables(double width, double height, StateSetter setState) {
-    List<Widget> rows = [];
-
-    rows.add(
+  List<Widget> showSlideVariables(double width, double height, StateSetter setState) {
+    return [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -310,276 +202,114 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             ),
           ),
           const Expanded(
-            flex: 5,
+            flex: 2,
             child: SizedBox(),
           ),
         ],
       ),
-    );
+      SizedBox(height: height * 0.015),
 
-    rows.add(
-      SizedBox(height: height * 0.05,),
-    );
-
-    // Used only to make it simpler to read
-    List<List<dynamic>> table = widget.presentation.variables.table;
-
-    for (int i = 0; i < table.length; ++i) {   
-      rows.add(
-        Divider(
-          height: height * 0.066,
-          thickness: 3,
-          color: PalleteCommon.gradient2,
-        ),
-      );
-
-      rows.add(
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Expanded(child: SizedBox()),
-            Expanded(
-              child: Text(i.toString()),
-            ),
-            Expanded(
-              flex: 4,
-              child: StringField(
-                labelText: widget.lang!.dictionary["key"]!,
-                callback: (newValue) => setState(() {
-                  table[i][0] = newValue;
-                }),
-                presetText: table[i][0],
+      for (int i = 0; i < widget.estate.variables.length; ++i)
+        ...[
+          Divider(
+            height: height * 0.066,
+            thickness: 3,
+            color: PalleteCommon.gradient2,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Expanded(child: SizedBox()),
+              Expanded(
+                child: Text(i.toString()),
               ),
-            ),
-            const Expanded(child: SizedBox()),
-            Expanded(
-              flex: 4,
-              child: StringField(
-                labelText: widget.lang!.dictionary["value"]!,
-                callback: (newValue) => setState(() {
-                  table[i][1] = newValue;
-                }),
-                presetText: table[i][1],
-              ),
-            ),
-            const Expanded(child: SizedBox()),
-            Expanded(
-              flex: 4,
-              child: CalendarField(
-                labelText: widget.lang!.dictionary["from"]!,
-                callback: (newValue) => setState(() {
-                  table[i][2] = newValue;
-                }),
-                selectedDate: table[i][2] as DateTime,
-              ),
-            ),
-            const Expanded(child: SizedBox()),
-            Expanded(
-              flex: 4,
-              child: CalendarField(
-                labelText: widget.lang!.dictionary["to"]!,
-                callback: (newValue) => setState(() {
-                  table[i][3] = newValue;
-                }),
-                selectedDate: table[i][3] as DateTime,
-              ),
-            ),
-            const Expanded(child: SizedBox()),
-            Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: 50,
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      table.removeAt(i);
-                    });
-                  },
-                  onHover: (value) {},
-                  child: const Icon(Icons.remove),
+              Expanded(
+                flex: 4,
+                child: StringField(
+                  labelText: widget.lang!.dictionary["key"]!,
+                  callback: (newValue) => setState(() {
+                    widget.estate.variables[i][0] = newValue;
+                  }),
+                  presetText: widget.estate.variables[i][0],
                 ),
               ),
-            ),
-            const Expanded(child: SizedBox()),
-          ],
-        ),
-      );
-    }
+              const Expanded(child: SizedBox()),
+              Expanded(
+                flex: 4,
+                child: StringField(
+                  labelText: widget.lang!.dictionary["value"]!,
+                  callback: (newValue) => setState(() {
+                    widget.estate.variables[i][1] = newValue;
+                  }),
+                  presetText: widget.estate.variables[i][1],
+                ),
+              ),
+              const Expanded(child: SizedBox()),
+              Expanded(
+                flex: 4,
+                child: CalendarField(
+                  labelText: widget.lang!.dictionary["from"]!,
+                  callback: (newValue) => setState(() {
+                    widget.estate.variables[i][2] = newValue;
+                  }),
+                  selectedDate: widget.estate.variables[i][2] as DateTime,
+                ),
+              ),
+              const Expanded(child: SizedBox()),
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        print(widget.estate.variables[i][0]);
+                        widget.estate.variables.removeAt(i);
+                      });
+                    },
+                    onHover: (value) {},
+                    child: const Icon(Icons.remove),
+                  ),
+                ),
+              ),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
+        ],
 
-    rows.add(
       Divider(
         height: height * 0.066,
         thickness: 3,
         color: PalleteCommon.gradient2,
       ),
-    );
-
-    rows.add(
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Expanded(flex: 22, child: SizedBox()),
+          const Expanded(flex: 18, child: SizedBox()),
           Expanded(
             child: SizedBox(
               height: 50,	
               child: InkWell(
                 onTap: () {
                   setState(() {
-                    table.add(Variable.newRow());
+                    widget.estate.variables.add(Estate.newVariableRow());
                   });
                 },
                 onHover: (value) {},
-                  child: const Icon(Icons.add),
+                child: const Icon(Icons.add),
               ),
             ),
           ),
           const Expanded(child: SizedBox()),
         ],
       ),
-    );
-
-    rows.add(
       Divider(
         height: height * 0.066,
         thickness: 3,
         color: PalleteCommon.gradient2,
-      ),
-    );
-    
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: rows
-    );
-  }
-
-  Widget getTableHeader(double width, double height) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Expanded(flex: 1, child: SizedBox()),
-        Expanded(
-          flex: 1,
-          child: SizedBox(
-            height: height,
-            child: const Center(
-              child: Text("#"),
-            ),
-          ),
-        ),
-        const Expanded(flex: 1, child: SizedBox()),
-        // Image
-        Expanded(
-          flex: 2,
-          child: SizedBox(
-            height: height,
-            child: Center(
-              child: Text(widget.lang!.dictionary["image"]!),
-            ),
-          ),
-        ),
-        const Expanded(flex: 1, child: SizedBox()),
-        // Name
-        Expanded(
-          flex: 3,
-          child: SizedBox(
-            height: height,
-            child: InkWell(
-              onHover: (value) {},
-              onTap: () {
-                /*setState(() {
-                  if (widget.orderBy == "name") {
-                    widget.asc = !widget.asc;
-                  } else {
-                    widget.asc = true;
-                    widget.orderBy = "name";
-                  }
-                });*/
-              },
-              child: const Center(
-                child: Text("Name"),
-              ),
-            ),
-          ),
-        ),
-        const Expanded(flex: 1, child: SizedBox()),
-        // Email
-        Expanded(
-          flex: 3,
-          child: SizedBox(
-            height: height,
-            child: InkWell(
-              onHover: (value) {},
-              onTap: () {
-                /*setState(() {
-                  if (widget.orderBy == "email") {
-                    widget.asc = !widget.asc;
-                  } else {
-                    widget.asc = true;
-                    widget.orderBy = "email";
-                  }
-                });*/
-              },
-              child: const Center(
-                child: Text("Email"),
-              ),
-            ),
-          ),
-        ),
-        const Expanded(flex: 1, child: SizedBox()),
-        // Phone
-        Expanded(
-          flex: 3,
-          child: SizedBox(
-            height: height,
-            child: InkWell(
-              onHover: (value) {},
-              onTap: () {
-                /*setState(() {
-                  if (widget.orderBy == "phone") {
-                    widget.asc = !widget.asc;
-                  } else {
-                    widget.asc = true;
-                    widget.orderBy = "phone";
-                  }
-                });*/
-              },
-              child: Center(
-                child: Text(widget.lang!.dictionary["phone_number"]!),
-              ),
-            ),
-          ),
-        ),
-        const Expanded(flex: 1, child: SizedBox()),
-        // Estates
-        Expanded(
-          flex: 2,
-          child: SizedBox(
-            height: height,
-            child: InkWell(
-              onHover: (value) {},
-              onTap: () {
-                /*setState(() {
-                  if (widget.orderBy == "numOfEstates") {
-                    widget.asc = !widget.asc;
-                  } else {
-                    widget.asc = true;
-                    widget.orderBy = "numOfEstates";
-                  }
-                });*/
-              },
-              child: Center(
-                child: Text(widget.lang!.dictionary["number_of_estates"]!),
-              ),
-            ),
-          ),
-        ),
-        const Expanded(flex: 1, child: SizedBox()),
-      ],
-    );
+      )
+    ];
   }
 
   Widget optionButtons(double width, double height) {
@@ -593,7 +323,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             flex: 3,
             child: GradientButton(
               buttonText: widget.lang!.dictionary["save_changes"]!,
-              callback: updateEstateAndPresentation,
+              callback: updateEstateAndCategories,
             ),
           ),
           const Expanded(
@@ -606,8 +336,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
               buttonText: widget.lang!.dictionary["delete_estate"]!,
               callback: () => showDialog(
                 context: context,
-                builder: (BuildContext context) =>
-                    showDeleteAlert(width, height),
+                builder: (BuildContext context) => showDeleteAlert(width, height),
               ),
             ),
           ),
@@ -628,475 +357,260 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     );
   }
 
-  Widget estateInformation(double width, double height) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ImagesDisplay(
-          estate: widget.estate,
-          lang: widget.lang!,
-          showAvatar: false,
-          enableEditing: !widget.isNew,
+  Widget showCategories(double width, double height) {
+    List<Widget> res = [];
+    double cardSize = width * 0.4166;
+
+    for (int i = 0; i < widget.categories.length; ++i) {
+      res.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(width * 0.005, 0, width * 0.005, 0),
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ElementsPage(category: widget.categories[i]),
+              ),
+            ),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: CardWidget(
+                title: widget.categories[i].title,
+                type: 'cat',
+                width: cardSize,
+                height: cardSize * 0.5625,
+                lang: widget.lang!,
+                backgroundImage: widget.categories[i].image,
+                category: widget.categories[i]
+              )
+            ),
+          ),
         ),
-        SizedBox(
-          width: width,
-          height: height * 0.1,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
+      );
+    }
+
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setState) {
+        return Stack(
+          alignment: Alignment.center,
           children: [
-            Expanded(
-              child: Center(
-                child: Text(
-                  widget.lang!.dictionary["general_information"]!,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+            Center(
+              child: SizedBox(
+                width: cardSize * 1.428571,
+                height: cardSize * 0.5625,
+                child: PageView(
+                  scrollBehavior: const MaterialScrollBehavior(),
+                  controller: controller,
+                  scrollDirection: Axis.horizontal,
+                  children: res,
                 ),
               ),
             ),
-            const Expanded(
-              flex: 2,
-              child: SizedBox(),
-            ),
+            FABButtons(cardSize, setState),
           ],
-        ),
-        SizedBox(
-          height: height * 0.04,
-        ),
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    StringField(
-                      labelText: widget.lang!.dictionary["name"]!,
-                      callback: (value) => widget.estate.name = value,
-                      presetText: widget.estate.name,
-                    ),
-                    const SizedBox(height: 15),
-                    StringField(
-                      labelText: widget.lang!.dictionary["street"]!,
-                      callback: (value) => widget.estate.street = value,
-                      presetText: widget.estate.street,
-                    ),
-                    const SizedBox(height: 15),
-                    StringField(
-                      labelText: widget.lang!.dictionary["zip"]!,
-                      callback: (value) => widget.estate.zip = value,
-                      presetText: widget.estate.zip,
-                    ),
-                    const SizedBox(height: 15),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Center(
-                child: Column(
-                  children: [
-                    StringField(
-                      labelText: widget.lang!.dictionary["phone_number"]!,
-                      callback: (value) => widget.estate.phone = value,
-                      presetText: widget.estate.phone,
-                    ),
-                    const SizedBox(height: 15),
-                    StringField(
-                      labelText: widget.lang!.dictionary["city"]!,
-                      callback: (value) => widget.estate.city = value,
-                      presetText: widget.estate.city,
-                    ),
-                    const SizedBox(height: 15),
-                    StringField(
-                      labelText: widget.lang!.dictionary["country"]!,
-                      callback: (value) => widget.estate.country = value,
-                      presetText: widget.estate.country,
-                    ),
-                    const SizedBox(height: 15),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget showPresentationOptions(double width, double height, StateSetter setState) {
+  Widget FABButtons(double cardSize, StateSetter setState) {
+    Widget leftButton, rightButton;
+
+    if (widget.currentPage > 0) {
+      leftButton = Align(
+        alignment: Alignment.bottomLeft,
+        child: SizedBox(
+          width: cardSize * 0.15,
+          height: cardSize * 0.15,
+          child: ElevatedButton(
+            onPressed: () {
+              if (widget.currentPage <= 0) return;
+              setState(() {
+                widget.currentPage -= 1;
+              });
+              controller.animateToPage(
+                widget.currentPage,
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.linear,
+              );
+            },
+            style: ButtonStyle(
+              backgroundColor: MaterialStatePropertyAll(PalleteHint.gradient3),
+            ),
+            child: const Icon(
+              Icons.arrow_back,
+              size: 40,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+    } else {
+      leftButton = Align(
+        alignment: Alignment.bottomLeft,
+        child: SizedBox(
+          width: cardSize * 0.15,
+          height: cardSize * 0.15,
+        ),
+      );
+    }
+
+    if (widget.currentPage < widget.categories.length - 1) {
+      rightButton = Align(
+        alignment: Alignment.centerRight,
+        child: SizedBox(
+          width: cardSize * 0.15,
+          height: cardSize * 0.15,
+          child: ElevatedButton(
+            onPressed: () {
+              if (widget.currentPage >= widget.categories.length - 1) return;
+              setState(() {
+                widget.currentPage += 1;
+              });
+              controller.animateToPage(
+                widget.currentPage,
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.linear,
+              );
+            },
+            style: ButtonStyle(
+              backgroundColor: MaterialStatePropertyAll(PalleteHint.gradient3),
+            ),
+            child: const Icon(
+              Icons.arrow_forward,
+              size: 40,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+    } else {
+      rightButton = Align(
+        alignment: Alignment.centerRight,
+        child: SizedBox(
+          width: cardSize * 0.15,
+          height: cardSize * 0.15,
+        ),
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        addSlideAsPrevious(width, height, setState),
-        deleteSlide(width, height, setState),
-        addSlideAsNext(width, height, setState),
+        leftButton,
+        SizedBox(width: cardSize * 1.28),
+        rightButton
       ],
     );
   }
 
-  Widget addSlideAsPrevious(double width, double height, StateSetter setState) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(3),),
-        border: Border.all(color: Colors.white,),
-      ),
-      width: width * 0.233,
-      height: height * 0.05,
-      child: ElevatedButton(
-        style: const ButtonStyle(
-          backgroundColor:
-              MaterialStatePropertyAll(PalleteCommon.backgroundColor),
-        ),
-        onPressed: () {
-          setState(() {
-            widget.presentation.slides.insert(widget.currentPage, Slide());
-            widget.currentPage += 1;
-          });
-          controller.animateToPage(
-            widget.currentPage,
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.linear,
-          );
-        },
-        child: Text(
-          widget.lang!.dictionary["add_prev_slide"]!,
-          style: const TextStyle(
-            color: PalleteCommon.gradient2,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget deleteSlide(double width, double height, StateSetter setState) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(3),),
-        border: Border.all(color: Colors.white,),
-      ),
-      width: width * 0.233,
-      height: height * 0.05,
-      child: ElevatedButton(
-        style: const ButtonStyle(
-          backgroundColor: MaterialStatePropertyAll(PalleteCommon.backgroundColor),
-        ),
-        onPressed: () {
-          setState(() {
-            widget.presentation.slides.removeAt(widget.currentPage);
-            if (widget.presentation.slides.isEmpty) {
-              widget.presentation.slides = [Slide()];
-            }
-            if (widget.currentPage >= widget.presentation.slides.length) {
-              widget.currentPage = widget.presentation.slides.length - 1;
-            }
-          });
-        },
-        child: Text(
-          widget.lang!.dictionary["delete_slide"]!,
-          style: const TextStyle(
-            color: PalleteCommon.gradient2,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-    Widget addSlideAsNext(double width, double height, StateSetter setState) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(3),),
-        border: Border.all(color: Colors.white,),
-      ),
-      width: width * 0.233,
-      height: height * 0.05,
-      child: ElevatedButton(
-        style: const ButtonStyle(
-          backgroundColor: MaterialStatePropertyAll(PalleteCommon.backgroundColor),
-        ),
-        onPressed: () {
-          setState(() {
-            widget.currentPage += 1;
-            widget.presentation.slides.insert(widget.currentPage, Slide());
-          });
-          controller.animateToPage(
-            widget.currentPage,
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.linear,
-          );
-        },
-        child: Text(
-          widget.lang!.dictionary["add_next_slide"]!,
-          style: const TextStyle(
-            color: PalleteCommon.gradient2,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget showPresentation(double width, double height, StateSetter setState) {
-    List<Widget> res = [];
-
-    // Show all slides
-    for (int i = 0; i < widget.presentation.slides.length; ++i) {
-      res.add(
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  const Expanded(child: SizedBox()),
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        StringField(
-                          labelText: widget.lang!.dictionary["title"]!,
-                          callback: (value) => widget.presentation.slides[i].title = value,
-                          presetText: widget.presentation.slides[i].title,
-                        ),
-                        SizedBox(
-                          height: height * 0.02,
-                        ),
-                        StringField(
-                          labelText: widget.lang!.dictionary["subtitle"]!,
-                          callback: (value) => widget.presentation.slides[i].subtitle = value,
-                          presetText: widget.presentation.slides[i].subtitle,
-                        ),
-                        SizedBox(
-                          height: height * 0.02,
-                        ),
-                        StringField(
-                          labelText: widget.lang!.dictionary["template"]!,
-                          callback: (String value) => widget.presentation.slides[i].template = int.parse(value),
-                          inputType: TextInputType.number,
-                          presetText: widget.presentation.slides[i].template.toString(),
-                        ),
-                      ],
+  Widget estateInformation(double width, double height) {
+    return 
+      StatefulBuilder(
+        builder:  (BuildContext context, StateSetter setState) => Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ImagesDisplay(
+              estate: widget.estate,
+              lang: widget.lang!,
+              showAvatar: false,
+              enableEditing: !widget.isNew,
+            ),
+            SizedBox(height: height * 0.1),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      widget.lang!.dictionary["general_information"]!,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  const Expanded(child: SizedBox()),
-                  Expanded(
-                    flex: 3,
-                    child: StringField(
-                      multiline: 10,
-                      labelText: widget.lang!.dictionary["description"]!,
-                      callback: (value) => widget.presentation.slides[i].description = value,
-                      presetText: widget.presentation.slides[i].description,
-                    ),
-                  ),
-                  const Expanded(child: SizedBox()),
-                ],
-              ),
-              SizedBox(
-                height: height * 0.002,
-              ),
-              if (widget.presentation.slides[i].image.isNotEmpty)
-
-                // Showing image from Firebase
-                Stack(
-                  alignment: AlignmentDirectional.topCenter,
-                  children: [
-                    Center(
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 50),
-                        width: width * 0.3,
-                        height: height * 0.3,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            scale: 0.01,
-                            fit: BoxFit.fitWidth,
-                            image: Image.network(widget.presentation.slides[i].image).image,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Delete image
-                    SizedBox(
-                      width: width * 0.3,
-                      height: height * 0.3,
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              widget.presentation.slides[i].image = "";
-                            });
-                          },
-                          child: const Align(
-                            alignment: AlignmentDirectional.topEnd,
-                            child: Icon(
-                              Icons.close,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else if (widget.presentation.slides[i].tmpImageBytes != null)
-
-                // Showing locally obtained image
-                Stack(
-                  alignment: AlignmentDirectional.topCenter,
-                  children: [
-                    Center(
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 50),
-                        width: width * 0.3,
-                        height: height * 0.3,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            scale: 0.01,
-                            fit: BoxFit.fitWidth,
-                            image: Image.memory(widget.presentation.slides[i].tmpImageBytes!).image,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Delete image
-                    SizedBox(
-                      width: width * 0.3,
-                      height: height * 0.3,
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              widget.presentation.slides[i].tmpImageBytes = null;
-                              widget.presentation.slides[i].tmpImageName = null;
-                            });
-                          },
-                          child: const Align(
-                            alignment: AlignmentDirectional.topEnd,
-                            child: Icon(
-                              Icons.close,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else
-                // No image to show
-                DropzoneWidget(
-                  width: width * 0.4,
-                  height: height * 0.4,
-                  lang: widget.lang!,
-                  onDroppedFile: (Map<String, dynamic>? file) {
-                    if (file == null) return;
-
-                    setState(() {
-                      widget.presentation.slides[i].tmpImageName = file['name'];
-                      widget.presentation.slides[i].tmpImageBytes = file['bytes'];
-                    });
-                  },
                 ),
-            ],
-          ),
+                const Expanded(
+                  flex: 2,
+                  child: SizedBox(),
+                ),
+              ],
+            ),
+            SizedBox(height: height * 0.04),
+            showMandatoryFields(),
+            if (!widget.isNew) SizedBox(height: height * 0.1),
+            if (!widget.isNew) ...showSlideVariables(width, height, setState),
+            if (!widget.isNew) SizedBox(height: height * 0.075),
+          ],
         ),
       );
-    }
+  }
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: PalleteCommon.gradient3,
-          width: 2,
+  Widget showMandatoryFields() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                StringField(
+                  labelText: widget.lang!.dictionary["name"]!,
+                  callback: (value) => widget.estate.name = value,
+                  presetText: widget.estate.name,
+                ),
+                const SizedBox(height: 15),
+                StringField(
+                  labelText: widget.lang!.dictionary["street"]!,
+                  callback: (value) => widget.estate.street = value,
+                  presetText: widget.estate.street,
+                ),
+                const SizedBox(height: 15),
+                StringField(
+                  labelText: widget.lang!.dictionary["zip"]!,
+                  callback: (value) => widget.estate.zip = value,
+                  presetText: widget.estate.zip,
+                ),
+                const SizedBox(height: 15),
+              ],
+            ),
+          ),
         ),
-      ),
-      width: width * 0.7,
-      height: height * 0.8,
-      child: PageView(
-        scrollBehavior: const MaterialScrollBehavior(),
-        controller: controller,
-        scrollDirection: Axis.horizontal,
-        children: res,
-      ),
+        Expanded(
+          flex: 2,
+          child: Center(
+            child: Column(
+              children: [
+                StringField(
+                  labelText: widget.lang!.dictionary["phone_number"]!,
+                  callback: (value) => widget.estate.phone = value,
+                  presetText: widget.estate.phone,
+                ),
+                const SizedBox(height: 15),
+                StringField(
+                  labelText: widget.lang!.dictionary["city"]!,
+                  callback: (value) => widget.estate.city = value,
+                  presetText: widget.estate.city,
+                ),
+                const SizedBox(height: 15),
+                StringField(
+                  labelText: widget.lang!.dictionary["country"]!,
+                  callback: (value) => widget.estate.country = value,
+                  presetText: widget.estate.country,
+                ),
+                const SizedBox(height: 15),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
-  }
-
-  Widget backgroundImageDisplay(BuildContext context) {
-    if (widget.estate.image.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 50),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [Color(0xff0043ba), Color(0xff006df1)]),
-        ),
-      );
-    } else {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 50),
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            scale: 0.01,
-            fit: BoxFit.fitWidth,
-            image: Image.network(widget.estate.image).image,
-          ),
-        ),
-      );
-    }
-  }
-
-  Widget cameraIconDisplay(bool avatarImage) {
-    if (avatarImage) {
-      return Positioned(
-        bottom: 0,
-        right: 0,
-        child: CircleAvatar(
-          radius: 20,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          child: Container(
-            margin: const EdgeInsets.all(8.0),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.camera_alt),
-          ),
-        ),
-      );
-    } else {
-      return Positioned(
-        bottom: 60,
-        right: 15,
-        child: CircleAvatar(
-          radius: 20,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          child: Container(
-            margin: const EdgeInsets.all(8.0),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.camera_alt),
-          ),
-        ),
-      );
-    }
   }
 
   bool checkMandatoryData() {
@@ -1109,6 +623,9 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
   void createEstate(/*double width, double height*/) async {
     if (!checkMandatoryData()) return;
+
+    LatLng? coordinates = await Geocoding.geocode(widget.estate.street, widget.estate.zip, widget.estate.city, widget.estate.country);
+    widget.estate.coordinates = coordinates;
 
     Map<String, dynamic>? estateMap = Estate.toJSON(widget.estate);
     if (estateMap == null) return;
@@ -1124,49 +641,19 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     });
   }
 
-  void updateEstateAndPresentation(/*double width, double height*/) async {
+  void updateEstateAndCategories(/*double width, double height*/) async {
     if (!checkMandatoryData()) return;
 
-    for (int i = 0; i < widget.presentation.slides.length; ++i) {
-      if (widget.presentation.slides[i].image.isEmpty && widget.presentation.slides[i].tmpImageBytes != null) {
-        widget.presentation.slides[i].image = await uploadNewSlideImage(i);
-      }
-    }
 
     Map<String, dynamic>? estateMap = Estate.toJSON(widget.estate);
     if (estateMap == null) return null;
 
     bool estateRes = await EstateRepository.updateEstate(widget.estate.id, estateMap);
-
-    Map<String, dynamic>? presentationMap = Presentation.toJSON(widget.presentation);
-    if (presentationMap == null) return null;
-
-    bool presentationRes;
-    if (widget.presentation.isNew) {
-      presentationRes = await PresentationRepository.createPresentation(presentationMap) != null;
-    } else {
-      presentationRes = await PresentationRepository.updatePresentation(widget.presentation.id, presentationMap);
-    }
     
-    print("$estateRes $presentationRes");
-    if (!estateRes && !presentationRes) {
+    if (!estateRes) {
       // TODO: set failure snackbar
     }
     // TODO: set success snackbar
-  }
-
-  Future<String> uploadNewSlideImage(int index) async {
-    FirebaseStorageService storage = FirebaseStorageService();
-    await storage.uploadImageForPresentation(
-      widget.presentation,
-      widget.presentation.slides[index].tmpImageName!,
-      widget.presentation.slides[index].tmpImageBytes!
-    );
-    
-    return await storage.downloadImage(
-      widget.presentation.id,
-      widget.presentation.slides[index].tmpImageName!,
-    );
   }
 
   void deleteEstate(/*double width, double height*/) async {
