@@ -1,3 +1,4 @@
+import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -12,11 +13,13 @@ class CalendarField extends StatefulWidget {
   final String dateFormat;
   DateTime? selectedDate;
   DateTime? tmpDate;
+  LanguageService lang;
 
   CalendarField({
     Key? key,
     required this.labelText,
     required this.callback,
+    required this.lang,
     this.selectingBirthday = false,
     this.firstDate,
     this.lastDate,
@@ -95,7 +98,7 @@ class _CalendarFieldState extends State<CalendarField> {
                   ),
                   const SizedBox(height: 30),
                   GradientButton(
-                    buttonText: 'Set date',
+                    buttonText: widget.lang.translate('set_date'),
                     callback: () {
                       setState(() {
                         widget.selectedDate = widget.tmpDate;

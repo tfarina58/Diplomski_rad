@@ -1,6 +1,9 @@
+import 'dart:html';
+
 import 'package:diplomski_rad/interfaces/category.dart';
 import 'package:diplomski_rad/interfaces/element.dart' as local;
 import 'package:diplomski_rad/services/firebase.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
 import 'package:diplomski_rad/widgets/sequential_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/header_widget.dart';
@@ -99,7 +102,7 @@ class _ElementsPageState extends State<ElementsPage> {
                   widget.elements = tmpElement;
       
                   if (widget.elements.isEmpty) {
-                    return Center(child: Text(widget.lang!.dictionary["no_elements"]!));
+                    return Center(child: Text(widget.lang!.translate('no_elements')));
                   }
       
                   return StatefulBuilder(
@@ -113,6 +116,7 @@ class _ElementsPageState extends State<ElementsPage> {
                             lang: widget.lang!,
                             showAvatar: false,
                             enableEditing: false,
+                            callback: () {},
                           ),
                           SizedBox(height: height * 0.1),
                           ...getTitleRow(height, setState),
@@ -148,7 +152,7 @@ class _ElementsPageState extends State<ElementsPage> {
           Expanded(
             child: Center(
               child: Text(
-                widget.lang!.dictionary["title"]!,
+                widget.lang!.translate('titles'),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -168,19 +172,27 @@ class _ElementsPageState extends State<ElementsPage> {
           Expanded(
             flex: 3,
             child: StringField(
-              labelText: widget.lang!.dictionary['title_text']!,
-              callback: (value) => widget.elements[widget.index].title['text'] = value,
-              presetText: widget.elements[widget.index].title['text']!,
+              labelText: widget.lang!.translate('title_en'),
+              callback: (value) => widget.elements[widget.index].title['en'] = value,
+              presetText: widget.elements[widget.index].title['en']!,
             ),
           ),
-          const Expanded(flex: 2, child: SizedBox()),
+          const Expanded(flex: 1, child: SizedBox()),
           Expanded(
             flex: 3,
-            child: SequentialField(
-              labelText: widget.lang!.dictionary['title_alignment']!,
-              callback: (value) => widget.elements[widget.index].title['alignment'] = getSelectedAlignment(value),
-              selected: getSelectedAlignmentIndex(widget.elements[widget.index].title['alignment']!),
-              choices: [widget.lang!.dictionary['top-left'], widget.lang!.dictionary['top-center'], widget.lang!.dictionary['top-right'], widget.lang!.dictionary['center']],
+            child: StringField(
+              labelText: widget.lang!.translate('title_de'),
+              callback: (value) => widget.elements[widget.index].title['de'] = value,
+              presetText: widget.elements[widget.index].title['de']!,
+            ),
+          ),
+          const Expanded(flex: 1, child: SizedBox()),
+          Expanded(
+            flex: 3,
+            child: StringField(
+              labelText: widget.lang!.translate('title_hr'),
+              callback: (value) => widget.elements[widget.index].title['hr'] = value,
+              presetText: widget.elements[widget.index].title['hr']!,
             ),
           ),
           const Expanded(flex: 1, child: SizedBox()),
@@ -199,7 +211,7 @@ class _ElementsPageState extends State<ElementsPage> {
           Expanded(
             child: Center(
               child: Text(
-                widget.lang!.dictionary["links"]!,
+                widget.lang!.translate('links'),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -212,7 +224,7 @@ class _ElementsPageState extends State<ElementsPage> {
       ),
       SizedBox(height: height * 0.04,),
 
-      for (int i = 0; i < widget.elements[widget.index].links['url'].length; ++i) ...[
+      for (int i = 0; i < widget.elements[widget.index].links.length; ++i) ...[
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -221,18 +233,18 @@ class _ElementsPageState extends State<ElementsPage> {
             Expanded(
               flex: 3,
               child: StringField(
-                labelText: widget.lang!.dictionary['links_text']!,
-                callback: (value) => widget.elements[widget.index].links['text'][i] = value,
-                presetText: widget.elements[widget.index].links['text'][i],
+                labelText: widget.lang!.translate('links_text'),
+                callback: (value) => widget.elements[widget.index].links[i]['title'][widget.lang!.language] = value,
+                presetText: widget.elements[widget.index].links[i]['title'][widget.lang!.language],
               ),
             ),
             const Expanded(flex: 2, child: SizedBox(),),
             Expanded(
               flex: 3,
               child: StringField(
-                labelText: widget.lang!.dictionary['links_url']!,
-                callback: (value) => widget.elements[widget.index].links['url'][i] = value,
-                presetText: widget.elements[widget.index].links['url'][i],
+                labelText: widget.lang!.translate('links_url'),
+                callback: (value) => widget.elements[widget.index].links[i]['url'] = value,
+                presetText: widget.elements[widget.index].links[i]['url'],
               ),
             ),
             const Expanded(child: SizedBox(),),
@@ -252,7 +264,7 @@ class _ElementsPageState extends State<ElementsPage> {
           Expanded(
             child: Center(
               child: Text(
-                widget.lang!.dictionary["background"]!,
+                widget.lang!.translate('background'),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -300,10 +312,7 @@ class _ElementsPageState extends State<ElementsPage> {
                     },
                     child: const Align(
                       alignment: AlignmentDirectional.topEnd,
-                      child: Icon(
-                        Icons.close,
-                        color: Colors.red,
-                      ),
+                      child: Icon(Icons.close, color: Colors.red),
                     ),
                   ),
                 ),
@@ -349,10 +358,7 @@ class _ElementsPageState extends State<ElementsPage> {
                     },
                     child: const Align(
                       alignment: AlignmentDirectional.topEnd,
-                      child: Icon(
-                        Icons.close,
-                        color: Colors.red,
-                      ),
+                      child: Icon(Icons.close, color: Colors.red),
                     ),
                   ),
                 ),
@@ -387,7 +393,7 @@ class _ElementsPageState extends State<ElementsPage> {
           Expanded(
             child: Center(
               child: Text(
-                widget.lang!.dictionary["description"]!,
+                widget.lang!.translate('description'),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -401,11 +407,11 @@ class _ElementsPageState extends State<ElementsPage> {
       SizedBox(height: height * 0.04,),
       Center(
         child: StringField(
-          labelText: widget.lang!.dictionary['text']!,
-          callback: (value) => widget.elements[widget.index].description['text'] = value,
-          presetText: widget.elements[widget.index].description['text']!,
-          multiline: 10,
-          maxWidth: width * 0.5,
+          labelText: widget.lang!.translate('description_text'),
+          callback: (value) => widget.elements[widget.index].description[widget.lang!.language] = value,
+          presetText: widget.elements[widget.index].description[widget.lang!.language]!,
+          multiline: 20,
+          maxWidth: width * 0.8,
         )
       ),
       SizedBox(height: height * 0.04),
@@ -420,7 +426,7 @@ class _ElementsPageState extends State<ElementsPage> {
               controller: controller,
               scrollDirection: Axis.horizontal,
               children: [
-                for (int i = 0; i < widget.elements[widget.index].description['images'].length; ++i)
+                for (int i = 0; i < widget.elements[widget.index].images.length; ++i)
                   Stack(
                     alignment: Alignment.center,
                     children: [
@@ -433,7 +439,7 @@ class _ElementsPageState extends State<ElementsPage> {
                             image: DecorationImage(
                               scale: 0.01,
                               fit: BoxFit.fitWidth,
-                              image: Image.network(widget.elements[widget.index].description['images'][i]).image,
+                              image: Image.network(widget.elements[widget.index].images[i]).image,
                             ),
                           ),
                         ),
@@ -447,17 +453,15 @@ class _ElementsPageState extends State<ElementsPage> {
                             cursor: SystemMouseCursors.click,
                             child: GestureDetector(
                               onTap: () {
+                                print(widget.elements[widget.index].images[i]);
                                 setState(() {
-                                  widget.elements[widget.index].description['images'][i] = "";
-                                  (widget.elements[widget.index].description['images'] as List).removeAt(i);
+                                  (widget.elements[widget.index].deletedImages).add(widget.elements[widget.index].images[i]);
+                                  widget.elements[widget.index].images.removeAt(i);
                                 });
                               },
                               child: const Align(
                                 alignment: AlignmentDirectional.topEnd,
-                                child: Icon(
-                                  Icons.close,
-                                  color: Colors.red,
-                                ),
+                                child: Icon(Icons.close, color: Colors.red),
                               ),
                             ),
                           ),
@@ -466,17 +470,65 @@ class _ElementsPageState extends State<ElementsPage> {
                     ],
                   ),
 
-                DropzoneWidget(
-                  onDroppedFile: (Map<String, dynamic>? file) {
-                    if (file == null) return;
+                for (int i = 0; i < widget.elements[widget.index].tmpDescriptionImageNames.length; ++i)
+                  if (widget.elements[widget.index].tmpDescriptionImageNames[i] != null)
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 50),
+                            width: width * 0.5,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                scale: 0.01,
+                                fit: BoxFit.fitWidth,
+                                image: Image.memory(widget.elements[widget.index].tmpDescriptionImageBytes[i]!).image,
+                              ),
+                            ),
+                          ),
+                        ),
+            
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
+                          child: SizedBox(
+                            width: width * 0.5,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    widget.elements[widget.index].tmpDescriptionImageNames.removeAt(i);
+                                  });
+                                },
+                                child: const Align(
+                                  alignment: AlignmentDirectional.topEnd,
+                                  child: Icon(Icons.close, color: Colors.red),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    DropzoneWidget(
+                      width: width * 0.4,
+                      height: height * 0.4,
+                      onDroppedFile: (Map<String, dynamic>? file) {
+                        if (file == null) return;
 
-                    setState(() {
-                      widget.elements[widget.index].tmpDescriptionImageName = file['name'];
-                      widget.elements[widget.index].tmpDescriptionImageBytes = file['bytes'];
-                    });
-                  },
-                  lang: widget.lang!
-                ),
+                        setState(() {
+                          widget.elements[widget.index].tmpDescriptionImageNames[i] = file['name'];
+                          widget.elements[widget.index].tmpDescriptionImageBytes[i] = file['bytes'];
+
+                          widget.elements[widget.index].tmpDescriptionImageNames.add(null);
+                          widget.elements[widget.index].tmpDescriptionImageBytes.add(null);
+                        });
+                      },
+                      lang: widget.lang!
+                    ),
               ],
             ),
             FABButtons(cardSize, setState),
@@ -528,7 +580,7 @@ class _ElementsPageState extends State<ElementsPage> {
       );
     }
 
-    if (widget.currentImage < widget.elements[widget.index].description['images'].length) {
+    if (widget.currentImage < widget.elements[widget.index].images.length + widget.elements[widget.index].tmpDescriptionImageBytes.length) {
       rightButton = Align(
         alignment: Alignment.centerRight,
         child: SizedBox(
@@ -536,7 +588,7 @@ class _ElementsPageState extends State<ElementsPage> {
           height: cardSize * 0.15,
           child: ElevatedButton(
             onPressed: () {
-              if (widget.currentImage >= widget.elements[widget.index].description['images'].length) return;
+              if (widget.currentImage >= widget.elements[widget.index].images.length + widget.elements[widget.index].tmpDescriptionImageBytes.length) return;
               setState(() {
                 widget.currentImage += 1;
               });
@@ -722,7 +774,7 @@ class _ElementsPageState extends State<ElementsPage> {
 
   List<Widget> getImages(double width, double height, int index, StateSetter setState) {
     List<Widget> images = [];
-    for (int i = 0; i < widget.elements[index].description['images'].length; ++i) {
+    for (int i = 0; i < widget.elements[index].images.length; ++i) {
       images.add(
         Stack(
           alignment: AlignmentDirectional.topCenter,
@@ -736,7 +788,7 @@ class _ElementsPageState extends State<ElementsPage> {
                   image: DecorationImage(
                     scale: 0.01,
                     fit: BoxFit.fitWidth,
-                    image: Image.network(widget.elements[index].description['images'][i]).image,
+                    image: Image.network(widget.elements[index].images[i]).image,
                   ),
                 ),
               ),
@@ -751,7 +803,7 @@ class _ElementsPageState extends State<ElementsPage> {
                 child: GestureDetector(
                   onTap: () {
                     setState(() {
-                      widget.elements[index].description['images'][i] = "";
+                      (widget.elements[index].description['images'] as List).removeAt(i);
                     });
                   },
                   child: const Align(
@@ -777,15 +829,15 @@ class _ElementsPageState extends State<ElementsPage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = prefs.getString("userId");
-      String? tmpTypeOfUser = prefs.getString("typeOfUser");
-      String? tmpAvatarImage = prefs.getString("avatarImage");
-      String? tmpLanguage = prefs.getString("language");
+      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      String tmpUserId = sharedPreferencesService.getUserId();
+      String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
+      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
+      String tmpLanguage = sharedPreferencesService.getLanguage();
 
-      if (tmpUserId == null || tmpUserId.isEmpty) return;
-      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
-      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+      if (tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
 
@@ -794,7 +846,7 @@ class _ElementsPageState extends State<ElementsPage> {
         widget.lang = tmpLang;
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage;
       });
     });
   }
@@ -808,18 +860,15 @@ class _ElementsPageState extends State<ElementsPage> {
         Expanded(
           flex: 3,
           child: GradientButton(
-            buttonText: widget.lang!.dictionary["save_changes"]!,
+            buttonText: widget.lang!.translate('save_changes'),
             callback: updateElements,
           ),
         ),
-        const Expanded(
-          flex: 2,
-          child: SizedBox(),
-        ),
+        const Expanded(flex: 2, child: SizedBox()),
         Expanded(
           flex: 3,
           child: GradientButton(
-            buttonText: widget.lang!.dictionary["delete_estate"]!,
+            buttonText: widget.lang!.translate('delete_estate'),
             callback: () => showDialog(
               context: context,
               builder: (BuildContext context) => showDeleteAlert(width, height),
@@ -850,7 +899,7 @@ class _ElementsPageState extends State<ElementsPage> {
             Expanded(
               flex: 2,
               child: Text(
-                widget.lang!.dictionary["delete_estate_warning_message"]!,
+                widget.lang!.translate('delete_estate_warning_message'),
                 style: const TextStyle(
                   fontSize: 18,
                   color: PalleteCommon.gradient2,
@@ -873,7 +922,7 @@ class _ElementsPageState extends State<ElementsPage> {
                     flex: 3,
                     child: GradientButton(
                       colors: PalleteDanger.getGradients(),
-                      buttonText: widget.lang!.dictionary["delete_estate"]!,
+                      buttonText: widget.lang!.translate('delete_estate'),
                       callback: () => deleteElement(),
                     ),
                   ),
@@ -884,7 +933,7 @@ class _ElementsPageState extends State<ElementsPage> {
                   Expanded(
                     flex: 3,
                     child: GradientButton(
-                      buttonText: widget.lang!.dictionary["cancel"]!,
+                      buttonText: widget.lang!.translate('cancel'),
                       callback: () {
                         Navigator.pop(context);
                       },
@@ -905,7 +954,34 @@ class _ElementsPageState extends State<ElementsPage> {
   }
 
   void updateElements(/*double width, double height*/) async {
+    FirebaseStorageService storage = FirebaseStorageService();
+    List<String> imageURLs = [];
     for (int i = 0; i < widget.elements.length; ++i) {
+      imageURLs = widget.elements[i].images;
+
+      if ((widget.elements[i].deletedImages).isNotEmpty) {
+        imageURLs = [...imageURLs, ...(await storage.deleteOldImagesForElement(widget.elements[i].id, widget.elements[i].deletedImages))];
+      }
+
+      if ((widget.elements[i].tmpDescriptionImageBytes).isNotEmpty) {
+        imageURLs = [...imageURLs, ...(await storage.uploadNewImagesForElement(widget.elements[i].id, widget.elements[i].tmpDescriptionImageNames, widget.elements[i].tmpDescriptionImageBytes))];
+      }
+
+      widget.elements[i].images = imageURLs;
+
+      if (widget.elements[i].tmpBackgroundBytes != null) {
+        await storage.uploadBackgroundForElement(
+          widget.elements[i],
+          widget.elements[i].tmpBackgroundName!,
+          widget.elements[i].tmpBackgroundBytes!
+        );
+        
+        widget.elements[i].background = await storage.downloadImage(
+          widget.elements[i].id,
+          widget.elements[i].tmpBackgroundName!,
+        );
+      }
+
       Map<String, dynamic>? elementMap = local.Element.toJSON(widget.elements[i]);
       if (elementMap == null) return null;
 
@@ -931,21 +1007,5 @@ class _ElementsPageState extends State<ElementsPage> {
     } else {
 
     }
-  }
-
-  int getSelectedAlignmentIndex(String alignment) {
-    if (alignment == 'top-left') return 0;
-    if (alignment == 'top-center') return 1;
-    if (alignment == 'top-right') return 2;
-    if (alignment == 'center') return 3;
-    return 0;
-  }
-
-  String getSelectedAlignment(int index) {
-    if (index == 0) return 'top-left';
-    if (index == 1) return 'top-center';
-    if (index == 2) return 'top-right';
-    if (index == 3) return 'center';
-    return 'top-left';
   }
 }

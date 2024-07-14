@@ -1,25 +1,35 @@
 import 'package:diplomski_rad/interfaces/estate.dart';
+import 'package:diplomski_rad/widgets/snapshot_error_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/header_widget.dart';
 import 'package:diplomski_rad/widgets/card_widget.dart';
+import 'package:diplomski_rad/widgets/loading_bar.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/pages/estates/estate-details.dart';
 import 'package:diplomski_rad/widgets/maps.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/language.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
 
+// Types of showing the estates
 enum UserChoice { list, map }
 
 class EstatesPage extends StatefulWidget {
-  // If user searches for its own estates, only the userId will be set (for StreamBuilder and HeaderComponent)
+
+  // If user searches for its own estates, only userId will be set (for StreamBuilder and HeaderComponent).
   String? userId;
-  // If customer is also set, the user searches for other people's estates, hence the userId will be used only for HeaderComponent
+
+  // If searchedCustomerId is also set, the app's user (admin) is searching for other people's estates.
+  // The userId will be used only for HeaderComponent.
   String? searchedCustomerId;
 
   List<Estate> estates = [];
-  final bool showEmptyCard;
+
+  String? temperaturePreference;
   UserChoice choice = UserChoice.list;
+  final bool showEmptyCard;
+
   LanguageService? lang;
   Map<String, dynamic> headerValues = <String, dynamic>{};
 
@@ -36,13 +46,14 @@ class EstatesPage extends StatefulWidget {
 class _EstatesPageState extends State<EstatesPage> {
   @override
   Widget build(BuildContext context) {
-    double cardSize = MediaQuery.of(context).size.width * 0.4166;
-
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    double cardSize = width * 0.4166;
 
     if (widget.lang == null || widget.userId == null) {
-      return const SizedBox();
+      return Scaffold(
+        body: LoadingBar(dimensionLength: width > height ? height * 0.5 : width * 0.5),
+      );
     }
 
     return Scaffold(
@@ -55,101 +66,31 @@ class _EstatesPageState extends State<EstatesPage> {
         stream: FirebaseFirestore.instance
             .collection('estates')
             .where('ownerId',
-                isEqualTo: widget.searchedCustomerId!.isNotEmpty
-                    ? widget.searchedCustomerId
-                    : widget.userId)
+              isEqualTo: widget.searchedCustomerId!.isNotEmpty
+                  ? widget.searchedCustomerId
+                  : widget.userId
+            )
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator(
-              color: PalleteCommon.gradient2,
-              semanticsLabel: "Loading",
-              backgroundColor: PalleteCommon.backgroundColor,
-            );
+            return LoadingBar(dimensionLength: width > height ? height * 0.5 : width * 0.5);
           } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
+            return SnapshotErrorField(text: widget.lang!.translate('cant_obtain_estates'));
+          } else {            
             final document = snapshot.data?.docs;
-            Estate? tmp;
+            widget.estates = Estate.setupEstatesFromFirebaseDocuments(document);
 
-            if (document == null) return Text('Error: ${snapshot.error}');
-
-            List<Estate> tmpEstates = [];
-            document.map((DocumentSnapshot doc) {
-              Map<String, dynamic>? tmpMap =
-                  doc.data() as Map<String, dynamic>?;
-
-              if (tmpMap == null) return;
-
-              tmpMap['id'] = doc.id;
-
-              tmp = Estate.toEstate(tmpMap);
-              if (tmp == null) return;
-
-              tmpEstates.add(tmp!);
-            }).toList();
-
-            widget.estates = tmpEstates;
-
-            if (widget.estates.isEmpty) {
-              return Text(widget.lang!.dictionary["no_estates"]!);
-            }
-
-            return SizedBox(
-              child: Center(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        height: 26,
-                      ),
-                      if (widget.estates.isNotEmpty)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Expanded(child: SizedBox()),
-                            Expanded(
-                              flex: 2,
-                              child: optionButton(
-                                width,
-                                height,
-                                () => setState(() {
-                                  widget.choice = UserChoice.list;
-                                }),
-                                widget.lang!.dictionary["list"]!,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: optionButton(
-                                width,
-                                height,
-                                () => setState(() {
-                                  widget.choice = UserChoice.map;
-                                }),
-                                widget.lang!.dictionary["map"]!,
-                              ),
-                            ),
-                            const Expanded(child: SizedBox()),
-                          ],
-                        ),
-          
-                      if (widget.estates.isNotEmpty)
-                        const SizedBox(height: 26,),
-          
-                      if (widget.choice == UserChoice.map) getMap(width, height)
-                      else Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: getList(cardSize),
-                      )
-                    ],
-                  ),
-                ),
+            return SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ...showListAndMapButtons(width, height),
+      
+                  if (widget.choice == UserChoice.map) getMap(width, height)
+                  else getList(cardSize),
+                ],
               ),
             );
           }
@@ -163,21 +104,23 @@ class _EstatesPageState extends State<EstatesPage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = prefs.getString("userId");
-      String? tmpTypeOfUser = prefs.getString("typeOfUser");
-      String? tmpAvatarImage = prefs.getString("avatarImage");
-      String? tmpLanguage = prefs.getString("language");
+      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      String tmpUserId = sharedPreferencesService.getUserId();
+      String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
+      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
+      String tmpLanguage = sharedPreferencesService.getLanguage();
+      String tmpTemperaturePreference = sharedPreferencesService.getTemperaturePreference();
 
-      if (tmpUserId == null || tmpUserId.isEmpty) return;
-      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
-      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+      if (tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
 
       setState(() {
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
+        widget.temperaturePreference = tmpTemperaturePreference ?? "C";
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
         widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
@@ -185,105 +128,55 @@ class _EstatesPageState extends State<EstatesPage> {
     });
   }
 
-  List<Widget> getList(double cardSize) {
-    List<Widget> res = [];
-
-    if (widget.showEmptyCard == true) {
-      res.add(
-        GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EstateDetailsPage(isNew: true, estate: Estate()),
-            ),
+  Widget getList(double cardSize) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (widget.showEmptyCard == true)
+          CardWidget(
+            title: widget.lang!.translate('add_new_estate'),
+            isEmptyCard: true,
+            width: cardSize,
+            lang: widget.lang!,
+            height: cardSize * 0.5625,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EstateDetailsPage(isNewEstate: true, estate: Estate(name: Map.from({"en": "", "de": "", "hr": ""}))),
+                ),
+              );
+            },
           ),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: CardWidget(
-              type: 'est',
-              isEmptyCard: true,
-              width: cardSize,
-              lang: widget.lang!,
-              height: cardSize * 0.5625,
-            ),
-          ),
-        ),
-      );
-    }
+        const SizedBox(height: 36),
 
-    res.add(
-      SizedBox(
-        height: 36,
-        width: MediaQuery.of(context).size.width,
-      ),
+        for (int i = 0; i < widget.estates.length; ++i)
+          ...[
+            getEstateCard(cardSize, i),
+            const SizedBox(height: 36),
+          ],
+      ]
     );
-
-    List<Widget> column = [];
-    for (int i = 0; i < widget.estates.length; ++i) {
-      column.add(getRow(cardSize, i),);
-      column.add(SizedBox(
-        height: 36,
-        width: MediaQuery.of(context).size.width,
-      ),);
-    }
-    
-    res.add(
-      Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: column
-      ),
-    );
-
-    return res;
   }
 
-  Widget getRow(double cardSize, int index) {
-    if (widget.estates[index].image.isNotEmpty) {
-      return GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => EstateDetailsPage(estate: widget.estates[index],),
-          ),
+  Widget getEstateCard(double cardSize, int index) {
+    return CardWidget(
+      lang: widget.lang!,
+      title: "${widget.estates[index].city}, ${widget.estates[index].country}",
+      subtitle: widget.estates[index].name![widget.lang!.language]!,
+      width: cardSize,
+      height: cardSize * 0.5625,
+      coordinates: widget.estates[index].coordinates,
+      temperaturePreference: widget.temperaturePreference!,
+      backgroundImage: widget.estates[index].image.isNotEmpty ? widget.estates[index].image : "",
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EstateDetailsPage(estate: widget.estates[index],),
         ),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: CardWidget(
-            type: 'est',
-            lang: widget.lang!,
-            title: "${widget.estates[index].city}, ${widget.estates[index].country}",
-            subtitle: widget.estates[index].name,
-            width: cardSize,
-            height: cardSize * 0.5625,
-            coordinates: widget.estates[index].coordinates,
-            backgroundImage: widget.estates[index].image,
-          ),
-        ),
-      );
-    } else {
-      return GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                EstateDetailsPage(estate: widget.estates[index]),
-          ),
-        ),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: CardWidget(
-            type: 'est',
-            lang: widget.lang!,
-            title: "${widget.estates[index].city}, ${widget.estates[index].country}",
-            subtitle: widget.estates[index].name,
-            width: cardSize,
-            height: cardSize * 0.5625,
-            coordinates: widget.estates[index].coordinates,
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   Widget getMap(double width, double height) {
@@ -298,8 +191,49 @@ class _EstatesPageState extends State<EstatesPage> {
       height: height * 0.8,
       width: width * 0.8,
       child: MapsWidget(
-          estates: widget.estates /*, customerId: widget.customerId*/),
+        estates: widget.estates,
+        lang: widget.lang!,
+      ),
     );
+  }
+
+  List<Widget> showListAndMapButtons(double width, double height) {
+    return [
+      const SizedBox(height: 26),
+      if (widget.estates.isNotEmpty)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Expanded(child: SizedBox()),
+            Expanded(
+              flex: 2,
+              child: optionButton(
+                width,
+                height,
+                () => setState(() {
+                  widget.choice = UserChoice.list;
+                }),
+                widget.lang!.translate('list'),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: optionButton(
+                width,
+                height,
+                () => setState(() {
+                  widget.choice = UserChoice.map;
+                }),
+                widget.lang!.translate('map'),
+              ),
+            ),
+            const Expanded(child: SizedBox()),
+          ],
+        ),
+      if (widget.estates.isNotEmpty)
+        const SizedBox(height: 26),
+    ];
   }
 
   Widget optionButton(double width, double height, Function onPressed, String title) {

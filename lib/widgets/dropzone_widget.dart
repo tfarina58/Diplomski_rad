@@ -85,7 +85,7 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
                   onDropMultiple: (ev) {},
                 ),
               ),
-              Center(child: Text(widget.lang.dictionary["drop_image_here"]!)),
+              Center(child: Text(widget.lang.translate('drop_image_here'))),
             ],
           ),
         ),

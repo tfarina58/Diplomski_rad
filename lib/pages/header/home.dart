@@ -4,6 +4,7 @@ import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/interfaces/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/firebase.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   User? user;
@@ -22,15 +23,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = prefs.getString("userId");
-      String? tmpTypeOfUser = prefs.getString("typeOfUser");
-      String? tmpAvatarImage = prefs.getString("avatarImage");
-      String? tmpLanguage = prefs.getString("language");
+      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      String tmpUserId = sharedPreferencesService.getUserId();
+      String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
+      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
+      String tmpLanguage = sharedPreferencesService.getLanguage();
 
-      if (tmpUserId == null || tmpUserId.isEmpty) return;
-      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
-      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+      if (tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
       Map<String, dynamic>? userMap =

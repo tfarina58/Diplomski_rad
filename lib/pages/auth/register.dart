@@ -9,6 +9,8 @@ import 'package:diplomski_rad/interfaces/user.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/services/language.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterPage extends StatefulWidget {
   String firstname = "Toni";
@@ -51,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 height: MediaQuery.of(context).size.height * 0.06,
               ),
               Text(
-                widget.lang.dictionary["sign_up"]!,
+                widget.lang.translate('sign_up'),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 50,
@@ -59,19 +61,19 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 50),
               DropdownField(
-                labelText: widget.lang.dictionary["type_of_customer"]!,
+                labelText: widget.lang.translate('type_of_customer'),
                 choices: [
-                  widget.lang.dictionary["individual"]!,
-                  widget.lang.dictionary["company"]!
+                  widget.lang.translate('individual'),
+                  widget.lang.translate('company')
                 ],
                 selected: widget.typeOfUser == "ind"
-                    ? widget.lang.dictionary["individual"]!
-                    : widget.lang.dictionary["company"]!,
+                    ? widget.lang.translate('individual')
+                    : widget.lang.translate('company'),
                 callback: (String value) {
                   setState(() {
-                    if (value == widget.lang.dictionary["individual"]!) {
+                    if (value == widget.lang.translate('individual')) {
                       widget.typeOfUser = "ind";
-                    } else if (value == widget.lang.dictionary["company"]!) {
+                    } else if (value == widget.lang.translate('company')) {
                       widget.typeOfUser = "com";
                     }
                   });
@@ -81,24 +83,24 @@ class _RegisterPageState extends State<RegisterPage> {
               widget.typeOfUser == "ind"
                   ? StringField(
                       presetText: widget.firstname,
-                      labelText: widget.lang.dictionary["firstname"]!,
+                      labelText: widget.lang.translate('firstname'),
                       callback: (value) => widget.firstname = value,
                     )
                   : StringField(
                       presetText: widget.ownerFirstname,
-                      labelText: widget.lang.dictionary["owner_firstname"]!,
+                      labelText: widget.lang.translate('owner_firstname'),
                       callback: (value) => widget.ownerFirstname = value,
                     ),
               const SizedBox(height: 15),
               widget.typeOfUser == "ind"
                   ? StringField(
                       presetText: widget.lastname,
-                      labelText: widget.lang.dictionary["lastname"]!,
+                      labelText: widget.lang.translate('lastname'),
                       callback: (value) => widget.lastname = value,
                     )
                   : StringField(
                       presetText: widget.ownerLastname,
-                      labelText: widget.lang.dictionary["owner_lastname"]!,
+                      labelText: widget.lang.translate('owner_lastname'),
                       callback: (value) => widget.ownerLastname = value,
                     ),
               const SizedBox(height: 15),
@@ -106,12 +108,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   ? CalendarField(
                       selectingBirthday: true,
                       selectedDate: widget.birthday,
-                      labelText: widget.lang.dictionary["date_of_birth"]!,
+                      labelText: widget.lang.translate('date_of_birth'),
                       callback: (DateTime value) => widget.birthday = value,
+                      lang: widget.lang,
                     )
                   : StringField(
                       presetText: widget.companyName,
-                      labelText: widget.lang.dictionary["company_name"]!,
+                      labelText: widget.lang.translate('company_name'),
                       callback: (value) => widget.companyName = value,
                     ),
               Divider(
@@ -130,19 +133,19 @@ class _RegisterPageState extends State<RegisterPage> {
               StringField(
                 osbcure: true,
                 presetText: widget.password,
-                labelText: widget.lang.dictionary["password"]!,
+                labelText: widget.lang.translate('password'),
                 callback: (value) => widget.password = value,
               ),
               const SizedBox(height: 15),
               StringField(
                 osbcure: true,
                 presetText: widget.repeatPassword,
-                labelText: widget.lang.dictionary["repeat_password"]!,
+                labelText: widget.lang.translate('repeat_password'),
                 callback: (value) => widget.repeatPassword = value,
               ),
               const SizedBox(height: 20),
               GradientButton(
-                  buttonText: widget.lang.dictionary["sign_up"]!,
+                  buttonText: widget.lang.translate('sign_up'),
                   callback: () {
                     signUp(width, height);
                   }),
@@ -160,7 +163,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       });
                     }
                   ),
-                  Text(widget.lang.dictionary["keep_me_logged_in"]!),
+                  Text(widget.lang.translate('keep_me_logged_in')),
                 ],
               ),
               const SizedBox(height: 15),
@@ -168,7 +171,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () => toLoginPage(),
-                  child: Text(widget.lang.dictionary["have_account_login_here"]!),
+                  child: Text(widget.lang.translate('have_account_login_here')),
                 ),
               ),
             ],
@@ -182,6 +185,18 @@ class _RegisterPageState extends State<RegisterPage> {
     Map<String, dynamic> userMap;
     if (widget.typeOfUser == 'ind') {
       userMap = {
+        "avatarImage": "",
+        "backgroundImage": "",
+        "city": "",
+        "coordinates": null,
+        "country": "",
+        "dateFormat": "yyyy-MM-dd",
+        "distance": "km",
+        "language": "en",
+        "numOfEstates": 0,
+        "phone": "",
+        "street": "",
+        "zip": "",
         "firstname": widget.firstname,
         "lastname": widget.lastname,
         "birthday": widget.birthday,
@@ -190,10 +205,21 @@ class _RegisterPageState extends State<RegisterPage> {
         "password": widget.password,
         "banned": false,
         "blocked": false,
-        "numOfEstates": 0,
       };
     } else if (widget.typeOfUser == 'com') {
       userMap = {
+        "avatarImage": "",
+        "backgroundImage": "",
+        "city": "",
+        "coordinates": null,
+        "country": "",
+        "dateFormat": "yyyy-MM-dd",
+        "distance": "km",
+        "language": "en",
+        "numOfEstates": 0,
+        "phone": "",
+        "street": "",
+        "zip": "",
         "ownerFirstname": widget.firstname,
         "ownerLastname": widget.lastname,
         "companyName": widget.companyName,
@@ -202,7 +228,6 @@ class _RegisterPageState extends State<RegisterPage> {
         "password": widget.password,
         "banned": false,
         "blocked": false,
-        "numOfEstates": 0,
       };
     } else {
       return;
@@ -210,16 +235,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
     User? user = await UserRepository.createCustomer(userMap);
     if (user == null) {
-      // TODO: fix colors!
-      showSnackBar(width, height, widget.lang.dictionary["cant_register"]!);
+      showSnackBar(width, height, widget.lang.translate('cant_register'));
       return;
     }
-    // TODO: fix colors!
-    showSnackBar(width, height, widget.lang.dictionary["account_successfully_created"]!);
+
+    SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+    await sharedPreferencesService.setKeepLoggedIn(widget.keepLoggedIn);
+    
+    showSnackBar(width, height, widget.lang.translate('account_successfully_created'));
     toHomePage();
   }
 
   void showSnackBar(double width, double height, String text) {
+    // TODO: fix colors!
     SnackBar feedback = SnackBar(
       content: Text(text),
       backgroundColor: (Colors.white),
@@ -232,7 +260,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
-        label: widget.lang.dictionary["dismiss"]!,
+        label: widget.lang.translate('dismiss'),
         onPressed: () {},
       ),
     );

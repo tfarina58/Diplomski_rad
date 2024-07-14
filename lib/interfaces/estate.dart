@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Estate {
   String id;
   String ownerId;
-  String name;
+  Map<String, String> name;
   String image;
   String street;
   String zip;
@@ -13,15 +13,13 @@ class Estate {
   LatLng? coordinates;
   String phone;
   String description;
-  int categoryRows;
-  int categoryColumns;
-  String categoryHeader;
+  List<Map<String, dynamic>> guests;
   List<List<dynamic>> variables;
 
   Estate({
     this.id = "",
     this.ownerId = "",
-    this.name = "",
+    this.name = const {},
     this.image = "",
     this.street = "",
     this.zip = "",
@@ -30,9 +28,7 @@ class Estate {
     this.coordinates,
     this.phone = "",
     this.description = "",
-    this.categoryRows = 1,
-    this.categoryColumns = 3,
-    this.categoryHeader = "",
+    this.guests = const [],
     this.variables = const [],
   }) : super();
 
@@ -49,19 +45,24 @@ class Estate {
         (estate['coordinates'] as GeoPoint).longitude,
       );
     }
+
     newEstate.street = estate['street'] ?? "";
     newEstate.zip = estate['zip'] ?? "";
     newEstate.city = estate['city'] ?? "";
     newEstate.country = estate['country'] ?? "";
     newEstate.phone = estate['phone'] ?? "";
     newEstate.description = estate['description'] ?? "";
-    newEstate.name = estate['name'] ?? "";
-    newEstate.phone = estate['phone'] ?? "";
-    newEstate.categoryRows = estate['categoryRows'] ?? 1;
-    newEstate.categoryColumns = estate['categoryColumns'] ?? 3;
-    newEstate.categoryHeader = "";
-    newEstate.variables = toVariableTable(estate['variables']);
 
+    Map<String, String> name = {
+      "en": estate['name']['en'] ?? "",
+      "de": estate['name']['de'] ?? "",
+      "hr": estate['name']['hr'] ?? "",
+    };
+    newEstate.name = name;
+    
+    newEstate.phone = estate['phone'] ?? "";
+    newEstate.guests = toGuestTable(estate['guests']);
+    newEstate.variables = toVariableTable(estate['variables']);
     return newEstate;
   }
 
@@ -79,11 +80,24 @@ class Estate {
           : null,
       "description": estate.description,
       "phone": estate.phone,
-      "categoryRows": estate.categoryRows,
-      "categoryColumns": estate.categoryColumns,
-      "categoryHeader": estate.categoryHeader,
+      "guests": estate.guests,
       "variables": toVariableJSON(estate.variables),
     };
+  }
+
+  static List<Map<String, dynamic>> toGuestTable(List<dynamic>? JSONGuests) {
+    if (JSONGuests == null) return [];
+
+    List<Map<String, dynamic>> newGuests = [];
+
+    for (int i = 0; i < JSONGuests.length; ++i) {
+      Map<String, dynamic> guest = JSONGuests[i];
+      guest['from'] = (guest['from'] as Timestamp).toDate();
+      guest['to'] = (guest['to'] as Timestamp).toDate();
+      newGuests = [...newGuests, guest];
+    }
+
+    return newGuests;
   }
 
   static List<List<dynamic>> toVariableTable(Map<String, dynamic>? JSONVariables) {
@@ -123,8 +137,38 @@ class Estate {
     return ["", "", DateTime(now.year, now.month, now.day)];
   }
 
+  static Map<String, dynamic> newGuestRow() {
+    DateTime now = DateTime.now();
+    return {
+      'from': now,
+      'name': "",
+      'to': now
+    };
+  }
+
   static String asString(Estate? estate) {
     if (estate == null) return "";
     return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\ndescription: ${estate.description}\n";
+  }
+
+  static List<Estate> setupEstatesFromFirebaseDocuments(List<QueryDocumentSnapshot<Map<String, dynamic>>>? document) {
+    if (document == null) return [];
+    
+    Estate? currentEstate;
+    List<Estate> estates = [];
+    
+    document.map((DocumentSnapshot doc) {
+      Map<String, dynamic>? estateMap = doc.data() as Map<String, dynamic>?;
+      if (estateMap == null) return;
+
+      estateMap['id'] = doc.id;
+
+      currentEstate = Estate.toEstate(estateMap);
+      if (currentEstate == null) return;
+
+      estates.add(currentEstate!);
+    }).toList();
+
+    return estates;
   }
 }

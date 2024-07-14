@@ -19,12 +19,14 @@ class ImagesDisplay extends StatefulWidget {
   bool enableEditing;
   String droppedFileName = "";
   Uint8List? droppedFileBytes;
+  Function callback;
 
   ImagesDisplay({
     Key? key,
     this.user,
     this.estate,
     this.category,
+    required this.callback,
     required this.showAvatar,
     required this.enableEditing,
     required this.lang,
@@ -253,7 +255,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                 SizedBox(height: height * 0.025),
                 Center(
                   child: Text(
-                    widget.lang.dictionary[choice ? "avatar_image" : "background_image"]!,
+                    widget.lang.translate(choice ? 'avatar_image' : 'background_image'),
                     style: const TextStyle(fontSize: 32),
                   ),
                 ),
@@ -356,7 +358,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
 
         FirebaseStorageService storage = FirebaseStorageService();
         if (widget.estate != null) {
-          storage.uploadImageForEstate(widget.estate as Estate, widget.droppedFileName, widget.droppedFileBytes!);
+          await storage.uploadImageForEstate(widget.estate as Estate, widget.droppedFileName, widget.droppedFileBytes!);
         } else if (widget.user != null) {
           storage.uploadImageForCustomer(widget.user as Customer, widget.droppedFileName, widget.droppedFileBytes!, choice);
         } else if (widget.category != null) {
@@ -365,7 +367,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
 
         Navigator.pop(context);
       },
-      child: Text(widget.lang.dictionary["save_image"]!),
+      child: Text(widget.lang.translate('save_image')),
     );
   }
 
@@ -382,7 +384,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
           widget.droppedFileName = '';
         });
       },
-      child: Text(widget.lang.dictionary["discard_image"]!),
+      child: Text(widget.lang.translate('discard_image')),
     );
   }
 
@@ -400,7 +402,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
         });
         Navigator.pop(context);
       },
-      child: Text(widget.lang.dictionary["cancel"]!),
+      child: Text(widget.lang.translate('cancel')),
     );
   }
 }

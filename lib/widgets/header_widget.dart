@@ -70,7 +70,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                   height: height * 0.05,
                   child: Center(
                     child: Text(
-                      widget.lang.dictionary["project_title"]!,
+                      widget.lang.translate('project_title'),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -98,7 +98,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                         height: height * 0.05,
                         child: Center(
                           child: Text(
-                            widget.lang.dictionary["users"]!,
+                            widget.lang.translate('users'),
                             style: const TextStyle(fontSize: 18),
                           ),
                         ),
@@ -119,7 +119,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                         height: height * 0.05,
                         child: Center(
                           child: Text(
-                            widget.lang.dictionary["estates"]!,
+                            widget.lang.translate('estates'),
                             style: const TextStyle(fontSize: 18),
                           ),
                         ),
@@ -162,7 +162,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                       },
                                       leading: const Icon(Icons.person),
                                       title: Text(
-                                        widget.lang.dictionary["profile_page"]!,
+                                        widget.lang.translate('profile_page'),
                                       ),
                                     ),
                                     ListTile(
@@ -181,7 +181,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                       leading: const Icon(Icons.password),
                                       title: Text(
                                         widget.lang
-                                            .dictionary["change_password"]!,
+                                            .translate('change_password'),
                                       ),
                                     ),
                                     ListTile(
@@ -203,7 +203,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                       },
                                       leading: const Icon(Icons.gavel),
                                       title: Text(widget
-                                          .lang.dictionary["delete_account"]!),
+                                          .lang.translate('delete_account')),
                                     ),
                                     ListTile(
                                       textColor: PalleteCommon.gradient2,
@@ -225,7 +225,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                       },
                                       leading: const Icon(Icons.logout),
                                       title: Text(
-                                        widget.lang.dictionary["sign_out"]!,
+                                        widget.lang.translate('sign_out'),
                                       ),
                                     ),
                                   ],
@@ -236,8 +236,9 @@ class _HeaderComponentState extends State<HeaderComponent> {
                       child: SizedBox(
                         height: height * 0.05,
                         child: Padding(
-                            padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
-                            child: getUserImage()),
+                          padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+                          child: getUserImage()
+                        ),
                       ),
                     ),
                   ),
@@ -273,7 +274,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
           children: [
             StringField(
               osbcure: true,
-              labelText: widget.lang.dictionary["old_password"]!,
+              labelText: widget.lang.translate('old_password'),
               callback: (String value) => widget.oldPassword = value,
             ),
             const SizedBox(
@@ -281,7 +282,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
             ),
             StringField(
               osbcure: true,
-              labelText: widget.lang.dictionary["new_password"]!,
+              labelText: widget.lang.translate('new_password'),
               callback: (String value) => widget.newPassword = value,
             ),
             const SizedBox(
@@ -289,14 +290,14 @@ class _HeaderComponentState extends State<HeaderComponent> {
             ),
             StringField(
               osbcure: true,
-              labelText: widget.lang.dictionary["repeat_password"]!,
+              labelText: widget.lang.translate('repeat_password'),
               callback: (String value) => widget.repeatNewPassword = value,
             ),
             const SizedBox(
               height: 28,
             ),
             GradientButton(
-              buttonText: widget.lang.dictionary["change_password"]!,
+              buttonText: widget.lang.translate('change_password'),
               callback: () {
                 Navigator.pop(context);
               },
@@ -330,7 +331,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
             Expanded(
               flex: 2,
               child: Text(
-                widget.lang.dictionary["delete_account_warning_message"]!,
+                widget.lang.translate('delete_account_warning_message'),
                 style: const TextStyle(
                   fontSize: 18,
                   color: PalleteCommon.gradient2,
@@ -343,7 +344,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
               flex: 2,
               child: StringField(
                 osbcure: true,
-                labelText: widget.lang.dictionary["password"]!,
+                labelText: widget.lang.translate('password'),
                 callback: (String value) => password = value,
               ),
             ),
@@ -362,7 +363,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                     flex: 3,
                     child: GradientButton(
                       colors: [...PalleteDanger.getGradients()],
-                      buttonText: widget.lang.dictionary["delete_account"]!,
+                      buttonText: widget.lang.translate('delete_account'),
                       callback: () async {
                         await deleteUser(
                             width, height, context, userId, password);
@@ -376,7 +377,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                   Expanded(
                     flex: 3,
                     child: GradientButton(
-                      buttonText: widget.lang.dictionary["cancel"]!,
+                      buttonText: widget.lang.translate('cancel'),
                       callback: () {
                         Navigator.pop(context);
                       },
@@ -403,7 +404,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
     if (!res) {
       final snackBar = SnackBar(
         content: Text(
-          widget.lang.dictionary["error_while_deleting"]!,
+          widget.lang.translate('error_while_deleting'),
         ),
         backgroundColor: (Colors.white),
         behavior: SnackBarBehavior.floating,
@@ -415,7 +416,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
         ),
         closeIconColor: PalleteCommon.gradient2,
         action: SnackBarAction(
-          label: widget.lang.dictionary["dismiss"]!,
+          label: widget.lang.translate('dismiss'),
           onPressed: () {},
         ),
       );
@@ -427,7 +428,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
 
     final snackBar = SnackBar(
       content: Text(
-        widget.lang.dictionary["successfull_delete_account"]!,
+        widget.lang.translate('successfull_delete_account'),
       ),
       backgroundColor: (Colors.white),
       behavior: SnackBarBehavior.floating,
@@ -439,7 +440,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
       ),
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
-        label: widget.lang.dictionary["dismiss"]!,
+        label: widget.lang.translate('dismiss'),
         onPressed: () {},
       ),
     );

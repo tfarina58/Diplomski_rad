@@ -11,6 +11,7 @@ import 'package:diplomski_rad/widgets/dropdown_field.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   Map<String, dynamic> headerValues = <String, dynamic>{};
@@ -57,7 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return CircularProgressIndicator(
                       color: PalleteCommon.gradient2,
-                      semanticsLabel: widget.lang!.dictionary["loading"],
+                      semanticsLabel: widget.lang!.translate('loading'),
                       backgroundColor: PalleteCommon.backgroundColor,
                     );
                   } else if (snapshot.hasError) {
@@ -88,6 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           enableEditing: widget.enableEditing,
                           user: widget.user!,
                           lang: widget.lang!,
+                          callback: () {},
                         ),
                         Padding(
                           padding: EdgeInsets.fromLTRB(width * 0.2, 0, 0, 0),
@@ -107,7 +109,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 flex: 2,
                                 child: GradientButton(
                                   buttonText:
-                                      widget.lang!.dictionary["save_changes"]!,
+                                      widget.lang!.translate('save_changes'),
                                   callback: () {
                                     saveChanges(width, height);
                                   },
@@ -130,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: Center(
                                 child: Text(
                                   widget.lang!
-                                      .dictionary["personal_information"]!,
+                                      .translate('personal_information'),
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -141,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             Expanded(
                               child: Center(
                                 child: Text(
-                                  widget.lang!.dictionary["your_address"]!,
+                                  widget.lang!.translate('your_address'),
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -152,7 +154,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             Expanded(
                               child: Center(
                                 child: Text(
-                                  widget.lang!.dictionary["preferences"]!,
+                                  widget.lang!.translate('preferences'),
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -236,13 +238,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     CircularProgressIndicator(
                       color: PalleteCommon.gradient2,
-                      semanticsLabel: widget.lang!.dictionary["loading"],
+                      semanticsLabel: widget.lang!.translate('loading'),
                       backgroundColor: PalleteCommon.backgroundColor,
                     ),
                     SizedBox(height: height * 0.03),
                     Center(
                       child: Text(widget
-                          .lang!.dictionary["obtaining_user_information"]!),
+                          .lang!.translate('obtaining_user_information')),
                     ),
                   ],
                 ),
@@ -256,22 +258,22 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = prefs.getString("userId");
-      String? tmpTypeOfUser = prefs.getString("typeOfUser");
-      String? tmpAvatarImage = prefs.getString("avatarImage");
-      String? tmpLanguage = prefs.getString("language");
+      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      String tmpUserId = sharedPreferencesService.getUserId();
+      String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
+      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
+      String tmpLanguage = sharedPreferencesService.getLanguage();
 
-      if (tmpUserId == null || tmpUserId.isEmpty) return;
-      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
-      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+      if (tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
 
       setState(() {
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage;
         widget.userId = widget.userId.isNotEmpty ? widget.userId : tmpUserId;
         widget.lang = tmpLang;
       });
@@ -282,21 +284,21 @@ class _ProfilePageState extends State<ProfilePage> {
     if (widget.user is Individual) {
       return StringField(
         presetText: (widget.user as Individual).firstname,
-        labelText: widget.lang!.dictionary["firstname"]!,
+        labelText: widget.lang!.translate('firstname'),
         callback: (String value) =>
             (widget.user as Individual).firstname = value,
       );
     } else if (widget.user is Company) {
       return StringField(
         presetText: (widget.user as Company).ownerFirstname,
-        labelText: widget.lang!.dictionary["owner_firstname"]!,
+        labelText: widget.lang!.translate('owner_firstname'),
         callback: (String value) =>
             (widget.user as Company).ownerFirstname = value,
       );
     } else if (widget.user is Admin) {
       return StringField(
         presetText: (widget.user as Admin).firstname,
-        labelText: widget.lang!.dictionary["firstname"]!,
+        labelText: widget.lang!.translate('firstname'),
         callback: (String value) => (widget.user as Admin).firstname = value,
       );
     }
@@ -307,14 +309,14 @@ class _ProfilePageState extends State<ProfilePage> {
     if (widget.user is Individual) {
       return StringField(
         presetText: (widget.user as Individual).lastname,
-        labelText: widget.lang!.dictionary["lastname"]!,
+        labelText: widget.lang!.translate('lastname'),
         callback: (String value) =>
             (widget.user as Individual).lastname = value,
       );
     } else if (widget.user is Company) {
       return StringField(
         presetText: (widget.user as Company).ownerLastname,
-        labelText: widget.lang!.dictionary["owner_lastname"]!,
+        labelText: widget.lang!.translate('owner_lastname'),
         callback: (String value) =>
             (widget.user as Company).ownerLastname = value,
       );
@@ -328,14 +330,15 @@ class _ProfilePageState extends State<ProfilePage> {
         selectingBirthday: true,
         dateFormat: widget.user!.preferences.dateFormat,
         selectedDate: (widget.user as Individual).birthday,
-        labelText: widget.lang!.dictionary["date_of_birth"]!,
+        labelText: widget.lang!.translate('date_of_birth'),
         callback: (DateTime value) =>
             (widget.user as Individual).birthday = value,
+        lang: widget.lang!,
       );
     } else if (widget.user is Company) {
       return StringField(
         presetText: (widget.user as Company).companyName,
-        labelText: widget.lang!.dictionary["company_name"]!,
+        labelText: widget.lang!.translate('company_name'),
         callback: (String value) =>
             (widget.user as Company).companyName = value,
       );
@@ -346,7 +349,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get41() {
     return StringField(
       presetText: widget.user!.phone,
-      labelText: widget.lang!.dictionary["phone_number"]!,
+      labelText: widget.lang!.translate('phone_number'),
       callback: (String value) => widget.user!.phone = value,
     );
   }
@@ -355,7 +358,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (widget.user is Customer) {
       return StringField(
         presetText: (widget.user as Customer).street,
-        labelText: widget.lang!.dictionary["street"]!,
+        labelText: widget.lang!.translate('street'),
         callback: (String value) => (widget.user as Customer).street = value,
       );
     }
@@ -366,7 +369,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (widget.user is Customer) {
       return StringField(
         presetText: (widget.user as Customer).zip,
-        labelText: widget.lang!.dictionary["zip"]!,
+        labelText: widget.lang!.translate('zip'),
         callback: (String value) => (widget.user as Customer).zip = value,
       );
     }
@@ -377,7 +380,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (widget.user is Customer) {
       return StringField(
         presetText: (widget.user as Customer).city,
-        labelText: widget.lang!.dictionary["city"]!,
+        labelText: widget.lang!.translate('city'),
         callback: (String value) => (widget.user as Customer).city = value,
       );
     }
@@ -388,7 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (widget.user is Customer) {
       return StringField(
         presetText: (widget.user as Customer).country,
-        labelText: widget.lang!.dictionary["country"]!,
+        labelText: widget.lang!.translate('country'),
         callback: (String value) => (widget.user as Customer).country = value,
       );
     }
@@ -397,16 +400,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget get13() {
     return DropdownField(
-      labelText: widget.lang!.dictionary["distance_units"]!,
+      labelText: widget.lang!.translate('distance_units'),
       choices: [
-        widget.lang!.dictionary["km"],
-        widget.lang!.dictionary["mi"],
+        widget.lang!.translate('km'),
+        widget.lang!.translate('mi'),
       ],
       selected: widget.user!.preferences.distance == "mi"
-          ? widget.lang!.dictionary["mi"]
-          : widget.lang!.dictionary["km"],
+          ? widget.lang!.translate('mi')
+          : widget.lang!.translate('km'),
       callback: (String value) {
-        if (value == widget.lang!.dictionary["mi"]) {
+        if (value == widget.lang!.translate('mi')) {
           widget.user!.preferences.distance = "mi";
         } else {
           widget.user!.preferences.distance = "km";
@@ -418,7 +421,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get23() {
     return DropdownField(
       choices: const ["°C", "°F"],
-      labelText: widget.lang!.dictionary["temperature_units"]!,
+      labelText: widget.lang!.translate('temperature_units'),
       selected: widget.user!.preferences.temperature == "F" ? "°F" : "°C",
       callback: (String value) {
         if (value == "°F") {
@@ -440,7 +443,7 @@ class _ProfilePageState extends State<ProfilePage> {
         "7/24/21",
         "2021-07-24",
       ],
-      labelText: widget.lang!.dictionary["date_formats"]!,
+      labelText: widget.lang!.translate('date_formats'),
       selected: getDateFormatExample(),
       callback: (String value) async {
         if (value == "24.07.2021.") {
@@ -463,15 +466,15 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get43() {
     return DropdownField(
       choices: [
-        widget.lang!.dictionary["en"],
-        widget.lang!.dictionary["de"],
+        widget.lang!.translate('en'),
+        widget.lang!.translate('de'),
       ],
-      labelText: widget.lang!.dictionary["language"]!,
+      labelText: widget.lang!.translate('language'),
       selected: widget.user!.preferences.language == "de"
-          ? widget.lang!.dictionary["de"]
-          : widget.lang!.dictionary["en"],
+          ? widget.lang!.translate('de')
+          : widget.lang!.translate('en'),
       callback: (String value) async {
-        if (value == widget.lang!.dictionary["de"]) {
+        if (value == widget.lang!.translate('de')) {
           widget.user!.preferences.language = "de";
         } else {
           widget.user!.preferences.language = "en";
@@ -503,19 +506,19 @@ class _ProfilePageState extends State<ProfilePage> {
 
     bool res = await UserRepository.updateUser(widget.user!.id, userMap);
     if (res) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString("language", widget.user!.preferences.language);
-      await prefs.setString("avatarImage", widget.user is Customer ? (widget.user as Customer).avatarImage : "",);
+      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      await sharedPreferencesService.setLanguage(widget.user!.preferences.language);
+      await sharedPreferencesService.setAvatarImage(widget.user is Customer ? (widget.user as Customer).avatarImage : "");
+      await sharedPreferencesService.setTemperaturePreference(widget.user is Customer ? (widget.user as Customer).preferences.temperature : "");
 
-      LanguageService tmpLang =
-          LanguageService.getInstance(widget.user!.preferences.language);
+      LanguageService tmpLang = LanguageService.getInstance(widget.user!.preferences.language);
 
       setState(() {
         widget.lang = tmpLang;
       });
 
       final snackBar = SnackBar(
-        content: Text(widget.lang!.dictionary["account_successfully_updated"]!),
+        content: Text(widget.lang!.translate('account_successfully_updated')),
         backgroundColor: (Colors.white),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
@@ -526,7 +529,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         closeIconColor: PalleteCommon.gradient2,
         action: SnackBarAction(
-          label: widget.lang!.dictionary["dismiss"]!,
+          label: widget.lang!.translate('dismiss'),
           onPressed: () {},
         ),
       );
@@ -537,7 +540,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final snackBar = SnackBar(
       backgroundColor: PalleteCommon.gradient2,
-      content: Text(widget.lang!.dictionary["error_while_updating_user"]!),
+      content: Text(widget.lang!.translate('error_while_updating_user')),
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.only(
         bottom: height * 0.85,
@@ -547,7 +550,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
-        label: widget.lang!.dictionary["dismiss"]!,
+        label: widget.lang!.translate('dismiss'),
         onPressed: () {},
       ),
     );

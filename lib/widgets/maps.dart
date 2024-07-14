@@ -6,12 +6,14 @@ import 'package:latlong2/latlong.dart';
 import 'package:diplomski_rad/interfaces/estate.dart';
 import 'package:diplomski_rad/pages/estates/estate-details.dart';
 import 'dart:math';
+import 'package:diplomski_rad/services/language.dart';
 
 class MapsWidget extends StatefulWidget {
   List<Estate> estates;
+  LanguageService lang;
   // String? customerId;
 
-  MapsWidget({Key? key, this.estates = const []})
+  MapsWidget({Key? key, required this.lang, this.estates = const []})
       : super(key: key);
 
   @override
@@ -56,37 +58,23 @@ class _MapsWidgetState extends State<MapsWidget> {
   LatLng getMapCenter() {
     if (widget.estates.isEmpty) return const LatLng(0, 0);
 
+    int k = 0;
     double lat = 0, lng = 0;
+
     for (int i = 0; i < widget.estates.length; ++i) {
       if (widget.estates[i].coordinates != null) {
         lat += widget.estates[i].coordinates!.latitude;
         lng += widget.estates[i].coordinates!.longitude;
+        k++;
       }
     }
     return LatLng(
-        lat /= (widget.estates.isNotEmpty ? widget.estates.length : 1),
-        lng /= (widget.estates.isNotEmpty ? widget.estates.length : 1));
+      lat /= (k != 0 ? k : 1),
+      lng /= (k != 0 ? k : 1)
+    );
   }
 
   double getMapZoom(LatLng center) {
-    /*double maxDistance = 0, tmpDistance;
-    for (int i = 0; i < widget.estates.length; ++i) {
-      if (widget.estates[i].coordinates != null) {
-        tmpDistance = distance(
-            center.latitude,
-            center.longitude,
-            widget.estates[i].coordinates!.latitude,
-            widget.estates[i].coordinates!.longitude);
-
-        print(tmpDistance);
-
-        if (tmpDistance > maxDistance) {
-          maxDistance = tmpDistance;
-        }
-      }
-    }
-    double zoom = log(maxDistance) / log(0.1492919921875);
-    print(zoom);*/
     return 8;
   }
 
@@ -100,8 +88,7 @@ class _MapsWidgetState extends State<MapsWidget> {
     double dlong = long2 - long1;
     double dlat = lat2 - lat1;
 
-    double ans =
-        pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlong / 2), 2);
+    double ans = pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlong / 2), 2);
 
     ans = 2 * asin(sqrt(ans));
 
@@ -147,7 +134,7 @@ class _MapsWidgetState extends State<MapsWidget> {
                   fontWeight: FontWeight.bold,
                   color: PalleteCommon.gradient2,
                 ),
-                message: widget.estates[i].name,
+                message: widget.estates[i].name[widget.lang.language],
                 child: Container(
                   width: 30,
                   height: 30,

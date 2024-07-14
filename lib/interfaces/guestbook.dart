@@ -1,7 +1,6 @@
 class GuestBook {
   String id;
   String estateId;
-  String guest;
   String message;
   int rating;
   DateTime date;
@@ -9,7 +8,6 @@ class GuestBook {
   GuestBook({
     this.id = "",
     this.estateId = "",
-    this.guest = "",
     this.message = "",
     this.rating = -1
   }) : this.date = DateTime.now();
@@ -20,7 +18,6 @@ class GuestBook {
     GuestBook newcard = GuestBook();
     newcard.id = card['id'] ?? "";
     newcard.estateId = card['estateId'] ?? "";
-    newcard.guest = card['guest'] ?? "";
     newcard.message = card['message'] ?? {};
     newcard.rating = card['rating'] ?? "";
     newcard.date = card['date'] ?? "";
@@ -34,7 +31,6 @@ class GuestBook {
     return {
       "id": card.id,
       "estateId": card.estateId,
-      "guest": card.guest,
       "message": card.message,
       "rating": card.rating,
       "date": card.date,
@@ -43,7 +39,7 @@ class GuestBook {
 
   static String asString(GuestBook? card) {
     if (card == null) return "";
-    return "id: ${card.id}\nestateId: ${card.estateId}\nguest: ${card.guest}\nmessage: ${card.message}\nrating: ${card.rating}\ndate: ${card.date.millisecondsSinceEpoch}\n";
+    return "id: ${card.id}\nestateId: ${card.estateId}\nmessage: ${card.message}\nrating: ${card.rating}\ndate: ${card.date.millisecondsSinceEpoch}\n";
     // TODO: add links
   }
 }

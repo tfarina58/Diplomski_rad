@@ -1,5 +1,6 @@
 import 'package:diplomski_rad/pages/auth/register.dart';
 import 'package:diplomski_rad/services/language.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
@@ -13,7 +14,7 @@ class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
 
   bool keepLoggedIn = false;
-  String email = "tfarina56@gmail.com";
+  String email = "tfarina58@gmail.com";
   String password = "password";
   LanguageService lang = LanguageService.getInstance("en");
 
@@ -42,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: MediaQuery.of(context).size.height * 0.2,
               ),
               Text(
-                widget.lang.dictionary["sign_in"]!,
+                widget.lang.translate('sign_in'),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 50,
@@ -72,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 15),
               StringField(
                 presetText: widget.email,
-                labelText: widget.lang.dictionary["email"]!,
+                labelText: widget.lang.translate('email'),
                 callback: (value) => setState(() {
                   widget.email = value;
                 }),
@@ -81,14 +82,14 @@ class _LoginPageState extends State<LoginPage> {
               StringField(
                 osbcure: true,
                 presetText: widget.password,
-                labelText: widget.lang.dictionary["password"]!,
+                labelText: widget.lang.translate('password'),
                 callback: (value) => setState(() {
                   widget.password = value;
                 }),
               ),
               const SizedBox(height: 20),
               GradientButton(
-                buttonText: widget.lang.dictionary["sign_in"]!,
+                buttonText: widget.lang.translate('sign_in'),
                 callback: () => setState(() {
                   signIn(
                     width,
@@ -113,7 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                       });
                     },
                   ),
-                  Text(widget.lang.dictionary["keep_me_logged_in"]!),
+                  Text(widget.lang.translate('keep_me_logged_in')),
                 ],
               ),
               const SizedBox(height: 15),
@@ -121,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () => toRegisterPage(),
-                  child: Text(widget.lang.dictionary["dont_have_account_register_here"]!),
+                  child: Text(widget.lang.translate('dont_have_account_register_here')),
                 ),
               ),
             ],
@@ -131,6 +132,21 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      bool tmpKeepLoggedIn = sharedPreferencesService.getKeepLoggedIn();
+      String tmpUserId = sharedPreferencesService.getUserId();
+      String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
+      if (!tmpKeepLoggedIn || tmpUserId.isEmpty && tmpTypeOfUser.isEmpty) return;
+
+      toHomePage();
+    });
+  }
+
   void signIn(double width, double height, String email, String password, bool keepLoggedIn) async {
     User? user = await UserRepository.loginUser(email, password);
 
@@ -138,26 +154,25 @@ class _LoginPageState extends State<LoginPage> {
     // TODO: keepLoggedIn!
     if (user != null) {
       if (user is Customer && user.banned == true) {
-        showSnackBar(width, height, widget.lang.dictionary["banned_by_admin"]!);
+        showSnackBar(width, height, widget.lang.translate('banned_by_admin'));
       } else if (user is Customer && user.blocked == true) {
-        showSnackBar(width, height, widget.lang.dictionary["blocked_by_admin"]!);
+        showSnackBar(width, height, widget.lang.translate('blocked_by_admin'));
       } else {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString("userId", user.id);
+        SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+        await sharedPreferencesService.setUserId(user.id);
         if (user is Individual) {
-          await prefs.setString("typeOfUser", "ind");
-          await prefs.setString("language", user.preferences.language.isEmpty ? user.preferences.language : "en");
-          await prefs.setString("avatarImage", user.avatarImage.isEmpty ? user.avatarImage : "");
+          await sharedPreferencesService.setTypeOfUser("ind");
         } else if (user is Company) {
-          await prefs.setString("typeOfUser", "com");
-          await prefs.setString("language", user.preferences.language.isEmpty ? user.preferences.language : "en",);
-          await prefs.setString("avatarImage", user.avatarImage.isEmpty ? user.avatarImage : "",);
+          await sharedPreferencesService.setTypeOfUser("com");
         }
+        await sharedPreferencesService.setLanguage(user.preferences.language.isEmpty ? user.preferences.language : "en");
+        await sharedPreferencesService.setKeepLoggedIn(keepLoggedIn);
+        await sharedPreferencesService.setAvatarImage(user is Customer ? user.avatarImage : "");
 
         toHomePage();
       }
     } else {
-      showSnackBar(width, height, widget.lang.dictionary["cant_log_in"]!);
+      showSnackBar(width, height, widget.lang.translate('cant_log_in'));
     }
   }
 
@@ -174,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
-        label: widget.lang.dictionary["dismiss"]!,
+        label: widget.lang.translate('dismiss'),
         onPressed: () {},
       ),
     );

@@ -2,19 +2,22 @@ class LanguageService {
   String language;
   Map<String, String> dictionary;
 
-  LanguageService(
-      {required this.language, this.dictionary = const <String, String>{}});
+  LanguageService({required this.language, this.dictionary = const <String, String>{}});
 
   static LanguageService getInstance(String language) {
-    LanguageService lang = LanguageService(language: language);
-    lang.dictionary = readJsonFile(language); // TODO: read from JSON file
+    LanguageService lang = LanguageService(language: language, dictionary: readJsonFile(language)); // TODO: read from JSON file
     return lang;
+  }
+
+  String translate(String key) {
+    if (dictionary.containsKey(key)) return dictionary[key]!;
+    return "";
   }
 
   static Map<String, String> readJsonFile(String language) {
     switch (language) {
       case "en":
-        dynamic jsonEN = {
+        final jsonEN = {
           "project_title": "Graduation thesis",
           "users": "Users",
           "estates": "Estates",
@@ -72,7 +75,11 @@ class LanguageService {
           "additional_filters": "Additional filters",
           "number_of_estates": "Number of estates",
           "from": "From",
+          "from_date": "Arrival date",
+          "from_time": "Arrival time",
           "to": "To",
+          "to_date": "Departure date",
+          "to_time": "Departure time",
           "blocked": "Blocked",
           "individual": "Individual",
           "banned": "Banned",
@@ -165,17 +172,28 @@ class LanguageService {
           "images": "Images",
           "open_gallery": "Open gallery",
           "text": "Text",
+          "description_text": "Description text",
+          "add_category": "Add category",
+          "name_en": "Name in English",
+          "name_de": "Name in German",
+          "name_hr": "Name in Croatian",
+          "title_en": "Title in English",
+          "title_de": "Title in German",
+          "title_hr": "Title in Croatian",
+          "description_en": "Description in English",
+          "description_de": "Description in German",
+          "description_hr": "Description in Croatian",
+          "guests": "Guests",
+          "set_date": "Set date",
+          "set_time": "Set time",
+          "titles": "Titles",
+          "cant_obtain_estates": "There was an error while trying to obtain your estates. Please try again later.",
+          "cant_obtain_categories": "There was an error while trying to obtain your categories. Please try again later.",
+          "cant_obtain_elements": "There was an error while trying to obtain your elements. Please try again later.",
         };
-
-        /*if (specific != null && specific.isNotEmpty) {
-          if (jsonEN[specific] != null) {
-            return {specific: jsonEN[specific]} as Map<String, String>;
-          }
-          return {specific: ""};
-        }*/
-        return jsonEN as Map<String, String>;
+        return jsonEN;
       case "de":
-        dynamic jsonDE = {
+        final jsonDE = {
           "project_title": "Abschlussarbeit",
           "users": "Benutzer",
           "estates": "Immobilien",
@@ -234,7 +252,11 @@ class LanguageService {
           "additional_filters": "Zusätzliche Filter",
           "number_of_estates": "Anzahl der Nachlässe",
           "from": "Aus",
+          "from_date": "Datum der Ankunft",
+          "from_time": "Ankunftszeit",
           "to": "Zu",
+          "to_date": "Abreisedatum",
+          "to_time": "Abfahrtszeit",
           "blocked": "Verstopft",
           "individual": "Individuell",
           "banned": "Verboten",
@@ -328,17 +350,28 @@ class LanguageService {
           "images": "Bilder",
           "open_gallery": "Galerie öffnen",
           "text": "Text",
+          "description_text": "Beschreibungstext",
+          "add_category": "Kategorie hinzufügen",
+          "name_en": "Name auf Englisch",
+          "name_de": "Name auf Deutsch",
+          "name_hr": "Name auf Kroatisch",
+          "title_en": "Titel auf Englisch",
+          "title_de": "Titel auf Deutsch",
+          "title_hr": "Titel auf Kroatisch",
+          "description_en": "Beschreibung auf Englisch",
+          "description_de": "Beschreibung auf Deutsch",
+          "description_hr": "Beschreibung auf Kroatisch",
+          "guests": "Gäste",
+          "set_date": "Datum einstellen",
+          "set_time": "Zeit einstellen",
+          "titles": "Titel",
+          "cant_obtain_estates": "Beim Versuch, Ihre Nachlässe zu erhalten, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
+          "cant_obtain_categories": "Beim Versuch, Ihre Kategorien abzurufen, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
+          "cant_obtain_elements": "Beim Versuch, Ihre Elemente abzurufen, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
         };
-
-        /*if (specific != null && specific.isNotEmpty) {
-          if (jsonDE[specific] != null) {
-            return {specific: jsonDE[specific]} as Map<String, String>;
-          }
-          return {specific: ""};
-        }*/
-        return jsonDE as Map<String, String>;
+        return jsonDE;
       case "hr":
-        dynamic jsonHR = {
+        final jsonHR = {
           "project_title": "Diplomski rad",
           "users": "Korisnici",
           "estates": "Nekretnina",
@@ -395,7 +428,11 @@ class LanguageService {
           "additional_filters": "Dodatni filteri",
           "number_of_estates": "Broj imanja",
           "from": "Od",
+          "from_date": "Datum dolaska",
+          "from_time": "Vrijeme dolaska",
           "to": "Do",
+          "to_date": "Datum odlaska",
+          "to_time": "Vrijeme odlaska",
           "blocked": "Blokiran",
           "individual": "Pojedinac",
           "banned": "Zabranjeno",
@@ -487,15 +524,26 @@ class LanguageService {
           "images": "Slike",
           "open_gallery": "Otvori galeriju",
           "text": "Tekst",
+          "description_text": "Tekst opisa",
+          "add_category": "Dodaj kategoriju",
+          "name_en": "Ime na englskom",
+          "name_de": "Ime na njemačkom",
+          "name_hr": "Ime na hrvatskom",
+          "title_en": "Naslov na engleskom",
+          "title_de": "Naslov na njemačkom",
+          "title_hr": "Naslov na hrvatskom",
+          "description_en": "Opis na engleskom",
+          "description_de": "Opis na njemačkom",
+          "description_hr": "Opis na hrvatskom",
+          "guests": "Gosti",
+          "set_date": "Postavi datum",
+          "set_time": "Postavi vrijeme",
+          "titles": "Naslovi",
+          "cant_obtain_estates": "Došlo je do pogreške prilikom pokušaja dobivanja vaših nekretnina. Molimo pokušajte ponovo kasnije.",
+          "cant_obtain_categories": "Došlo je do pogreške prilikom pokušaja dobivanja vaših kategorija. Molimo pokušajte ponovo kasnije.",
+          "cant_obtain_elements": "Došlo je do pogreške prilikom pokušaja dobivanja vaših elemenata. Molimo pokušajte ponovo kasnije.",
         };
-
-        /*if (specific != null && specific.isNotEmpty) {
-          if (jsonHR[specific] != null) {
-            return {specific: jsonHR[specific]} as Map<String, String>;
-          }
-          return {specific: ""};
-        }*/
-        return jsonHR as Map<String, String>;
+        return jsonHR;
     }
     return {};
   }

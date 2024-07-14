@@ -70,6 +70,54 @@ class FirebaseStorageService {
     }
   }
 
+  Future<void> uploadBackgroundForElement(localElement.Element element, String name, Uint8List bytes) async {
+    try {
+      final Reference folder = storage.child("${element.id}/$name");
+      await folder.putData(bytes).whenComplete(() async {
+        String url = await folder.getDownloadURL();
+
+        Map<String, dynamic> updateObject = {"background": url};
+
+        bool success = await ElementRepository.updateElement(element.id, updateObject);
+        // TODO: give feedback
+      });
+    } catch (err) {
+      return;
+    }
+  }
+  
+  Future<List<String>> deleteOldImagesForElement(String elementId, List<dynamic> toRemoveUrl) async {
+    List<String> nonRemoved = [];
+    for (int i = 0; i < toRemoveUrl.length; ++i) {
+      try {
+        String name = extractFileName(toRemoveUrl[i]);
+        final Reference folder = storage.child("$elementId/$name");
+        await folder.delete();
+      } catch (err) {
+        nonRemoved.add(toRemoveUrl[i]);
+      }
+    }
+    return nonRemoved;
+  }
+
+  Future<List<String>> uploadNewImagesForElement(String elementId, List<dynamic> toUploadNames, List<Uint8List?> toUploadBytes) async {
+    List<String> newImages = [];
+    for (int i = 0; i < toUploadBytes.length; ++i) {
+      if (toUploadBytes[i] == null) continue;
+      try {
+        final Reference folder = storage.child("$elementId/${toUploadNames[i]}");
+        await folder.putData(toUploadBytes[i]!).whenComplete(() async {
+          String url = await folder.getDownloadURL();
+          newImages.add(url);
+        });
+      } catch (err) {
+        // TODO
+      }
+    }
+    return newImages;
+  }
+
+
   // TODO: comment
   Future<void> deleteImageForCustomer(String id, String url, bool isAvatarImage) async {
     String name = extractFileName(url);
@@ -128,6 +176,25 @@ class FirebaseStorageService {
   }
 
     // TODO: comment
+  Future<void> deleteImageForElement(String id, String url) async {
+    String name = extractFileName(url);
+    Map<String, dynamic> updateObject = {
+      "background": ""
+    };
+
+    try {
+      bool success = await EstateRepository.updateEstate(id, updateObject);
+      if (success) {
+        final Reference folder = storage.child("$id/$name");
+        await folder.delete();
+        // TODO: give feedback
+      }
+    } catch (err) {
+      return;
+    }
+  }
+
+    // TODO: comment
   Future<String> downloadImage(String id, String name) async {
     try {
       final Reference folder = storage.child(id);
@@ -140,8 +207,7 @@ class FirebaseStorageService {
   }
 
   String extractFileName(String url) {
-    String string = "https://firebasestorage.googleapis.com/v0/b/diplomski-rad-8bdb2.appspot.com/o/0f19RSr1FP5Z0832OWIK%2F1.jpeg?alt=media&token=ea22fd45-f7f1-4d63-8d2e-92ffea4d5da5";
-    String substring = string.substring(78, string.indexOf('?', 98));
+    String substring = url.substring(url.indexOf('%2F', 98) + 3, url.indexOf('?', 98));
     return substring;
   } 
 }
@@ -402,12 +468,12 @@ class EstateRepository {
 
 // TODO: comment
 class CategoryRepository {
-  static final estates = FirebaseFirestore.instance.collection("categories");
+  static final categories = FirebaseFirestore.instance.collection("categories");
 
   // TODO: comment
   static Future<localCategory.Category?> createCategory(Map<String, dynamic> categoryMap) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> docSnapshot = await (await estates.add(categoryMap)).get();
+      DocumentSnapshot<Map<String, dynamic>> docSnapshot = await (await categories.add(categoryMap)).get();
       Map<String, dynamic>? res = docSnapshot.data();
       if (res == null) return null;
 
@@ -423,7 +489,7 @@ class CategoryRepository {
     bool success = false;
 
     try {
-      await estates.doc(categoryId).update(categoryMap);
+      await categories.doc(categoryId).update(categoryMap);
       success = true;
     } catch (err) {
       success = false;
@@ -436,7 +502,7 @@ class CategoryRepository {
     bool success = false;
 
     try {
-      await estates.doc(categoryId).delete();
+      await categories.doc(categoryId).delete();
       success = true;
     } catch (err) {
       success = false;

@@ -13,6 +13,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/firebase.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
 
 class UsersPage extends StatefulWidget {
   User? user;
@@ -52,15 +53,15 @@ class _UsersPageState extends State<UsersPage> {
     textController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tmpUserId = prefs.getString("userId");
-      String? tmpTypeOfUser = prefs.getString("typeOfUser");
-      String? tmpAvatarImage = prefs.getString("avatarImage");
-      String? tmpLanguage = prefs.getString("language");
+      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      String tmpUserId = sharedPreferencesService.getUserId();
+      String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
+      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
+      String tmpLanguage = sharedPreferencesService.getLanguage();
 
-      if (tmpUserId == null || tmpUserId.isEmpty) return;
-      if (tmpTypeOfUser == null || tmpTypeOfUser.isEmpty) return;
-      if (tmpLanguage == null || tmpLanguage.isEmpty) return;
+      if (tmpUserId.isEmpty) return;
+      if (tmpTypeOfUser.isEmpty) return;
+      if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
       Map<String, dynamic>? userMap =
@@ -72,7 +73,7 @@ class _UsersPageState extends State<UsersPage> {
         widget.lang = tmpLang;
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage;
       });
     });
   }
@@ -168,7 +169,7 @@ class _UsersPageState extends State<UsersPage> {
                           flex: 1,
                           child: GradientButton(
                             buttonText:
-                                widget.lang!.dictionary["scroll_to_top"]!,
+                                widget.lang!.translate('scroll_to_top'),
                             callback: () {
                               scrollToTop();
                             },
@@ -195,7 +196,7 @@ class _UsersPageState extends State<UsersPage> {
       children: [
         SearchBar(
           controller: textController,
-          hintText: widget.lang!.dictionary["search_text"]!,
+          hintText: widget.lang!.translate('search_text'),
           leading: const Icon(Icons.search),
           trailing: [
             GestureDetector(
@@ -225,7 +226,7 @@ class _UsersPageState extends State<UsersPage> {
           width: width * 0.02,
         ),
         GradientButton(
-          buttonText: widget.lang!.dictionary["additional_filters"]!,
+          buttonText: widget.lang!.translate('additional_filters'),
           callback: () {
             showDialog(
               context: context,
@@ -269,13 +270,13 @@ class _UsersPageState extends State<UsersPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text("${widget.lang!.dictionary['number_of_estates']!}: ",),
+                    Text("${widget.lang!.translate('number_of_estates')}: ",),
                     const SizedBox(width: 16,),
                     StringField(
                       presetText: from != null ? from.toString() : '',
                       inputType: TextInputType.number,
                       maxWidth: 200,
-                      labelText: widget.lang!.dictionary["from"]!,
+                      labelText: widget.lang!.translate('from'),
                       callback: (dynamic value) {
                         setState(() {
                           if (value == null) from = null;
@@ -288,7 +289,7 @@ class _UsersPageState extends State<UsersPage> {
                       presetText: to != null ? to.toString() : '',
                       inputType: TextInputType.number,
                       maxWidth: 200,
-                      labelText: widget.lang!.dictionary["to"]!,
+                      labelText: widget.lang!.translate('to'),
                       callback: (dynamic value) {
                         setState(() {
                           if (value == null) to = null;
@@ -305,15 +306,15 @@ class _UsersPageState extends State<UsersPage> {
                   children: [
                     DropdownField(
                       maxWidth: 200,
-                      labelText: widget.lang!.dictionary["blocked"]!,
+                      labelText: widget.lang!.translate('blocked'),
                       callback: (String? value) {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == widget.lang!.dictionary["show"]) {
+                          if (value == widget.lang!.translate('show')) {
                             blocked = true;
                           } else if (value ==
-                              widget.lang!.dictionary["dont_show"]) {
+                              widget.lang!.translate('dont_show')) {
                             blocked = false;
                           } else {
                             blocked = null;
@@ -324,18 +325,18 @@ class _UsersPageState extends State<UsersPage> {
                       },
                       choices: [
                         "-",
-                        widget.lang!.dictionary["show"],
-                        widget.lang!.dictionary["dont_show"]
+                        widget.lang!.translate('show'),
+                        widget.lang!.translate('dont_show')
                       ],
                       selected: blocked == true
-                          ? widget.lang!.dictionary["show"]
+                          ? widget.lang!.translate('show')
                           : blocked == false
-                              ? widget.lang!.dictionary["dont_show"]
+                              ? widget.lang!.translate('dont_show')
                               : "-",
                     ),
                     SequentialField(
                       maxWidth: 200,
-                      labelText: widget.lang!.dictionary["individual"]!,
+                      labelText: widget.lang!.translate('individual'),
                       callback: (int? value) {
                         setState(() {
                           if (value == null) return;
@@ -348,8 +349,8 @@ class _UsersPageState extends State<UsersPage> {
                         });
                       },
                       choices: [
-                        widget.lang!.dictionary["show"],
-                        widget.lang!.dictionary["dont_show"]
+                        widget.lang!.translate('show'),
+                        widget.lang!.translate('dont_show')
                       ],
                       selected: individual == true ? 0 : 1,
                     ),
@@ -362,14 +363,14 @@ class _UsersPageState extends State<UsersPage> {
                   children: [
                     DropdownField(
                       maxWidth: 200,
-                      labelText: widget.lang!.dictionary["banned"]!,
+                      labelText: widget.lang!.translate('banned'),
                       callback: (String? value) {
                         setState(() {
                           if (value == null) return;
 
-                          if (value == widget.lang!.dictionary["show"]) {
+                          if (value == widget.lang!.translate('show')) {
                             banned = true;
-                          } else if (value == widget.lang!.dictionary["dont_show"]) {
+                          } else if (value == widget.lang!.translate('dont_show')) {
                             banned = false;
                           } else {
                             banned = null;
@@ -380,18 +381,18 @@ class _UsersPageState extends State<UsersPage> {
                       },
                       choices: [
                         "-",
-                        widget.lang!.dictionary["show"],
-                        widget.lang!.dictionary["dont_show"]
+                        widget.lang!.translate('show'),
+                        widget.lang!.translate('dont_show')
                       ],
                       selected: banned == true
-                          ? widget.lang!.dictionary["show"]
+                          ? widget.lang!.translate('show')
                           : banned == false
-                              ? widget.lang!.dictionary["dont_show"]
+                              ? widget.lang!.translate('dont_show')
                               : "-",
                     ),
                     SequentialField(
                       maxWidth: 200,
-                      labelText: widget.lang!.dictionary["company"]!,
+                      labelText: widget.lang!.translate('company'),
                       callback: (int? value) {
                         setState(() {
                           if (value == null) return;
@@ -404,8 +405,8 @@ class _UsersPageState extends State<UsersPage> {
                         });
                       },
                       choices: [
-                        widget.lang!.dictionary["show"],
-                        widget.lang!.dictionary["dont_show"]
+                        widget.lang!.translate('show'),
+                        widget.lang!.translate('dont_show')
                       ],
                       selected: company == true ? 0 : 1,
                     ),
@@ -437,7 +438,7 @@ class _UsersPageState extends State<UsersPage> {
                 PalleteCommon.gradient2,
               ),
             ),
-            child: Text(widget.lang!.dictionary["apply_filters"]!),
+            child: Text(widget.lang!.translate('apply_filters')),
           ),
         ],
       ),
@@ -513,7 +514,7 @@ class _UsersPageState extends State<UsersPage> {
           child: SizedBox(
             height: height,
             child: Center(
-              child: Text(widget.lang!.dictionary["image"]!),
+              child: Text(widget.lang!.translate('image')),
             ),
           ),
         ),
@@ -584,7 +585,7 @@ class _UsersPageState extends State<UsersPage> {
                 });
               },
               child: Center(
-                child: Text(widget.lang!.dictionary["phone_number"]!),
+                child: Text(widget.lang!.translate('phone_number')),
               ),
             ),
           ),
@@ -608,7 +609,7 @@ class _UsersPageState extends State<UsersPage> {
                 });
               },
               child: Center(
-                child: Text(widget.lang!.dictionary["number_of_estates"]!),
+                child: Text(widget.lang!.translate('number_of_estates')),
               ),
             ),
           ),
@@ -632,7 +633,7 @@ class _UsersPageState extends State<UsersPage> {
                 });
               },
               child: Center(
-                child: Text(widget.lang!.dictionary["type"]!),
+                child: Text(widget.lang!.translate('type')),
               ),
             ),
           ),
@@ -656,7 +657,7 @@ class _UsersPageState extends State<UsersPage> {
                 });
               },
               child: Center(
-                child: Text(widget.lang!.dictionary["blocked"]!),
+                child: Text(widget.lang!.translate('blocked')),
               ),
             ),
           ),
@@ -680,7 +681,7 @@ class _UsersPageState extends State<UsersPage> {
                 });
               },
               child: Center(
-                child: Text(widget.lang!.dictionary["banned"]!),
+                child: Text(widget.lang!.translate('banned')),
               ),
             ),
           ),
@@ -879,8 +880,8 @@ class _UsersPageState extends State<UsersPage> {
                     height: height * 0.08,
                     child: Tooltip(
                       message: widget.customers[i] is Individual
-                          ? widget.lang!.dictionary["individual"]!
-                          : widget.lang!.dictionary["company"]!,
+                          ? widget.lang!.translate('individual')
+                          : widget.lang!.translate('company'),
                       child: Icon(
                         widget.customers[i] is Individual
                             ? Icons.person
@@ -1186,7 +1187,7 @@ class _UsersPageState extends State<UsersPage> {
     return Expanded(
       flex: 1,
       child: DropdownField(
-        labelText: widget.lang!.dictionary["users_per_page"]!,
+        labelText: widget.lang!.translate('users_per_page'),
         maxWidth: 200,
         callback: (int value) {
           setState(() {
