@@ -28,7 +28,7 @@ class EstateDetailsPage extends StatefulWidget {
   Estate estate;
   List<Category> categories = [];
 
-  Category newCategorory = Category();
+  Category newCategorory = Category(title: Map.from({"en": "", "de": "", "hr": ""}));
   int currentPage = 0;
   bool isNewEstate;
 
@@ -527,9 +527,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
   }
 
   Widget FABButtons(double cardSize, StateSetter setState) {
-    Widget leftButton, rightButton;
-
-    leftButton = Align(
+    Widget leftButton = Align(
       alignment: Alignment.bottomLeft,
       child: SizedBox(
         width: cardSize * 0.15,
@@ -556,7 +554,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       ),
     );
 
-    rightButton = Align(
+    Widget rightButton = Align(
       alignment: Alignment.centerRight,
       child: SizedBox(
         width: cardSize * 0.15,
@@ -783,7 +781,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     );
   }
 
-  Future<String> uploadNewSlideImage() async {
+  Future<String> uploadNewCategoryImage() async {
     FirebaseStorageService storage = FirebaseStorageService();
     await storage.uploadImageForCategory(
       widget.newCategorory,
@@ -1392,13 +1390,15 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     final double height = MediaQuery.of(context).size.height;
 
     if (widget.newCategorory.tmpImageBytes != null) {
-      widget.newCategorory.image = await uploadNewSlideImage();
+      widget.newCategorory.image = await uploadNewCategoryImage();
     }
 
     widget.newCategorory.estateId = widget.estate.id;
     Map<String, dynamic>? categoryMap = Category.toJSON(widget.newCategorory);
 
     if (categoryMap == null) return;
+
+    widget.newCategorory = Category(title: Map.from({"en": "", "de": "", "hr": ""}));
 
     Category? res = await CategoryRepository.createCategory(categoryMap);
     if (res != null) {
@@ -1444,7 +1444,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
   Future<void> saveChanges(double width, double height, int index) async {
     if (widget.categories[index].image.isEmpty && widget.categories[index].tmpImageBytes != null) {
-      widget.categories[index].image = await uploadNewSlideImage();
+      widget.categories[index].image = await uploadNewCategoryImage();
     }
 
     Map<String, dynamic>? categoryMap = Category.toJSON(widget.categories[index]);
