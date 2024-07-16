@@ -9,6 +9,7 @@ class Element {
   List<String> images;
   List<Map<String, dynamic>> links;
 
+  // Used to save locally and display an image before saving on Firebase
   List<String?> tmpDescriptionImageNames = [null];
   List<Uint8List?> tmpDescriptionImageBytes  = [null];
   List<String?> deletedImages = [];
@@ -37,40 +38,82 @@ class Element {
   static Element? toElement(Map<String, dynamic>? JSONElement) {
     if (JSONElement == null) return null;
 
-    Element newcard = Element();
-    newcard.id = JSONElement['id'] ?? "";
-    newcard.categoryId = JSONElement['categoryId'] ?? "";
-    newcard.background = JSONElement['background'] as String? ?? "";
+    Element newElement = Element();
+    newElement.id = JSONElement['id'] ?? "";
+    newElement.categoryId = JSONElement['categoryId'] ?? "";
+    newElement.background = JSONElement['background'] as String? ?? "";
 
-    JSONElement['title'].forEach((String key, dynamic value) {
-      newcard.title[key] =  value;
-    });
-
-    JSONElement['description'].forEach((String key, dynamic value) {
-      newcard.description[key] =  value;
-    });
-
-    newcard.links = [];
-    for (int i = 0; i < (JSONElement['links'] as List).length; ++i) {
-      Map<String, dynamic> currentLink = {};
-      currentLink['url'] = JSONElement['links'][i]['url'] as String;
-
-      currentLink['title'] = {};
-      JSONElement['links'][i]['title'].forEach((String key, dynamic value) {
-        currentLink['title'][key] = value;
+    if (JSONElement['title'] != null) {
+      JSONElement['title'].forEach((String key, dynamic value) {
+        newElement.title[key] = value;
       });
-
-      newcard.links.add(currentLink);
+    } else {
+      newElement.title = {
+        "en": "",
+        "de": "",
+        "hr": "",
+      };
     }
 
-    return newcard;
+    if (JSONElement['description'] != null) {
+      JSONElement['description'].forEach((String key, dynamic value) {
+        newElement.description[key] =  value;
+      });
+    } else {
+      newElement.description = {
+        "en": "",
+        "de": "",
+        "hr": "",
+      };
+    }
+
+    newElement.images = [];
+    if (JSONElement['images'] != null) {
+      for (int i = 0; i < (JSONElement['images'] as List).length; ++i) {
+        newElement.images.add(JSONElement['images'][i]);
+      }
+    }
+
+    newElement.links = [];
+    if (JSONElement['links'] != null) {
+      for (int i = 0; i < (JSONElement['links'] as List).length; ++i) {
+        Map<String, dynamic> currentLink = {
+          "url": "",
+          "title": {
+            "en": "",
+            "de": "",
+            "hr": "",
+          }
+        };
+        
+        currentLink['url'] = JSONElement['links'][i]['url'] as String;
+
+        currentLink['title'] = {};
+        JSONElement['links'][i]['title'].forEach((String key, dynamic value) {
+          currentLink['title'][key] = value;
+        });
+        newElement.links.add(currentLink);
+      }
+    }
+
+    while (newElement.links.length < 3) {
+      newElement.links.add(Map.from({
+        "url": "",
+        "title": {
+          "en": "",
+          "de": "",
+          "hr": "",
+        }
+      }));
+    }
+
+    return newElement;
   }
 
   static Map<String, dynamic>? toJSON(Element? card) {
     if (card == null) return null;
 
     return {
-      "id": card.id,
       "categoryId": card.categoryId,
       "title": card.title,
       "links": card.links,

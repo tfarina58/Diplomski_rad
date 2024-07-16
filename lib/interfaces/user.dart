@@ -70,7 +70,7 @@ abstract class User {
         usersPerPage: user['usersPerPage'] ?? 10,
         estatesPerPage: user['estatesPerPage'] ?? 5,
       );
-      res.companyName = user['email'] ?? "";
+      res.companyName = user['companyName'] ?? "";
       res.street = user['street'] ?? "";
       res.zip = user['zip'] ?? "";
       res.numOfEstates = user['numOfEstates'] ?? 0;

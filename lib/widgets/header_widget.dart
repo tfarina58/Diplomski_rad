@@ -9,6 +9,8 @@ import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
+import 'package:diplomski_rad/services/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HeaderComponent extends StatefulWidget implements PreferredSizeWidget {
   String currentPage;
@@ -197,24 +199,27 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                                   width,
                                                   height,
                                                   context,
-                                                  widget
-                                                      .headerValues["userId"]),
+                                                  widget.headerValues["userId"]),
                                         );
                                       },
                                       leading: const Icon(Icons.gavel),
-                                      title: Text(widget
-                                          .lang.translate('delete_account')),
+                                      title: Text(widget.lang.translate('delete_account')),
                                     ),
                                     ListTile(
                                       textColor: PalleteCommon.gradient2,
-                                      hoverColor: PalleteCommon.highlightColor
-                                          .withOpacity(0.35),
+                                      hoverColor: PalleteCommon.highlightColor.withOpacity(0.35),
                                       tileColor: PalleteCommon.backgroundColor,
-                                      onTap: () {
+                                      onTap: () async {
                                         // await GoogleAuthService.signOut();
 
-                                        Navigator.popUntil(
-                                            context, (route) => false);
+                                        SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+                                        await sharedPreferencesService.setUserId("");
+                                        await sharedPreferencesService.setTypeOfUser("");
+                                        await sharedPreferencesService.setLanguage("en");
+                                        await sharedPreferencesService.setKeepLoggedIn(false);
+                                        await sharedPreferencesService.setAvatarImage("");
+
+                                        Navigator.popUntil(context, (route) => false);
 
                                         Navigator.push(
                                           context,
@@ -308,8 +313,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
     );
   }
 
-  Widget deleteAccountDialog(
-      double width, double height, BuildContext context, String userId) {
+  Widget deleteAccountDialog(double width, double height, BuildContext context, String userId) {
     if (userId.isEmpty) return const Text("Missing user ID");
     String password = "";
 

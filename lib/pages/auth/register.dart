@@ -13,16 +13,16 @@ import 'package:diplomski_rad/services/shared_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterPage extends StatefulWidget {
-  String firstname = "Toni";
-  String lastname = "Farina";
+  String firstname = "Sandi";
+  String lastname = "Ljubić";
   DateTime birthday = DateTime.now();
 
-  String ownerFirstname = "Toni";
-  String ownerLastname = "Farina";
-  String companyName = "Farina Inc.";
+  String ownerFirstname = "Sandi";
+  String ownerLastname = "Ljubić";
+  String companyName = "Ljubić Ltd.";
 
-  String typeOfUser = "ind";
-  String email = "tfarina58@gmail.com";
+  String typeOfUser = "com";
+  String email = "sandi.ljubic@gmail.com";
   String password = "password";
   String repeatPassword = "password";
   bool keepLoggedIn = false;
@@ -146,9 +146,8 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 20),
               GradientButton(
                   buttonText: widget.lang.translate('sign_up'),
-                  callback: () {
-                    signUp(width, height);
-                  }),
+                  callback: () => signUp(width, height),
+              ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -220,8 +219,8 @@ class _RegisterPageState extends State<RegisterPage> {
         "phone": "",
         "street": "",
         "zip": "",
-        "ownerFirstname": widget.firstname,
-        "ownerLastname": widget.lastname,
+        "ownerFirstname": widget.ownerFirstname,
+        "ownerLastname": widget.ownerLastname,
         "companyName": widget.companyName,
         "email": widget.email,
         "typeOfUser": widget.typeOfUser,
@@ -240,7 +239,15 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+    await sharedPreferencesService.setUserId(user.id);
+    if (user is Individual) {
+      await sharedPreferencesService.setTypeOfUser("ind");
+    } else if (user is Company) {
+      await sharedPreferencesService.setTypeOfUser("com");
+    }
+    await sharedPreferencesService.setLanguage(user.preferences.language.isNotEmpty ? user.preferences.language : "en");
     await sharedPreferencesService.setKeepLoggedIn(widget.keepLoggedIn);
+    await sharedPreferencesService.setAvatarImage(user is Customer ? user.avatarImage : "");
     
     showSnackBar(width, height, widget.lang.translate('account_successfully_created'));
     toHomePage();

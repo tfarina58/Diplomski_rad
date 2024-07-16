@@ -166,6 +166,7 @@ class LanguageService {
           "top-right": "Top right",
           "center": "Center",
           "links": "Links",
+          "link": "Link",
           "links_text": "Links text",
           "links_url": "Links url",
           "background": "Background",
@@ -190,6 +191,7 @@ class LanguageService {
           "cant_obtain_estates": "There was an error while trying to obtain your estates. Please try again later.",
           "cant_obtain_categories": "There was an error while trying to obtain your categories. Please try again later.",
           "cant_obtain_elements": "There was an error while trying to obtain your elements. Please try again later.",
+          "must_save_or_cancel_changes": "Before leaving to another element, you must save or cancel all the changes.",
         };
         return jsonEN;
       case "de":
@@ -344,6 +346,7 @@ class LanguageService {
           "top-right": "Oben rechts",
           "center": "Center",
           "links": "Links",
+          "link": "Link",
           "links_text": "Linktext",
           "links_url": "Link-URL",
           "background": "Hintergrund",
@@ -368,6 +371,7 @@ class LanguageService {
           "cant_obtain_estates": "Beim Versuch, Ihre Nachlässe zu erhalten, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
           "cant_obtain_categories": "Beim Versuch, Ihre Kategorien abzurufen, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
           "cant_obtain_elements": "Beim Versuch, Ihre Elemente abzurufen, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
+          "must_save_or_cancel_changes": "Bevor Sie zu einem anderen Element wechseln, müssen Sie alle Änderungen speichern oder verwerfen.",
         };
         return jsonDE;
       case "hr":
@@ -518,6 +522,7 @@ class LanguageService {
           "top-right": "Gore desno",
           "center": "Sredina",
           "links": "Poveznice",
+          "link": "Poveznica",
           "links_text": "Tekst poveznice",
           "links_url": "URL poveznice",
           "background": "Pozadina",
@@ -542,6 +547,7 @@ class LanguageService {
           "cant_obtain_estates": "Došlo je do pogreške prilikom pokušaja dobivanja vaših nekretnina. Molimo pokušajte ponovo kasnije.",
           "cant_obtain_categories": "Došlo je do pogreške prilikom pokušaja dobivanja vaših kategorija. Molimo pokušajte ponovo kasnije.",
           "cant_obtain_elements": "Došlo je do pogreške prilikom pokušaja dobivanja vaših elemenata. Molimo pokušajte ponovo kasnije.",
+          "must_save_or_cancel_changes": "Prije odlaska na drugi element morate spremiti ili poništiti sve promjene.",
         };
         return jsonHR;
     }

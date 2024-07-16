@@ -86,35 +86,37 @@ class FirebaseStorageService {
     }
   }
   
-  Future<List<String>> deleteOldImagesForElement(String elementId, List<dynamic> toRemoveUrl) async {
-    List<String> nonRemoved = [];
-    for (int i = 0; i < toRemoveUrl.length; ++i) {
-      try {
-        String name = extractFileName(toRemoveUrl[i]);
-        final Reference folder = storage.child("$elementId/$name");
-        await folder.delete();
-      } catch (err) {
-        nonRemoved.add(toRemoveUrl[i]);
-      }
+  Future<void> deleteOldImagesForElement(String elementId, dynamic toRemoveUrl) async {
+    if (elementId.isEmpty || toRemoveUrl.isEmpty) return;
+
+    try {
+      String name = extractFileName(toRemoveUrl);
+      final Reference folder = storage.child("$elementId/$name");
+      await folder.delete();
+    } catch (err) {
+      return;
     }
-    return nonRemoved;
+    return;
   }
 
-  Future<List<String>> uploadNewImagesForElement(String elementId, List<dynamic> toUploadNames, List<Uint8List?> toUploadBytes) async {
-    List<String> newImages = [];
-    for (int i = 0; i < toUploadBytes.length; ++i) {
-      if (toUploadBytes[i] == null) continue;
-      try {
-        final Reference folder = storage.child("$elementId/${toUploadNames[i]}");
-        await folder.putData(toUploadBytes[i]!).whenComplete(() async {
-          String url = await folder.getDownloadURL();
-          newImages.add(url);
-        });
-      } catch (err) {
-        // TODO
-      }
+  Future<void> uploadNewImageForElement(String elementId, dynamic toUploadName, Uint8List? toUploadBytes, List<String> images) async {
+    if (toUploadBytes == null) return;
+
+    try {
+      final Reference folder = storage.child("$elementId/$toUploadName");
+      await folder.putData(toUploadBytes).whenComplete(() async {
+        String url = await folder.getDownloadURL();
+
+        images.add(url);
+
+        Map<String, dynamic> updateObject = {"images": images};
+
+        bool success = await ElementRepository.updateElement(elementId, updateObject);
+        // TODO: give feedback
+      });
+    } catch (err) {
+      return;
     }
-    return newImages;
   }
 
 
@@ -175,8 +177,29 @@ class FirebaseStorageService {
     }
   }
 
+  // TODO: comment
+  Future<void> deleteImagesForElement(String id, String url, List<String> images) async {
+    String name = extractFileName(url);
+
+    int index = images.indexWhere((element) => element == url);
+    if (index == -1) return;
+
+    images = [...images.sublist(0, index), ...images.sublist(index + 1, images.length)];
+
+    try {
+      bool success = await ElementRepository.updateElement(id, {"images": images});
+      if (success) {
+        final Reference folder = storage.child("$id/$name");
+        await folder.delete();
+        // TODO: give feedback
+      }
+    } catch (err) {
+      return;
+    }
+  }
+
     // TODO: comment
-  Future<void> deleteImageForElement(String id, String url) async {
+  Future<void> deleteBackgroundForElement(String id, String url) async {
     String name = extractFileName(url);
     Map<String, dynamic> updateObject = {
       "background": ""

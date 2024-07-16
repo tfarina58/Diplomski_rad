@@ -781,18 +781,32 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     );
   }
 
-  Future<String> uploadNewCategoryImage() async {
+  Future<String> uploadCategoryImage({int index = -1}) async {
     FirebaseStorageService storage = FirebaseStorageService();
-    await storage.uploadImageForCategory(
-      widget.newCategorory,
-      widget.newCategorory.tmpImageName!,
-      widget.newCategorory.tmpImageBytes!
-    );
-    
-    return await storage.downloadImage(
-      widget.newCategorory.id,
-      widget.newCategorory.tmpImageName!,
-    );
+    if (index == -1) {
+      await storage.uploadImageForCategory(
+        widget.newCategorory,
+        widget.newCategorory.tmpImageName!,
+        widget.newCategorory.tmpImageBytes!
+      );
+      
+      return await storage.downloadImage(
+        widget.newCategorory.id,
+        widget.newCategorory.tmpImageName!,
+      );
+    } else {
+      await storage.uploadImageForCategory(
+        widget.categories[index],
+        widget.categories[index].tmpImageName!,
+        widget.categories[index].tmpImageBytes!
+      );
+      
+      return await storage.downloadImage(
+        widget.categories[index].id,
+        widget.categories[index].tmpImageName!,
+      );
+    }
+
   }
 
    Widget showCategoriesInformation(double width, double height) {
@@ -1390,7 +1404,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     final double height = MediaQuery.of(context).size.height;
 
     if (widget.newCategorory.tmpImageBytes != null) {
-      widget.newCategorory.image = await uploadNewCategoryImage();
+      widget.newCategorory.image = await uploadCategoryImage();
     }
 
     widget.newCategorory.estateId = widget.estate.id;
@@ -1444,7 +1458,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
   Future<void> saveChanges(double width, double height, int index) async {
     if (widget.categories[index].image.isEmpty && widget.categories[index].tmpImageBytes != null) {
-      widget.categories[index].image = await uploadNewCategoryImage();
+      widget.categories[index].image = await uploadCategoryImage(index: index);
     }
 
     Map<String, dynamic>? categoryMap = Category.toJSON(widget.categories[index]);

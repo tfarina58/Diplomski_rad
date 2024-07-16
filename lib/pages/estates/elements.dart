@@ -23,9 +23,10 @@ class ElementsPage extends StatefulWidget {
   String? userId;
   Category category;
   LanguageService? lang;
+  FirebaseStorageService? storage;
   Map<String, dynamic> headerValues = {};
   List<local.Element> elements;
-  int index = 0;
+  int elementIndex = 0;
   int currentImage = 0;
 
   ElementsPage({
@@ -98,16 +99,21 @@ class _ElementsPageState extends State<ElementsPage> {
       
                     tmpElement.add(tmp!);
                   }).toList();
+
+                  // This way user can add a new element
+                  tmp = local.Element.toElement({});
+                  tmpElement.add(tmp!);
       
                   widget.elements = tmpElement;
       
-                  if (widget.elements.isEmpty) {
+                  if (widget.category.id.isEmpty) {
                     return Center(child: Text(widget.lang!.translate('no_elements')));
                   }
       
                   return StatefulBuilder(
                     builder: (BuildContext context, StateSetter setState) {
                       return Column(
+                        key: ValueKey(widget.elements[widget.elementIndex]),
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -119,16 +125,39 @@ class _ElementsPageState extends State<ElementsPage> {
                             callback: () {},
                           ),
                           SizedBox(height: height * 0.1),
+
+                          showSectionTitle(widget.lang!.translate('titles'), 22, Colors.white),
+                          SizedBox(height: height * 0.04),
                           ...getTitleRow(height, setState),
                           SizedBox(height: height * 0.04),
-                          ...getLinksRow(height, setState),
+
+                          for (int i = 0; i < 3; ++i) ...[
+                            showSectionTitle("${widget.lang!.translate('links')} ${i + 1}", 22, Colors.white),
+                            SizedBox(height: height * 0.04),
+                            ...getLinksRow(width, height, i, setState),
+                            SizedBox(height: height * 0.08),
+                          ],
+
+                          showSectionTitle(widget.lang!.translate('description'), 22, Colors.white),
                           SizedBox(height: height * 0.04),
                           ...getDescriptionRow(width, height, cardSize, setState),
                           SizedBox(height: height * 0.04),
-                          ...getBackgroundRow(width, height, setState),
+
+                          if (widget.elementIndex != widget.elements.length - 1) ...[
+                            showSectionTitle(widget.lang!.translate('background'), 22, Colors.white),
+                            SizedBox(height: height * 0.04),
+                            getBackgroundRow(width, height, setState),
+                            SizedBox(height: height * 0.04),
+
+                            showSectionTitle(widget.lang!.translate('images'), 22, Colors.white),
+                            SizedBox(height: height * 0.04),
+                            getImages(width, height, cardSize, setState),
+                            SizedBox(height: height * 0.04),
+                          ],
+
+                          getPagination(width, height, setState),
                           SizedBox(height: height * 0.04),
-                          getPagination(width, height),
-                          SizedBox(height: height * 0.04),
+
                           optionButtons(width, height),
                         ],
                       );
@@ -149,32 +178,13 @@ class _ElementsPageState extends State<ElementsPage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(
-            child: Center(
-              child: Text(
-                widget.lang!.translate('titles'),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const Expanded(flex: 2, child: SizedBox()),
-        ],
-      ),
-      SizedBox(height: height * 0.04),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
           const Expanded(flex: 1, child: SizedBox()),
           Expanded(
             flex: 3,
             child: StringField(
               labelText: widget.lang!.translate('title_en'),
-              callback: (value) => widget.elements[widget.index].title['en'] = value,
-              presetText: widget.elements[widget.index].title['en']!,
+              callback: (value) => widget.elements[widget.elementIndex].title['en'] = value,
+              presetText: widget.elements[widget.elementIndex].title['en']!,
             ),
           ),
           const Expanded(flex: 1, child: SizedBox()),
@@ -182,8 +192,8 @@ class _ElementsPageState extends State<ElementsPage> {
             flex: 3,
             child: StringField(
               labelText: widget.lang!.translate('title_de'),
-              callback: (value) => widget.elements[widget.index].title['de'] = value,
-              presetText: widget.elements[widget.index].title['de']!,
+              callback: (value) => widget.elements[widget.elementIndex].title['de'] = value,
+              presetText: widget.elements[widget.elementIndex].title['de']!,
             ),
           ),
           const Expanded(flex: 1, child: SizedBox()),
@@ -191,8 +201,8 @@ class _ElementsPageState extends State<ElementsPage> {
             flex: 3,
             child: StringField(
               labelText: widget.lang!.translate('title_hr'),
-              callback: (value) => widget.elements[widget.index].title['hr'] = value,
-              presetText: widget.elements[widget.index].title['hr']!,
+              callback: (value) => widget.elements[widget.elementIndex].title['hr'] = value,
+              presetText: widget.elements[widget.elementIndex].title['hr']!,
             ),
           ),
           const Expanded(flex: 1, child: SizedBox()),
@@ -202,341 +212,190 @@ class _ElementsPageState extends State<ElementsPage> {
     ];
   }
 
-  List<Widget> getLinksRow(double height, StateSetter setState) {
+
+  List<Widget> getLinksRow(double width, double height, int index, StateSetter setState) {
     return [
-      Row(
+      Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(
-            child: Center(
-              child: Text(
-                widget.lang!.translate('links'),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Expanded(child: SizedBox()),
+              Expanded(
+                flex: 3,
+                child: StringField(
+                  labelText: widget.lang!.translate('title_en'),
+                  callback: (value) => widget.elements[widget.elementIndex].links[index]['title']['en'] = value,
+                  presetText: widget.elements[widget.elementIndex].links[index]['title']['en'],
                 ),
               ),
-            ),
+              const Expanded(child: SizedBox()),
+              Expanded(
+                flex: 3,
+                child: StringField(
+                  labelText: widget.lang!.translate('title_de'),
+                  callback: (value) => widget.elements[widget.elementIndex].links[index]['title']['de'] = value,
+                  presetText: widget.elements[widget.elementIndex].links[index]['title']['de'],
+                ),
+              ),
+              const Expanded(child: SizedBox()),
+              Expanded(
+                flex: 3,
+                child: StringField(
+                  labelText: widget.lang!.translate('title_hr'),
+                  callback: (value) => widget.elements[widget.elementIndex].links[index]['title']['hr'] = value,
+                  presetText: widget.elements[widget.elementIndex].links[index]['title']['hr'],
+                ),
+              ),
+              const Expanded(child: SizedBox()),
+            ],
           ),
-          const Expanded(flex: 2, child: SizedBox(),),
+          SizedBox(height: height * 0.04),
+          StringField(
+            maxWidth: width * 0.82,
+            labelText: widget.lang!.translate('links_url'),
+            callback: (value) => widget.elements[widget.elementIndex].links[index]['url'] = value,
+            presetText: widget.elements[widget.elementIndex].links[index]['url'],
+          ),
         ],
-      ),
-      SizedBox(height: height * 0.04,),
-
-      for (int i = 0; i < widget.elements[widget.index].links.length; ++i) ...[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Expanded(child: SizedBox(),),
-            Expanded(
-              flex: 3,
-              child: StringField(
-                labelText: widget.lang!.translate('links_text'),
-                callback: (value) => widget.elements[widget.index].links[i]['title'][widget.lang!.language] = value,
-                presetText: widget.elements[widget.index].links[i]['title'][widget.lang!.language],
-              ),
-            ),
-            const Expanded(flex: 2, child: SizedBox(),),
-            Expanded(
-              flex: 3,
-              child: StringField(
-                labelText: widget.lang!.translate('links_url'),
-                callback: (value) => widget.elements[widget.index].links[i]['url'] = value,
-                presetText: widget.elements[widget.index].links[i]['url'],
-              ),
-            ),
-            const Expanded(child: SizedBox(),),
-          ],
-        ),
-        SizedBox(height: height * 0.04,),
-      ],
+      )
     ];
   }
 
-  List<Widget> getBackgroundRow(double width, double height, StateSetter setState) {
-    return [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
+
+  Widget getBackgroundRow(double width, double height, StateSetter setState) {
+    if (widget.elements[widget.elementIndex].background.isNotEmpty) {
+      // Showing image from Firebase
+      return Stack(
+        alignment: AlignmentDirectional.topCenter,
         children: [
-          Expanded(
-            child: Center(
-              child: Text(
-                widget.lang!.translate('background'),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 50),
+              width: width * 0.5,
+              height: height * 0.5,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  scale: 0.01,
+                  fit: BoxFit.fitWidth,
+                  image: Image.network(widget.elements[widget.elementIndex].background).image,
                 ),
               ),
             ),
           ),
-          const Expanded(flex: 2, child: SizedBox(),),
+
+          // Delete image
+          SizedBox(
+            width: width * 0.5,
+            height: height * 0.5,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    widget.elements[widget.elementIndex].background = "";
+                  });
+                },
+                child: const Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: Icon(Icons.close, color: Colors.red),
+                ),
+              ),
+            ),
+          ),
         ],
-      ),
-      SizedBox(height: height * 0.04,),
-
-      if (widget.elements[widget.index].background.isNotEmpty)
-        // Showing image from Firebase
-        if (!widget.elements[widget.index].background.contains("#"))
-          Stack(
-            alignment: AlignmentDirectional.topCenter,
-            children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 50),
-                  width: width * 0.5,
-                  height: height * 0.5,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      scale: 0.01,
-                      fit: BoxFit.fitWidth,
-                      image: Image.network(widget.elements[widget.index].background).image,
-                    ),
-                  ),
+      );
+    } else if (widget.elements[widget.elementIndex].tmpBackgroundBytes != null) {
+      // Showing locally obtained image
+      return Stack(
+        alignment: AlignmentDirectional.topCenter,
+        children: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 50),
+              width: width * 0.5,
+              height: height * 0.5,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  scale: 0.01,
+                  fit: BoxFit.fitWidth,
+                  image: Image.memory(widget.elements[widget.elementIndex].tmpBackgroundBytes!).image,
                 ),
               ),
+            ),
+          ),
 
-              // Delete image
-              SizedBox(
-                width: width * 0.5,
-                height: height * 0.5,
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        widget.elements[widget.index].background = "";
-                      });
-                    },
-                    child: const Align(
-                      alignment: AlignmentDirectional.topEnd,
-                      child: Icon(Icons.close, color: Colors.red),
-                    ),
-                  ),
+          // Delete image
+          SizedBox(
+            width: width * 0.5,
+            height: height * 0.5,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    widget.elements[widget.elementIndex].tmpBackgroundBytes = null;
+                    widget.elements[widget.elementIndex].tmpBackgroundName = "";
+                  });
+                },
+                child: const Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: Icon(Icons.close, color: Colors.red),
                 ),
               ),
-            ],
-          )
-        else Text('TODO') // TODO 
-          
-      else if (widget.elements[widget.index].tmpBackgroundBytes != null)
+            ),
+          ),
+        ],
+      );
+    } else {
+      // No image to show
+      return DropzoneWidget(
+        width: width * 0.4,
+        height: height * 0.4,
+        lang: widget.lang!,
+        onDroppedFile: (Map<String, dynamic>? file) {
+          if (file == null) return;
 
-        // Showing locally obtained image
-        if (!widget.elements[widget.index].tmpBackgroundName!.contains("#"))
-          Stack(
-            alignment: AlignmentDirectional.topCenter,
-            children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 50),
-                  width: width * 0.5,
-                  height: height * 0.5,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      scale: 0.01,
-                      fit: BoxFit.fitWidth,
-                      image: Image.memory(widget.elements[widget.index].tmpBackgroundBytes!).image,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Delete image
-              SizedBox(
-                width: width * 0.5,
-                height: height * 0.5,
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        widget.elements[widget.index].tmpBackgroundBytes = null;
-                        widget.elements[widget.index].tmpBackgroundName = "";
-                      });
-                    },
-                    child: const Align(
-                      alignment: AlignmentDirectional.topEnd,
-                      child: Icon(Icons.close, color: Colors.red),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          )
-        else Text('TODO')// TODO 
-      else
-        // No image to show
-        DropzoneWidget(
-          width: width * 0.4,
-          height: height * 0.4,
-          lang: widget.lang!,
-          onDroppedFile: (Map<String, dynamic>? file) {
-            if (file == null) return;
-
-            setState(() {
-              widget.elements[widget.index].tmpBackgroundName = file['name'];
-              widget.elements[widget.index].tmpBackgroundBytes = file['bytes'];
-            });
-          },
-        ),
-    ];
+          setState(() {
+            widget.elements[widget.elementIndex].tmpBackgroundName = file['name'];
+            widget.elements[widget.elementIndex].tmpBackgroundBytes = file['bytes'];
+          });
+        },
+      );
+    }
   }
 
-  List<Widget> getDescriptionRow(double width, double height, double cardSize, StateSetter setState) {
+List<Widget> getDescriptionRow(double width, double height, double cardSize, StateSetter setState) {
     return [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Center(
-              child: Text(
-                widget.lang!.translate('description'),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const Expanded(flex: 2, child: SizedBox(),),
-        ],
-      ),
-      SizedBox(height: height * 0.04,),
-      Center(
-        child: StringField(
-          labelText: widget.lang!.translate('description_text'),
-          callback: (value) => widget.elements[widget.index].description[widget.lang!.language] = value,
-          presetText: widget.elements[widget.index].description[widget.lang!.language]!,
-          multiline: 20,
-          maxWidth: width * 0.8,
-        )
+      StringField(
+        labelText: widget.lang!.translate('description_en'),
+        callback: (value) => widget.elements[widget.elementIndex].description['en'] = value,
+        presetText: widget.elements[widget.elementIndex].description['en']!,
+        multiline: 20,
+        maxWidth: width * 0.8,
       ),
       SizedBox(height: height * 0.04),
-      Container(
-        height: height * 0.7,
-        width: width * 0.7,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            PageView(
-              scrollBehavior: const MaterialScrollBehavior(),
-              controller: controller,
-              scrollDirection: Axis.horizontal,
-              children: [
-                for (int i = 0; i < widget.elements[widget.index].images.length; ++i)
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 50),
-                          width: width * 0.5,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              scale: 0.01,
-                              fit: BoxFit.fitWidth,
-                              image: Image.network(widget.elements[widget.index].images[i]).image,
-                            ),
-                          ),
-                        ),
-                      ),
-          
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
-                        child: SizedBox(
-                          width: width * 0.5,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () {
-                                print(widget.elements[widget.index].images[i]);
-                                setState(() {
-                                  (widget.elements[widget.index].deletedImages).add(widget.elements[widget.index].images[i]);
-                                  widget.elements[widget.index].images.removeAt(i);
-                                });
-                              },
-                              child: const Align(
-                                alignment: AlignmentDirectional.topEnd,
-                                child: Icon(Icons.close, color: Colors.red),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                for (int i = 0; i < widget.elements[widget.index].tmpDescriptionImageNames.length; ++i)
-                  if (widget.elements[widget.index].tmpDescriptionImageNames[i] != null)
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 50),
-                            width: width * 0.5,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                scale: 0.01,
-                                fit: BoxFit.fitWidth,
-                                image: Image.memory(widget.elements[widget.index].tmpDescriptionImageBytes[i]!).image,
-                              ),
-                            ),
-                          ),
-                        ),
-            
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
-                          child: SizedBox(
-                            width: width * 0.5,
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    widget.elements[widget.index].tmpDescriptionImageNames.removeAt(i);
-                                  });
-                                },
-                                child: const Align(
-                                  alignment: AlignmentDirectional.topEnd,
-                                  child: Icon(Icons.close, color: Colors.red),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    DropzoneWidget(
-                      width: width * 0.4,
-                      height: height * 0.4,
-                      onDroppedFile: (Map<String, dynamic>? file) {
-                        if (file == null) return;
-
-                        setState(() {
-                          widget.elements[widget.index].tmpDescriptionImageNames[i] = file['name'];
-                          widget.elements[widget.index].tmpDescriptionImageBytes[i] = file['bytes'];
-
-                          widget.elements[widget.index].tmpDescriptionImageNames.add(null);
-                          widget.elements[widget.index].tmpDescriptionImageBytes.add(null);
-                        });
-                      },
-                      lang: widget.lang!
-                    ),
-              ],
-            ),
-            FABButtons(cardSize, setState),
-          ],
-        ),
+      StringField(
+        labelText: widget.lang!.translate('description_de'),
+        callback: (value) => widget.elements[widget.elementIndex].description['de'] = value,
+        presetText: widget.elements[widget.elementIndex].description['de']!,
+        multiline: 20,
+        maxWidth: width * 0.8,
+      ),
+      SizedBox(height: height * 0.04),
+      StringField(
+        labelText: widget.lang!.translate('description_hr'),
+        callback: (value) => widget.elements[widget.elementIndex].description['hr'] = value,
+        presetText: widget.elements[widget.elementIndex].description['hr']!,
+        multiline: 20,
+        maxWidth: width * 0.8,
       ),
     ];
   }
+
 
   Widget FABButtons(double cardSize, StateSetter setState) {
     Widget leftButton, rightButton;
@@ -559,8 +418,8 @@ class _ElementsPageState extends State<ElementsPage> {
                 curve: Curves.linear,
               );
             },
-            style: ButtonStyle(
-              backgroundColor: MaterialStatePropertyAll(PalleteHint.gradient3),
+            style: const ButtonStyle(
+              backgroundColor: MaterialStatePropertyAll(PalleteCommon.gradient3),
             ),
             child: const Icon(
               Icons.arrow_back,
@@ -580,7 +439,7 @@ class _ElementsPageState extends State<ElementsPage> {
       );
     }
 
-    if (widget.currentImage < widget.elements[widget.index].images.length + widget.elements[widget.index].tmpDescriptionImageBytes.length) {
+    if (widget.currentImage < widget.elements[widget.elementIndex].images.length + widget.elements[widget.elementIndex].tmpDescriptionImageBytes.length) {
       rightButton = Align(
         alignment: Alignment.centerRight,
         child: SizedBox(
@@ -588,7 +447,7 @@ class _ElementsPageState extends State<ElementsPage> {
           height: cardSize * 0.15,
           child: ElevatedButton(
             onPressed: () {
-              if (widget.currentImage >= widget.elements[widget.index].images.length + widget.elements[widget.index].tmpDescriptionImageBytes.length) return;
+              if (widget.currentImage >= widget.elements[widget.elementIndex].images.length + widget.elements[widget.elementIndex].tmpDescriptionImageBytes.length) return;
               setState(() {
                 widget.currentImage += 1;
               });
@@ -598,8 +457,8 @@ class _ElementsPageState extends State<ElementsPage> {
                 curve: Curves.linear,
               );
             },
-            style: ButtonStyle(
-              backgroundColor: MaterialStatePropertyAll(PalleteHint.gradient3),
+            style: const ButtonStyle(
+              backgroundColor: MaterialStatePropertyAll(PalleteCommon.gradient3),
             ),
             child: const Icon(
               Icons.arrow_forward,
@@ -630,10 +489,10 @@ class _ElementsPageState extends State<ElementsPage> {
     );
   }
 
-  Widget getPagination(double width, double height) {
+  Widget getPagination(double width, double height, StateSetter setState) {
     List<Widget> res = [];
 
-    if (widget.elements.isEmpty) {
+    if (widget.elements.length <= 1) {
       return const Expanded(
         child: SizedBox(),
       );
@@ -644,8 +503,15 @@ class _ElementsPageState extends State<ElementsPage> {
         child: InkWell(
           onTap: () {
             setState(() {
-              widget.index = 0;
+              widget.elementIndex = 0;
+              widget.currentImage = 0;
             });
+
+            controller.animateToPage(
+              widget.currentImage,
+              duration: const Duration(milliseconds: 0),
+              curve: Curves.linear,
+            );
           },
           child: SizedBox(
             height: height * 0.07,
@@ -653,7 +519,7 @@ class _ElementsPageState extends State<ElementsPage> {
               child: Text(
                 "1",
                 style: TextStyle(
-                  color: widget.index == 0 ? PalleteCommon.gradient2 : Colors.white,
+                  color: widget.elementIndex == 0 ? PalleteCommon.gradient2 : Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -664,14 +530,21 @@ class _ElementsPageState extends State<ElementsPage> {
         ),
       ),
     );
-    if (widget.index >= 1) {
+    if (widget.elementIndex >= 1) {
       res.add(
         Expanded(
           child: InkWell(
             onTap: () {
               setState(() {
-                widget.index = widget.index - 1;
+                widget.elementIndex = widget.elementIndex - 1;
+                widget.currentImage = 0;
               });
+
+              controller.animateToPage(
+                widget.currentImage,
+                duration: const Duration(milliseconds: 0),
+                curve: Curves.linear,
+              );
             },
             child: SizedBox(
               height: height * 0.07,
@@ -687,7 +560,7 @@ class _ElementsPageState extends State<ElementsPage> {
         ),
       );
     }
-    if (widget.index != 0 && widget.index != widget.elements.length) {
+    if (widget.elementIndex != 0 && widget.elementIndex != widget.elements.length - 1) {
       res.add(
         Expanded(
           flex: 1,
@@ -697,7 +570,7 @@ class _ElementsPageState extends State<ElementsPage> {
               height: width * 0.04,
               child: Center(
                 child: Text(
-                  (widget.index + 1).toString(),
+                  (widget.elementIndex + 1).toString(),
                   style: const TextStyle(
                     color: PalleteCommon.gradient2,
                     fontSize: 22,
@@ -711,15 +584,22 @@ class _ElementsPageState extends State<ElementsPage> {
         ),
       );
     }
-    if (widget.index <= widget.elements.length - 1) {
+    if (widget.elementIndex <= widget.elements.length - 2) {
       res.add(
         Expanded(
           flex: 1,
           child: InkWell(
             onTap: () {
               setState(() {
-                widget.index = widget.index + 1;
+                widget.elementIndex = widget.elementIndex + 1;
+                widget.currentImage = 0;
               });
+              
+              controller.animateToPage(
+                widget.currentImage,
+                duration: const Duration(milliseconds: 0),
+                curve: Curves.linear,
+              );
             },
             child: SizedBox(
               height: width * 0.04,
@@ -741,16 +621,23 @@ class _ElementsPageState extends State<ElementsPage> {
         child: InkWell(
           onTap: () {
             setState(() {
-              widget.index = widget.elements.length;
+              widget.elementIndex = widget.elements.length - 1;
+              widget.currentImage = 0;
             });
+            
+            controller.animateToPage(
+              widget.currentImage,
+              duration: const Duration(milliseconds: 0),
+              curve: Curves.linear,
+            );
           },
           child: SizedBox(
             height: width * 0.04,
             child: Center(
               child: Text(
-                (widget.elements.length + 1).toString(),
+                (widget.elements.length).toString(),
                 style: TextStyle(
-                  color: widget.index == widget.elements.length - 1 ? PalleteCommon.gradient2 : Colors.white,
+                  color: widget.elementIndex == widget.elements.length - 1 ? PalleteCommon.gradient2 : Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -772,56 +659,89 @@ class _ElementsPageState extends State<ElementsPage> {
     );
   }
 
-  List<Widget> getImages(double width, double height, int index, StateSetter setState) {
-    List<Widget> images = [];
-    for (int i = 0; i < widget.elements[index].images.length; ++i) {
-      images.add(
-        Stack(
-          alignment: AlignmentDirectional.topCenter,
-          children: [
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 50),
+  Widget getImages(double width, double height, double cardSize, StateSetter setState) {
+    return SizedBox(
+      height: height * 0.7,
+      width: width * 0.7,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          PageView(
+            scrollBehavior: const MaterialScrollBehavior(),
+            controller: controller,
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (int i = 0; i < widget.elements[widget.elementIndex].images.length; ++i)
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 50),
+                        width: width * 0.5,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            scale: 0.01,
+                            fit: BoxFit.fitWidth,
+                            image: Image.network(widget.elements[widget.elementIndex].images[i]).image,
+                          ),
+                        ),
+                      ),
+                    ),
+        
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
+                      child: SizedBox(
+                        width: width * 0.5,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () async {
+                              await widget.storage!.deleteImagesForElement(
+                                widget.elements[widget.elementIndex].id,
+                                widget.elements[widget.elementIndex].images[widget.currentImage],
+                                widget.elements[widget.elementIndex].images
+                              );
+
+                              // print(widget.elements[widget.elementIndex].images[i]);
+                              /*setState(() {
+                                (widget.elements[widget.elementIndex].deletedImages).add(widget.elements[widget.elementIndex].images[i]);
+                                widget.elements[widget.elementIndex].images.removeAt(i);
+                              });*/
+                            },
+                            child: const Align(
+                              alignment: AlignmentDirectional.topEnd,
+                              child: Icon(Icons.close, color: Colors.red),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              DropzoneWidget(
                 width: width * 0.4,
                 height: height * 0.4,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    scale: 0.01,
-                    fit: BoxFit.fitWidth,
-                    image: Image.network(widget.elements[index].images[i]).image,
-                  ),
-                ),
-              ),
-            ),
+                onDroppedFile: (Map<String, dynamic>? file) async {
+                  if (file == null) return;
 
-            // Delete image
-            SizedBox(
-              width: width * 0.4,
-              height: height * 0.4,
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      (widget.elements[index].description['images'] as List).removeAt(i);
-                    });
-                  },
-                  child: const Align(
-                    alignment: AlignmentDirectional.topEnd,
-                    child: Icon(
-                      Icons.close,
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
+                  await widget.storage!.uploadNewImageForElement(
+                    widget.elements[widget.elementIndex].id,
+                    file['name'],
+                    file['bytes'],
+                    widget.elements[widget.elementIndex].images
+                  );
+                },
+                lang: widget.lang!
               ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return images;
+            ],
+          ),
+          FABButtons(cardSize, setState),
+        ],
+      ),
+    );
   }
 
   @override
@@ -840,8 +760,10 @@ class _ElementsPageState extends State<ElementsPage> {
       if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
+      FirebaseStorageService storage = FirebaseStorageService();
 
       setState(() {
+        widget.storage = storage;
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
         widget.headerValues["userId"] = tmpUserId;
@@ -861,7 +783,7 @@ class _ElementsPageState extends State<ElementsPage> {
           flex: 3,
           child: GradientButton(
             buttonText: widget.lang!.translate('save_changes'),
-            callback: updateElements,
+            callback: widget.elements[widget.elementIndex].id.isEmpty ? createElement : updateElement,
           ),
         ),
         const Expanded(flex: 2, child: SizedBox()),
@@ -953,44 +875,27 @@ class _ElementsPageState extends State<ElementsPage> {
     );
   }
 
-  void updateElements(/*double width, double height*/) async {
-    FirebaseStorageService storage = FirebaseStorageService();
-    List<String> imageURLs = [];
-    for (int i = 0; i < widget.elements.length; ++i) {
-      imageURLs = widget.elements[i].images;
+  void createElement() async {
+    Map<String, dynamic>? elementMap = local.Element.toJSON(widget.elements[widget.elementIndex]);
+    if (elementMap == null) return null;
 
-      if ((widget.elements[i].deletedImages).isNotEmpty) {
-        imageURLs = [...imageURLs, ...(await storage.deleteOldImagesForElement(widget.elements[i].id, widget.elements[i].deletedImages))];
-      }
+    local.Element? element = await ElementRepository.createElement(elementMap);
+    if (element == null) {
+      
+    } else {
 
-      if ((widget.elements[i].tmpDescriptionImageBytes).isNotEmpty) {
-        imageURLs = [...imageURLs, ...(await storage.uploadNewImagesForElement(widget.elements[i].id, widget.elements[i].tmpDescriptionImageNames, widget.elements[i].tmpDescriptionImageBytes))];
-      }
+    }
+  }
 
-      widget.elements[i].images = imageURLs;
+  void updateElement() async {
+    Map<String, dynamic>? elementMap = local.Element.toJSON(widget.elements[widget.elementIndex]);
+    if (elementMap == null) return null;
 
-      if (widget.elements[i].tmpBackgroundBytes != null) {
-        await storage.uploadBackgroundForElement(
-          widget.elements[i],
-          widget.elements[i].tmpBackgroundName!,
-          widget.elements[i].tmpBackgroundBytes!
-        );
-        
-        widget.elements[i].background = await storage.downloadImage(
-          widget.elements[i].id,
-          widget.elements[i].tmpBackgroundName!,
-        );
-      }
+    bool elementRes = await ElementRepository.updateElement(widget.elements[widget.elementIndex].id, elementMap);
+    if (!elementRes) {
+      
+    } else {
 
-      Map<String, dynamic>? elementMap = local.Element.toJSON(widget.elements[i]);
-      if (elementMap == null) return null;
-
-      bool elementRes = await ElementRepository.updateElement(widget.elements[i].id, elementMap);
-      if (!elementRes) {
-        
-      } else {
-
-      }
     }
     
     // TODO: set failure snackbar
@@ -998,14 +903,37 @@ class _ElementsPageState extends State<ElementsPage> {
   }
 
   void deleteElement() async {
-    Map<String, dynamic>? elementMap = local.Element.toJSON(widget.elements[widget.index]);
+    Map<String, dynamic>? elementMap = local.Element.toJSON(widget.elements[widget.elementIndex]);
     if (elementMap == null) return null;
 
-    bool elementRes = await ElementRepository.deleteElement(widget.elements[widget.index].id);
+    bool elementRes = await ElementRepository.deleteElement(widget.elements[widget.elementIndex].id);
     if (!elementRes) {
       
     } else {
 
     }
+  }
+
+
+  Widget showSectionTitle(String title, double fontSize, Color fontColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Center(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: FontWeight.bold,
+                color: fontColor,
+              ),
+            ),
+          ),
+        ),
+        const Expanded(flex: 2, child: SizedBox()),
+      ],
+    );
   }
 }
