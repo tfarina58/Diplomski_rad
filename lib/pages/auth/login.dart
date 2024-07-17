@@ -14,7 +14,7 @@ class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
 
   bool keepLoggedIn = false;
-  String email = "tfarina58@gmail.com";
+  String email = "sandi.ljubic@gmail.com"; // "tfarina58@gmail.com";
   String password = "password";
   LanguageService lang = LanguageService.getInstance("en");
 
@@ -49,28 +49,7 @@ class _LoginPageState extends State<LoginPage> {
                   fontSize: 50,
                 ),
               ),
-              const SizedBox(height: 50),
-              /*SocialButton(
-                iconPath: 'svgs/google.svg',
-                label: widget.lang.dictionary["sign_in_with_google"]!,
-                method: () {},
-                horizontalPadding: 110,
-              ),*/
-              /*const SizedBox(height: 20),
-              SocialButton(
-                iconPath: 'svgs/facebook.svg',
-                label: widget.lang.dictionary["sign_in_with_facebook"]!,
-                method: () {},
-                horizontalPadding: 100,
-              ),
-              const SizedBox(height: 15),
-              Text(
-                widget.lang.dictionary["or"]!,
-                style: const TextStyle(
-                  fontSize: 17,
-                ),
-              ),*/
-              const SizedBox(height: 15),
+              const SizedBox(height: 65),
               StringField(
                 presetText: widget.email,
                 labelText: widget.lang.translate('email'),
@@ -164,10 +143,13 @@ class _LoginPageState extends State<LoginPage> {
           await sharedPreferencesService.setTypeOfUser("ind");
         } else if (user is Company) {
           await sharedPreferencesService.setTypeOfUser("com");
+        } else if (user is Admin) {
+          await sharedPreferencesService.setTypeOfUser("adm");
         }
-        await sharedPreferencesService.setLanguage(user.preferences.language.isEmpty ? user.preferences.language : "en");
+        await sharedPreferencesService.setDateFormat(user.preferences.dateFormat.isNotEmpty ? user.preferences.dateFormat : "en");
+        await sharedPreferencesService.setLanguage(user.preferences.language.isNotEmpty ? user.preferences.language : "en");
         await sharedPreferencesService.setKeepLoggedIn(keepLoggedIn);
-        await sharedPreferencesService.setAvatarImage(user is Customer ? user.avatarImage : "");
+        await sharedPreferencesService.setAvatarImage(user is Customer && user.avatarImage.isNotEmpty ? user.avatarImage : "");
 
         toHomePage();
       }

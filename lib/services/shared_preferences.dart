@@ -14,6 +14,14 @@ class SharedPreferencesService {
     }
   }
 
+  Future<bool> setDateFormat(String dateFormat) {
+    return sharedPreferences.setString("dateFormat", dateFormat);
+  }
+
+  String getDateFormat() {
+    return sharedPreferences.getString("dateFormat") ?? "yyyy-MM-dd";
+  }
+
   Future<bool> setKeepLoggedIn(bool keepLoggedIn) {
     return sharedPreferences.setString("keepLoggedIn", keepLoggedIn.toString());
   }

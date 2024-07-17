@@ -28,7 +28,6 @@ abstract class User {
       res.lastname = user['lastname'] ?? "";
       res.phone = user['phone'] ?? "";
       res.preferences = UserPreferences(
-        distance: user['distance'] ?? "km",
         temperature: user['temperature'] ?? "C",
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
@@ -63,7 +62,6 @@ abstract class User {
       res.ownerLastname = user['ownerLastname'] ?? "";
       res.phone = user['phone'] ?? "";
       res.preferences = UserPreferences(
-        distance: user['distance'] ?? "km",
         temperature: user['temperature'] ?? "C",
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
@@ -83,7 +81,6 @@ abstract class User {
       res.email = user['email'] ?? "";
       res.phone = user['phone'] ?? "";
       res.preferences = UserPreferences(
-        distance: user['distance'] ?? "km",
         temperature: user['temperature'] ?? "C",
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
@@ -116,7 +113,6 @@ abstract class User {
         "bio": user.bio,
         "blocked": user.blocked,
         "banned": user.banned,
-        "distance": user.preferences.distance,
         "temperature": user.preferences.temperature,
         "dateFormat": user.preferences.dateFormat,
         "language": user.preferences.language,
@@ -143,7 +139,6 @@ abstract class User {
         "bio": user.bio,
         "blocked": user.blocked,
         "banned": user.banned,
-        "distance": user.preferences.distance,
         "temperature": user.preferences.temperature,
         "dateFormat": user.preferences.dateFormat,
         "language": user.preferences.language,
@@ -158,7 +153,6 @@ abstract class User {
       return {
         "email": user.email,
         "phone": user.phone,
-        "distance": user.preferences.distance,
         "temperature": user.preferences.temperature,
         "dateFormat": user.preferences.dateFormat,
         "language": user.preferences.language,

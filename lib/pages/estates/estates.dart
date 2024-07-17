@@ -82,15 +82,17 @@ class _EstatesPageState extends State<EstatesPage> {
 
             return SingleChildScrollView(
               scrollDirection: Axis.vertical,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ...showListAndMapButtons(width, height),
-      
-                  if (widget.choice == UserChoice.map) getMap(width, height)
-                  else getList(cardSize),
-                ],
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ...showListAndMapButtons(width, height),
+                    
+                    if (widget.choice == UserChoice.map) getMap(width, height)
+                    else ...getList(cardSize),
+                  ],
+                ),
               ),
             );
           }
@@ -128,36 +130,32 @@ class _EstatesPageState extends State<EstatesPage> {
     });
   }
 
-  Widget getList(double cardSize) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (widget.showEmptyCard == true)
-          CardWidget(
-            title: widget.lang!.translate('add_new_estate'),
-            isEmptyCard: true,
-            width: cardSize,
-            lang: widget.lang!,
-            height: cardSize * 0.5625,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EstateDetailsPage(isNewEstate: true, estate: Estate(name: Map.from({"en": "", "de": "", "hr": ""}))),
-                ),
-              );
-            },
-          ),
-        const SizedBox(height: 36),
+  List<Widget> getList(double cardSize) {
+    return [
+      if (widget.showEmptyCard == true)
+        CardWidget(
+          title: widget.lang!.translate('add_new_estate'),
+          isEmptyCard: true,
+          width: cardSize,
+          lang: widget.lang!,
+          height: cardSize * 0.5625,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EstateDetailsPage(isNewEstate: true, estate: Estate(name: Map.from({"en": "", "de": "", "hr": ""}))),
+              ),
+            );
+          },
+        ),
+    const SizedBox(height: 36),
 
-        for (int i = 0; i < widget.estates.length; ++i)
-          ...[
-            getEstateCard(cardSize, i),
-            const SizedBox(height: 36),
-          ],
-      ]
-    );
+    for (int i = 0; i < widget.estates.length; ++i)
+      ...[
+        getEstateCard(cardSize, i),
+        const SizedBox(height: 36),
+      ],
+    ];
   }
 
   Widget getEstateCard(double cardSize, int index) {
@@ -200,39 +198,37 @@ class _EstatesPageState extends State<EstatesPage> {
   List<Widget> showListAndMapButtons(double width, double height) {
     return [
       const SizedBox(height: 26),
-      if (widget.estates.isNotEmpty)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Expanded(child: SizedBox()),
-            Expanded(
-              flex: 2,
-              child: optionButton(
-                width,
-                height,
-                () => setState(() {
-                  widget.choice = UserChoice.list;
-                }),
-                widget.lang!.translate('list'),
-              ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Expanded(child: SizedBox()),
+          Expanded(
+            flex: 2,
+            child: optionButton(
+              width,
+              height,
+              () => setState(() {
+                widget.choice = UserChoice.list;
+              }),
+              widget.lang!.translate('list'),
             ),
-            Expanded(
-              flex: 2,
-              child: optionButton(
-                width,
-                height,
-                () => setState(() {
-                  widget.choice = UserChoice.map;
-                }),
-                widget.lang!.translate('map'),
-              ),
+          ),
+          Expanded(
+            flex: 2,
+            child: optionButton(
+              width,
+              height,
+              () => setState(() {
+                widget.choice = UserChoice.map;
+              }),
+              widget.lang!.translate('map'),
             ),
-            const Expanded(child: SizedBox()),
-          ],
-        ),
-      if (widget.estates.isNotEmpty)
-        const SizedBox(height: 26),
+          ),
+          const Expanded(child: SizedBox()),
+        ],
+      ),
+      const SizedBox(height: 26),
     ];
   }
 

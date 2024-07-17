@@ -192,6 +192,9 @@ class LanguageService {
           "cant_obtain_categories": "There was an error while trying to obtain your categories. Please try again later.",
           "cant_obtain_elements": "There was an error while trying to obtain your elements. Please try again later.",
           "must_save_or_cancel_changes": "Before leaving to another element, you must save or cancel all the changes.",
+          "create_element": "Create element",
+          "delete_element": "Delete element",
+          "update_element": "Update element",
         };
         return jsonEN;
       case "de":
@@ -372,6 +375,9 @@ class LanguageService {
           "cant_obtain_categories": "Beim Versuch, Ihre Kategorien abzurufen, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
           "cant_obtain_elements": "Beim Versuch, Ihre Elemente abzurufen, ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
           "must_save_or_cancel_changes": "Bevor Sie zu einem anderen Element wechseln, müssen Sie alle Änderungen speichern oder verwerfen.",
+          "create_element": "Element erstellen",
+          "delete_element": "Element löschen",
+          "update_element": "Element aktualisieren",
         };
         return jsonDE;
       case "hr":
@@ -548,6 +554,9 @@ class LanguageService {
           "cant_obtain_categories": "Došlo je do pogreške prilikom pokušaja dobivanja vaših kategorija. Molimo pokušajte ponovo kasnije.",
           "cant_obtain_elements": "Došlo je do pogreške prilikom pokušaja dobivanja vaših elemenata. Molimo pokušajte ponovo kasnije.",
           "must_save_or_cancel_changes": "Prije odlaska na drugi element morate spremiti ili poništiti sve promjene.",
+          "create_element": "Stvori element",
+          "delete_element": "Izbriši element",
+          "update_element": "Ažuriraj element",
         };
         return jsonHR;
     }

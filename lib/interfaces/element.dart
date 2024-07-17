@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Element {
   String id;
@@ -126,5 +127,25 @@ class Element {
     if (card == null) return "";
     return "id: ${card.id}\ncategoryId: ${card.categoryId}\ntitle: ${card.title}\nbackground: ${card.background}\ndescription: ${card.description}\n";
     // TODO: add links
+  }
+
+  static List<Element> setupElementsFromFirebaseDocuments(List<QueryDocumentSnapshot<Map<String, dynamic>>>? document) {
+    if (document == null) return [];
+      
+    Element? element;
+    List<Element> elements = [];
+
+    document.map((DocumentSnapshot doc) {
+      Map<String, dynamic>? tmpMap = doc.data() as Map<String, dynamic>?;
+      if (tmpMap == null) return;
+
+      tmpMap['id'] = doc.id;
+      element = Element.toElement(tmpMap);
+      if (element == null) return;
+
+      elements.add(element!);
+    }).toList();
+
+    return elements;
   }
 }

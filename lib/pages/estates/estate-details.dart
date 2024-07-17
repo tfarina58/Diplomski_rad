@@ -31,6 +31,7 @@ class EstateDetailsPage extends StatefulWidget {
   Category newCategorory = Category(title: Map.from({"en": "", "de": "", "hr": ""}));
   int currentPage = 0;
   bool isNewEstate;
+  String? dateFormat;
 
   LanguageService? lang;
   Map<String, dynamic> headerValues = <String, dynamic>{};
@@ -142,6 +143,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      String tmpDateFormat = sharedPreferencesService.getDateFormat();
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
       String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
@@ -156,9 +158,10 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       setState(() {
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
+        widget.dateFormat = tmpDateFormat;
         widget.headerValues["userId"] = tmpUserId;
         widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
+        widget.headerValues["avatarImage"] = tmpAvatarImage;
       });
     });
   }
@@ -237,6 +240,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             Expanded(
               flex: 3,
               child: CalendarField(
+                dateFormat: widget.dateFormat!,
                 labelText: widget.lang!.translate('from_date'),
                 callback: (newValue) => setState(() {
                   widget.estate.guests[index]['from'] = newValue;
@@ -275,6 +279,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             Expanded(
               flex: 3,
               child: CalendarField(
+                dateFormat: widget.dateFormat!,
                 labelText: widget.lang!.translate('to_date'),
                 callback: (newValue) => setState(() {
                   widget.estate.guests[index]['to'] = newValue;
@@ -699,7 +704,16 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
   }
 
   bool checkMandatoryData() {
-    return widget.estate.street.isNotEmpty &&
+    bool allGuestRowsCompleted = true;
+    for (int i = 0; i < widget.estate.guests.length; ++i) {
+      if (widget.estate.guests[i]['from'] == null || widget.estate.guests[i]['name'] == null || widget.estate.guests[i]['to'] == null) {
+        allGuestRowsCompleted = false;
+        break;
+      }
+    }
+
+    return allGuestRowsCompleted &&
+        widget.estate.street.isNotEmpty &&
         widget.estate.zip.isNotEmpty &&
         widget.estate.city.isNotEmpty &&
         widget.estate.country.isNotEmpty &&
@@ -916,23 +930,25 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       children: [
         const Expanded(child: SizedBox()),
         Expanded(
-          flex: 2,
+          flex: 5,
           child: StringField(
             labelText: widget.lang!.translate('title_en'),
             callback: (value) => widget.newCategorory.title = value,
             presetText: widget.newCategorory.title['en'] ?? "",
           ),
         ),
+        const Expanded(child: SizedBox()),
         Expanded(
-          flex: 2,
+          flex: 5,
           child: StringField(
             labelText: widget.lang!.translate('title_de'),
             callback: (value) => widget.newCategorory.title = value,
             presetText: widget.newCategorory.title['de'] ?? "",
           ),
         ),
+        const Expanded(child: SizedBox()),
         Expanded(
-          flex: 2,
+          flex: 5,
           child: StringField(
             labelText: widget.lang!.translate('title_hr'),
             callback: (value) => widget.newCategorory.title = value,
@@ -1034,6 +1050,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                       children: [
                         const Expanded(child: SizedBox()),
                         Expanded(
+                          flex: 5,
                           child: StringField(
                             labelText: widget.lang!.translate('title_en'),
                             callback: (value) => widget.newCategorory.title['en'] = value,
@@ -1042,6 +1059,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         ),
                         const Expanded(child: SizedBox()),
                         Expanded(
+                          flex: 5,
                           child: StringField(
                             labelText: widget.lang!.translate('title_de'),
                             callback: (value) => widget.newCategorory.title['de'] = value,
@@ -1050,6 +1068,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         ),
                         const Expanded(child: SizedBox()),
                         Expanded(
+                          flex: 5,
                           child: StringField(
                             labelText: widget.lang!.translate('title_hr'),
                             callback: (value) => widget.newCategorory.title['hr'] = value,
@@ -1204,6 +1223,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                       children: [
                         const Expanded(child: SizedBox()),
                         Expanded(
+                          flex: 5,
                           child: StringField(
                             labelText: widget.lang!.translate('title_en'),
                             callback: (value) => widget.categories[index].title['en'] = value,
@@ -1212,6 +1232,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         ),
                         const Expanded(child: SizedBox()),
                         Expanded(
+                          flex: 5,
                           child: StringField(
                             labelText: widget.lang!.translate('title_de'),
                             callback: (value) => widget.categories[index].title['de'] = value,
@@ -1220,6 +1241,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         ),
                         const Expanded(child: SizedBox()),
                         Expanded(
+                          flex: 5,
                           child: StringField(
                             labelText: widget.lang!.translate('title_hr'),
                             callback: (value) => widget.categories[index].title['hr'] = value,
@@ -1349,7 +1371,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     });
   }
 
-    void createEstate(/*double width, double height*/) async {
+    void createEstate() async {
     if (!checkMandatoryData()) return;
 
     LatLng? coordinates = await Geocoding.geocode(widget.estate.street, widget.estate.zip, widget.estate.city, widget.estate.country);
@@ -1369,7 +1391,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     });
   }
 
-  void updateEstateAndCategories(/*double width, double height*/) async {
+  void updateEstateAndCategories() async {
     if (!checkMandatoryData()) return;
 
     Map<String, dynamic>? estateMap = Estate.toJSON(widget.estate);

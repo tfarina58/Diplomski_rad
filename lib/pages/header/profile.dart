@@ -208,8 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             Expanded(
                               flex: 1,
                               child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   get13(),
@@ -217,8 +216,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   get23(),
                                   SizedBox(height: height * 0.02),
                                   get33(),
-                                  SizedBox(height: height * 0.02),
-                                  get43(),
+                                  SizedBox(height: height * 0.075),
                                 ],
                               ),
                             ),
@@ -400,26 +398,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget get13() {
     return DropdownField(
-      labelText: widget.lang!.translate('distance_units'),
-      choices: [
-        widget.lang!.translate('km'),
-        widget.lang!.translate('mi'),
-      ],
-      selected: widget.user!.preferences.distance == "mi"
-          ? widget.lang!.translate('mi')
-          : widget.lang!.translate('km'),
-      callback: (String value) {
-        if (value == widget.lang!.translate('mi')) {
-          widget.user!.preferences.distance = "mi";
-        } else {
-          widget.user!.preferences.distance = "km";
-        }
-      },
-    );
-  }
-
-  Widget get23() {
-    return DropdownField(
       choices: const ["°C", "°F"],
       labelText: widget.lang!.translate('temperature_units'),
       selected: widget.user!.preferences.temperature == "F" ? "°F" : "°C",
@@ -433,7 +411,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget get33() {
+  Widget get23() {
     return DropdownField(
       choices: const [
         "24.07.2021.",
@@ -463,7 +441,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget get43() {
+  Widget get33() {
     return DropdownField(
       choices: [
         widget.lang!.translate('en'),
@@ -510,6 +488,7 @@ class _ProfilePageState extends State<ProfilePage> {
       await sharedPreferencesService.setLanguage(widget.user!.preferences.language);
       await sharedPreferencesService.setAvatarImage(widget.user is Customer ? (widget.user as Customer).avatarImage : "");
       await sharedPreferencesService.setTemperaturePreference(widget.user is Customer ? (widget.user as Customer).preferences.temperature : "");
+      await sharedPreferencesService.setDateFormat(widget.user!.preferences.dateFormat);
 
       LanguageService tmpLang = LanguageService.getInstance(widget.user!.preferences.language);
 

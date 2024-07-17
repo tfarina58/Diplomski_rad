@@ -218,6 +218,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                         await sharedPreferencesService.setLanguage("en");
                                         await sharedPreferencesService.setKeepLoggedIn(false);
                                         await sharedPreferencesService.setAvatarImage("");
+                                        await sharedPreferencesService.setDateFormat("");
 
                                         Navigator.popUntil(context, (route) => false);
 

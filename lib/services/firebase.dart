@@ -70,15 +70,15 @@ class FirebaseStorageService {
     }
   }
 
-  Future<void> uploadBackgroundForElement(localElement.Element element, String name, Uint8List bytes) async {
+  Future<void> uploadBackgroundForElement(String elementId, String name, Uint8List bytes) async {
     try {
-      final Reference folder = storage.child("${element.id}/$name");
+      final Reference folder = storage.child("$elementId/$name");
       await folder.putData(bytes).whenComplete(() async {
         String url = await folder.getDownloadURL();
 
         Map<String, dynamic> updateObject = {"background": url};
 
-        bool success = await ElementRepository.updateElement(element.id, updateObject);
+        bool success = await ElementRepository.updateElement(elementId, updateObject);
         // TODO: give feedback
       });
     } catch (err) {
@@ -201,12 +201,9 @@ class FirebaseStorageService {
     // TODO: comment
   Future<void> deleteBackgroundForElement(String id, String url) async {
     String name = extractFileName(url);
-    Map<String, dynamic> updateObject = {
-      "background": ""
-    };
 
     try {
-      bool success = await EstateRepository.updateEstate(id, updateObject);
+      bool success = await ElementRepository.updateElement(id, {"background": ""});
       if (success) {
         final Reference folder = storage.child("$id/$name");
         await folder.delete();
