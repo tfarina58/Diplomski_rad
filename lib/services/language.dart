@@ -126,7 +126,7 @@ class LanguageService {
           "cant_register":
               "There is a problem while trying to create your account. Please try again later.",
           "account_successfully_created":
-              "Your account gas successfully been created!",
+              "Your account has successfully been created!",
           "dont_have_account_register_here":
               "Don't have an account? Sign up here.",
           "sign_in": "Sign in",
@@ -147,8 +147,7 @@ class LanguageService {
           "subtitle": "Subtitle",
           "drop_image_here": "Drop image here!",
           "template": "Template",
-          "successfull_delete_account":
-              "You successfully deleted your account!",
+          "successfull_delete_account": "You successfully deleted your account!",
           "add_next_slide": "Add slide as next",
           "delete_slide": "Delete slide",
           "add_prev_slide": "Add slide as previous",
@@ -195,6 +194,11 @@ class LanguageService {
           "update_element": "Update element",
           "passwords_do_not_match": "Passwords do not match.",
           "fill_all_requested_fields": "Please fill all requested field to continue with the registration process.",
+          "old_password_does_not_match": "You entered the wrong old password!",
+          "error_while_updating_password": "There was an error while updating your password.",
+          "successfull_changed_password": "Your password has successfully been updated.",
+          "error_while_gathering_your_data": "There was an error while gathering your data.",
+          "error_while_deleting_account": "There was an error while deleting your account. Please try again later.",
         };
         return jsonEN;
       case "de":
@@ -314,7 +318,7 @@ class LanguageService {
           "cant_register":
               "Beim Versuch, Ihr Konto zu erstellen, ist ein Problem aufgetreten. Bitte versuchen Sie es später erneut.",
           "account_successfully_created":
-              "Ihr Gaskonto wurde erfolgreich erstellt!",
+              "Ihr Konto wurde erfolgreich erstellt!",
           "dont_have_account_register_here":
               "Sie haben noch kein Konto? Melden Sie sich hier an.",
           "sign_in": "Anmelden",
@@ -378,6 +382,11 @@ class LanguageService {
           "update_element": "Element aktualisieren",
           "passwords_do_not_match": "Passwörter stimmen nicht überein.",
           "fill_all_requested_fields": "Bitte füllen Sie alle erforderlichen Felder aus, um mit dem Registrierungsprozess fortzufahren.",
+          "old_password_does_not_match": "Sie haben das falsche alte Passwort eingegeben!",
+          "error_while_updating_password": "Beim Aktualisieren Ihres Passworts ist ein Fehler aufgetreten.",
+          "successfull_changed_password": "Ihr Passwort wurde erfolgreich aktualisiert.",
+          "error_while_gathering_your_data": "Beim Sammeln Ihrer Daten ist ein Fehler aufgetreten.",
+          "error_while_deleting_account": "Beim Löschen Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
         };
         return jsonDE;
       case "hr":
@@ -493,7 +502,7 @@ class LanguageService {
           "cant_register":
               "Došlo je do problema prilikom pokušaja kreiranja vašeg računa. Pokušajte ponovno kasnije.",
           "account_successfully_created":
-              "Vaš račun za plin uspješno je kreiran!",
+              "Vaš račun je uspješno kreiran!",
           "keep_me_logged_in": "Zadrži me prijavljenim.",
           "dont_have_account_register_here":
               "Nemate račun? Prijavite se ovdje.",
@@ -557,6 +566,11 @@ class LanguageService {
           "update_element": "Ažuriraj element",
           "passwords_do_not_match": "Lozinke se ne podudaraju.",
           "fill_all_requested_fields": "Ispunite sva tražena polja kako biste nastavili s postupkom registracije.",
+          "old_password_does_not_match": "Unijeli ste krivu staru lozinku!",
+          "error_while_updating_password": "Došlo je do pogreške prilikom ažuriranja vaše lozinke.",
+          "successfull_changed_password": "Vaša lozinka je uspješno ažurirana.",
+          "error_while_gathering_your_data": "Došlo je do pogreške prilikom prikupljanja vaših podataka.",
+          "error_while_deleting_account": "Došlo je do pogreške prilikom brisanja vašeg računa. Molimo pokušajte ponovo kasnije.",
         };
         return jsonHR;
     }

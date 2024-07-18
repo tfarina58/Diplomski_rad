@@ -7,6 +7,7 @@ class DropdownField extends StatefulWidget {
   final List<dynamic> choices;
   dynamic selected;
   double maxWidth;
+  bool readOnly;
 
   DropdownField({
     Key? key,
@@ -15,6 +16,7 @@ class DropdownField extends StatefulWidget {
     required this.choices,
     this.selected,
     this.maxWidth = 400,
+    this.readOnly = false,
   }) : super(key: key) {
     selected ??= choices[0];
   }
@@ -61,10 +63,12 @@ class _DropdownFieldState extends State<DropdownField> {
                 value: widget.selected,
                 onChanged: (dynamic value) {
                   if (value == null) return;
-                  setState(() {
-                    widget.selected = value;
-                  });
-                  widget.callback(value);
+                  if (!widget.readOnly) {
+                    setState(() {
+                      widget.selected = value;
+                    });
+                    widget.callback(value);
+                  }
                 },
                 items: [
                   for (int i = 0; i < widget.choices.length; ++i)

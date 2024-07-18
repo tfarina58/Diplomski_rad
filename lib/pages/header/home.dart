@@ -9,7 +9,6 @@ import 'package:diplomski_rad/services/shared_preferences.dart';
 class HomePage extends StatefulWidget {
   User? user;
   LanguageService? lang;
-  Map<String, dynamic> headerValues = <String, dynamic>{};
 
   HomePage({Key? key}) : super(key: key);
 
@@ -26,7 +25,6 @@ class _HomePageState extends State<HomePage> {
       SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
-      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
       String tmpLanguage = sharedPreferencesService.getLanguage();
 
       if (tmpUserId.isEmpty) return;
@@ -34,16 +32,12 @@ class _HomePageState extends State<HomePage> {
       if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
-      Map<String, dynamic>? userMap =
-          await UserRepository.readUserWithId(tmpUserId);
+      Map<String, dynamic>? userMap = await UserRepository.readUserWithId(tmpUserId);
       if (userMap == null) return;
 
       setState(() {
         widget.user = User.toUser(userMap);
         widget.lang = tmpLang;
-        widget.headerValues["userId"] = tmpUserId;
-        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
       });
     });
   }
@@ -57,7 +51,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: HeaderComponent(
         currentPage: 'HomePage',
-        headerValues: widget.headerValues,
+        userId: widget.user?.id ?? "",
         lang: widget.lang!,
       ),
       body: const Center(

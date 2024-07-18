@@ -34,7 +34,6 @@ class EstateDetailsPage extends StatefulWidget {
   String? dateFormat;
 
   LanguageService? lang;
-  Map<String, dynamic> headerValues = <String, dynamic>{};
 
   EstateDetailsPage({
     Key? key,
@@ -67,7 +66,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       appBar: HeaderComponent(
         currentPage: 'EstateDetailsPage',
         lang: widget.lang!,
-        headerValues: widget.headerValues,
+        userId: widget.userId ?? "",
       ),
       body: SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -146,7 +145,6 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       String tmpDateFormat = sharedPreferencesService.getDateFormat();
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
-      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
       String tmpLanguage = sharedPreferencesService.getLanguage();
 
       if (tmpUserId.isEmpty) return;
@@ -159,9 +157,6 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
         widget.dateFormat = tmpDateFormat;
-        widget.headerValues["userId"] = tmpUserId;
-        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage;
       });
     });
   }
@@ -1385,6 +1380,8 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     Estate? res = await EstateRepository.createEstate(estateMap);
     if (res == null) return;
 
+    UserRepository.addEstate(widget.userId!);
+
     setState(() {
       widget.estate = res;
       widget.isNewEstate = false;
@@ -1411,14 +1408,14 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     bool res = await EstateRepository.deleteEstate(widget.estate.id);
 
     if (res) {
+      UserRepository.removeEstate(widget.userId!);
+
       Navigator.pop(context);
       Navigator.pop(context);
+      return;
     }
 
-    if (!res) {
-      // TODO: add failure snackbar
-    }
-    // TODO: add success snackbar
+    // TODO: add failure snackbar
   }
 
   Future<void> createCategory() async {
@@ -1438,44 +1435,12 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
     Category? res = await CategoryRepository.createCategory(categoryMap);
     if (res != null) {
-      final snackBar = SnackBar(
-        content: Text(widget.lang!.translate('account_successfully_updated')),
-        backgroundColor: (Colors.white),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: height * 0.85,
-          left: width * 0.8,
-          right: width * 0.02,
-          top: height * 0.02,
-        ),
-        closeIconColor: PalleteCommon.gradient2,
-        action: SnackBarAction(
-          label: widget.lang!.translate('dismiss'),
-          onPressed: () {},
-        ),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      showSnackBar(width, height, widget.lang!.translate('account_successfully_updated'));
+      Navigator.pop(context);
       return;
     }
 
-    final snackBar = SnackBar(
-      backgroundColor: PalleteCommon.gradient2,
-      content: Text(widget.lang!.translate('error_while_updating_user')),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: height * 0.85,
-        left: width * 0.8,
-        right: width * 0.02,
-        top: height * 0.02,
-      ),
-      closeIconColor: PalleteCommon.gradient2,
-      action: SnackBarAction(
-        label: widget.lang!.translate('dismiss'),
-        onPressed: () {},
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    showSnackBar(width, height, widget.lang!.translate('error_while_updating_user'));
   }
 
   Future<void> saveChanges(double width, double height, int index) async {
@@ -1489,43 +1454,26 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
     bool res = await CategoryRepository.updateCategory(widget.categories[index].id, categoryMap);
     if (res) {
-      final snackBar = SnackBar(
-        content: Text(widget.lang!.translate('account_successfully_updated')),
-        backgroundColor: (Colors.white),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: height * 0.85,
-          left: width * 0.8,
-          right: width * 0.02,
-          top: height * 0.02,
-        ),
-        closeIconColor: PalleteCommon.gradient2,
-        action: SnackBarAction(
-          label: widget.lang!.translate('dismiss'),
-          onPressed: () {},
-        ),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      showSnackBar(width, height, widget.lang!.translate('account_successfully_updated'));
+      Navigator.pop(context);
       return;
     }
 
-    final snackBar = SnackBar(
-      backgroundColor: PalleteCommon.gradient2,
-      content: Text(widget.lang!.translate('error_while_updating_user')),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: height * 0.85,
-        left: width * 0.8,
-        right: width * 0.02,
-        top: height * 0.02,
-      ),
+    showSnackBar(width, height, widget.lang!.translate('error_while_updating_user'));
+  }
+
+  void showSnackBar(double width, double height, String text) {
+    SnackBar feedback = SnackBar(
+      dismissDirection: DismissDirection.down,
+      content: Center(child: Text(text)),
+      backgroundColor: (Colors.white),
+      behavior: SnackBarBehavior.fixed,
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
         label: widget.lang!.translate('dismiss'),
         onPressed: () {},
       ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    ScaffoldMessenger.of(context).showSnackBar(feedback);
   }
 }

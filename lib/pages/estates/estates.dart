@@ -1,4 +1,5 @@
 import 'package:diplomski_rad/interfaces/estate.dart';
+import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/widgets/snapshot_error_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/header_widget.dart';
@@ -31,7 +32,6 @@ class EstatesPage extends StatefulWidget {
   final bool showEmptyCard;
 
   LanguageService? lang;
-  Map<String, dynamic> headerValues = <String, dynamic>{};
 
   EstatesPage({
     Key? key,
@@ -60,7 +60,7 @@ class _EstatesPageState extends State<EstatesPage> {
       appBar: HeaderComponent(
         currentPage: 'EstatesPage',
         lang: widget.lang!,
-        headerValues: widget.headerValues,
+        userId: widget.userId ?? "",
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
@@ -109,7 +109,6 @@ class _EstatesPageState extends State<EstatesPage> {
       SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
-      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
       String tmpLanguage = sharedPreferencesService.getLanguage();
       String tmpTemperaturePreference = sharedPreferencesService.getTemperaturePreference();
 
@@ -122,10 +121,7 @@ class _EstatesPageState extends State<EstatesPage> {
       setState(() {
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
-        widget.temperaturePreference = tmpTemperaturePreference ?? "C";
-        widget.headerValues["userId"] = tmpUserId;
-        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage ?? "";
+        widget.temperaturePreference = tmpTemperaturePreference;
       });
     });
   }

@@ -18,7 +18,6 @@ import 'package:diplomski_rad/services/shared_preferences.dart';
 class UsersPage extends StatefulWidget {
   User? user;
   LanguageService? lang;
-  Map<String, dynamic> headerValues = <String, dynamic>{};
 
   List<Customer> customers = [];
   int lastAddedCustomer = 0;
@@ -56,7 +55,6 @@ class _UsersPageState extends State<UsersPage> {
       SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
-      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
       String tmpLanguage = sharedPreferencesService.getLanguage();
 
       if (tmpUserId.isEmpty) return;
@@ -64,16 +62,12 @@ class _UsersPageState extends State<UsersPage> {
       if (tmpLanguage.isEmpty) return;
 
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
-      Map<String, dynamic>? userMap =
-          await UserRepository.readUserWithId(tmpUserId);
+      Map<String, dynamic>? userMap = await UserRepository.readUserWithId(tmpUserId);
       if (userMap == null) return;
 
       setState(() {
         widget.user = User.toUser(userMap);
         widget.lang = tmpLang;
-        widget.headerValues["userId"] = tmpUserId;
-        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage;
       });
     });
   }
@@ -107,7 +101,7 @@ class _UsersPageState extends State<UsersPage> {
       appBar: HeaderComponent(
         currentPage: 'UsersPage',
         lang: widget.lang!,
-        headerValues: widget.headerValues,
+        userId: widget.user?.id ?? "",
       ),
       body: SingleChildScrollView(
         controller: scrollController,
@@ -1162,6 +1156,8 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void changeBlockedValue(Customer customer) async {
+    if (customer.banned) return;
+    
     bool res = await UserRepository.blockUser(customer.id, !customer.blocked);
     if (res) return;
 
@@ -1173,10 +1169,10 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void changeBannedValue(Customer customer) async {
-    if (customer.banned) return; // TODO: cant unban
+    if (customer.banned) return;
     bool? res = await UserRepository.banUser(customer.id);
-    if (res == null) return; // TODO: already banned
-    else if (!res) return; // TODO: cannot ban now
+    if (res == null) return; 
+    else if (!res) return;
 
     setState(() {
       customer.banned = true;

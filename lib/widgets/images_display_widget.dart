@@ -361,6 +361,7 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
           await storage.uploadImageForEstate(widget.estate as Estate, widget.droppedFileName, widget.droppedFileBytes!);
         } else if (widget.user != null) {
           storage.uploadImageForCustomer(widget.user as Customer, widget.droppedFileName, widget.droppedFileBytes!, choice);
+          if (choice) widget.callback();
         } else if (widget.category != null) {
           storage.uploadImageForCategory(widget.category as localCategory.Category, widget.droppedFileName, widget.droppedFileBytes!);
         }

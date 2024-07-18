@@ -299,13 +299,51 @@ class UserRepository {
       QuerySnapshot<Map<String, dynamic>> res = await users.where("email", isEqualTo: userMap["email"]).get();
 
       if (res.docs.isEmpty) {
-        Map<String, dynamic>? res = (await (await users.add(userMap)).get()).data();
+        DocumentSnapshot<Map<String, dynamic>> docSnapshot = await (await users.add(userMap)).get();
+        Map<String, dynamic>? res = docSnapshot.data();
+
+        res?["id"] = docSnapshot.id;
+
         if (res != null) return localUser.User.toUser(res);
       }
       
       return null;
     } catch (err) {
       return null;
+    }
+  }
+
+  static Future<void> addEstate(String userId) async {
+    if (userId.isEmpty) return;
+
+    try {
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await users.doc(userId).get();
+      Map<String, dynamic>? userMap = documentSnapshot.data();
+      if (userMap == null) return;
+
+      int numOfEstates = userMap['numOfEstates'];
+
+      await users.doc(userId).update({"numOfEstates": (numOfEstates + 1)});
+    } catch (err) {
+      return;
+    }
+  }
+  
+  static Future<void> removeEstate(String userId) async {
+    if (userId.isEmpty) return;
+
+    try {
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await users.doc(userId).get();
+      Map<String, dynamic>? userMap = documentSnapshot.data();
+      if (userMap == null) return;
+
+      int numOfEstates = userMap['numOfEstates'];
+
+      if (numOfEstates > 0) {
+        await users.doc(userId).update({"numOfEstates": (numOfEstates - 1)});
+      }
+    } catch (err) {
+      return;
     }
   }
 
@@ -374,8 +412,10 @@ class UserRepository {
 
     try {
       DocumentSnapshot<Map<String, dynamic>> res = await users.doc(userId).get();
+      Map<String, dynamic>? userMap = res.data();
+      if (userMap == null) return false;
 
-      if (res["password"] != null && res["password"] == password) {
+      if (userMap["password"] != null && userMap["password"] == password) {
         await users.doc(userId).delete();
         return true;
       }
@@ -436,7 +476,7 @@ class UserRepository {
           "phone": "",
           "street": "",
           "temperature": "",
-          "typeOfUser": "",
+          "typeOfUser": res["typeOfUser"],
           "zip": ""
         });
         return true;
@@ -444,6 +484,14 @@ class UserRepository {
     } catch (err) {
       return false;
     }
+  }
+
+  static Future<bool> checkPasswordMatching(String userId, String oldPassword) async {
+    DocumentSnapshot<Map<String, dynamic>> docSnapshot = await users.doc(userId).get();
+    Map<String, dynamic>? res = docSnapshot.data();
+    if (res == null) return false;
+
+    return res['password'] == oldPassword;
   }
 }
 

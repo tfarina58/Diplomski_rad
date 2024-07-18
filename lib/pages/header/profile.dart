@@ -14,10 +14,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
-  Map<String, dynamic> headerValues = <String, dynamic>{};
   String userId;
   User? user;
+
   LanguageService? lang;
+  SharedPreferencesService? sharedPreferencesService;
   bool enableEditing;
 
   ProfilePage({
@@ -44,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: HeaderComponent(
         currentPage: 'ProfilePage',
         lang: widget.lang!,
-        headerValues: widget.headerValues,
+        userId: widget.userId,
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -107,14 +108,16 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Expanded(flex: 3, child: SizedBox()),
                               Expanded(
                                 flex: 2,
-                                child: GradientButton(
-                                  buttonText:
-                                      widget.lang!.translate('save_changes'),
-                                  callback: () {
-                                    saveChanges(width, height);
-                                  },
-                                  colors: PalleteSuccess.getGradients(),
-                                ),
+                                child: 
+                                  widget.enableEditing ?
+                                    GradientButton(
+                                      buttonText:
+                                          widget.lang!.translate('save_changes'),
+                                      callback: () {
+                                        saveChanges(width, height);
+                                      },
+                                      colors: PalleteSuccess.getGradients(),
+                                    ) : const SizedBox(),
                               ),
                               const Expanded(flex: 1, child: SizedBox()),
                             ],
@@ -140,17 +143,18 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                               ),
                             ),
-                            Expanded(
-                              child: Center(
-                                child: Text(
-                                  widget.lang!.translate('your_address'),
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
+                            if (widget.user is! Admin)
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    widget.lang!.translate('your_address'),
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
                             Expanded(
                               child: Center(
                                 child: Text(
@@ -171,40 +175,56 @@ class _ProfilePageState extends State<ProfilePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Expanded(
-                              flex: 1,
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  get11(),
-                                  SizedBox(height: height * 0.02),
-                                  get21(),
-                                  SizedBox(height: height * 0.02),
-                                  get31(),
-                                  SizedBox(height: height * 0.02),
-                                  get41(),
-                                ],
+                            if (widget.user is Admin)
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    get11(),
+                                    SizedBox(height: height * 0.02),
+                                    get41(),
+                                    SizedBox(height: height * 0.18),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  get12(),
-                                  SizedBox(height: height * 0.02),
-                                  get22(),
-                                  SizedBox(height: height * 0.02),
-                                  get32(),
-                                  SizedBox(height: height * 0.02),
-                                  get42(),
-                                ],
+                            if (widget.user is! Admin)
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    get11(),
+                                    SizedBox(height: height * 0.02),
+                                    get21(),
+                                    SizedBox(height: height * 0.02),
+                                    get31(),
+                                    SizedBox(height: height * 0.02),
+                                    get41(),
+                                  ],
+                                ),
                               ),
-                            ),
+
+                            if (widget.user is! Admin)
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    get12(),
+                                    SizedBox(height: height * 0.02),
+                                    get22(),
+                                    SizedBox(height: height * 0.02),
+                                    get32(),
+                                    SizedBox(height: height * 0.02),
+                                    get42(),
+                                  ],
+                                ),
+                              ),
                             Expanded(
                               flex: 1,
                               child: Column(
@@ -256,11 +276,11 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
-      String tmpUserId = sharedPreferencesService.getUserId();
-      String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
-      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
-      String tmpLanguage = sharedPreferencesService.getLanguage();
+      widget.sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+
+      String tmpUserId = widget.sharedPreferencesService!.getUserId();
+      String tmpTypeOfUser = widget.sharedPreferencesService!.getTypeOfUser();
+      String tmpLanguage = widget.sharedPreferencesService!.getLanguage();
 
       if (tmpUserId.isEmpty) return;
       if (tmpTypeOfUser.isEmpty) return;
@@ -269,9 +289,6 @@ class _ProfilePageState extends State<ProfilePage> {
       LanguageService tmpLang = LanguageService.getInstance(tmpLanguage);
 
       setState(() {
-        widget.headerValues["userId"] = tmpUserId;
-        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage;
         widget.userId = widget.userId.isNotEmpty ? widget.userId : tmpUserId;
         widget.lang = tmpLang;
       });
@@ -281,6 +298,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get11() {
     if (widget.user is Individual) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Individual).firstname,
         labelText: widget.lang!.translate('firstname'),
         callback: (String value) =>
@@ -288,6 +306,7 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     } else if (widget.user is Company) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Company).ownerFirstname,
         labelText: widget.lang!.translate('owner_firstname'),
         callback: (String value) =>
@@ -295,6 +314,7 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     } else if (widget.user is Admin) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Admin).firstname,
         labelText: widget.lang!.translate('firstname'),
         callback: (String value) => (widget.user as Admin).firstname = value,
@@ -306,6 +326,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get21() {
     if (widget.user is Individual) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Individual).lastname,
         labelText: widget.lang!.translate('lastname'),
         callback: (String value) =>
@@ -313,6 +334,7 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     } else if (widget.user is Company) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Company).ownerLastname,
         labelText: widget.lang!.translate('owner_lastname'),
         callback: (String value) =>
@@ -335,6 +357,7 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     } else if (widget.user is Company) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Company).companyName,
         labelText: widget.lang!.translate('company_name'),
         callback: (String value) =>
@@ -346,6 +369,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget get41() {
     return StringField(
+        readOnly: !widget.enableEditing,
       presetText: widget.user!.phone,
       labelText: widget.lang!.translate('phone_number'),
       callback: (String value) => widget.user!.phone = value,
@@ -355,6 +379,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get12() {
     if (widget.user is Customer) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Customer).street,
         labelText: widget.lang!.translate('street'),
         callback: (String value) => (widget.user as Customer).street = value,
@@ -366,6 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get22() {
     if (widget.user is Customer) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Customer).zip,
         labelText: widget.lang!.translate('zip'),
         callback: (String value) => (widget.user as Customer).zip = value,
@@ -377,6 +403,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get32() {
     if (widget.user is Customer) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Customer).city,
         labelText: widget.lang!.translate('city'),
         callback: (String value) => (widget.user as Customer).city = value,
@@ -388,6 +415,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget get42() {
     if (widget.user is Customer) {
       return StringField(
+        readOnly: !widget.enableEditing,
         presetText: (widget.user as Customer).country,
         labelText: widget.lang!.translate('country'),
         callback: (String value) => (widget.user as Customer).country = value,
@@ -398,6 +426,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget get13() {
     return DropdownField(
+      readOnly: !widget.enableEditing,
       choices: const ["°C", "°F"],
       labelText: widget.lang!.translate('temperature_units'),
       selected: widget.user!.preferences.temperature == "F" ? "°F" : "°C",
@@ -413,6 +442,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget get23() {
     return DropdownField(
+      readOnly: !widget.enableEditing,
       choices: const [
         "24.07.2021.",
         "24.7.21.",
@@ -443,6 +473,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget get33() {
     return DropdownField(
+      readOnly: !widget.enableEditing,
       choices: [
         widget.lang!.translate('en'),
         widget.lang!.translate('de'),
@@ -496,43 +527,25 @@ class _ProfilePageState extends State<ProfilePage> {
         widget.lang = tmpLang;
       });
 
-      final snackBar = SnackBar(
-        content: Text(widget.lang!.translate('account_successfully_updated')),
-        backgroundColor: (Colors.white),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: height * 0.85,
-          left: width * 0.8,
-          right: width * 0.02,
-          top: height * 0.02,
-        ),
-        closeIconColor: PalleteCommon.gradient2,
-        action: SnackBarAction(
-          label: widget.lang!.translate('dismiss'),
-          onPressed: () {},
-        ),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      showSnackBar(width, height, widget.lang!.translate('account_successfully_updated'));
       return;
     }
 
-    final snackBar = SnackBar(
-      backgroundColor: PalleteCommon.gradient2,
-      content: Text(widget.lang!.translate('error_while_updating_user')),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: height * 0.85,
-        left: width * 0.8,
-        right: width * 0.02,
-        top: height * 0.02,
-      ),
+    showSnackBar(width, height, widget.lang!.translate('error_while_updating_user'));
+  }
+
+  void showSnackBar(double width, double height, String text) {
+    SnackBar feedback = SnackBar(
+      dismissDirection: DismissDirection.down,
+      content: Center(child: Text(text)),
+      backgroundColor: (Colors.white),
+      behavior: SnackBarBehavior.fixed,
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
         label: widget.lang!.translate('dismiss'),
         onPressed: () {},
       ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    ScaffoldMessenger.of(context).showSnackBar(feedback);
   }
 }

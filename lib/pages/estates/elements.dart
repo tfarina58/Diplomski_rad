@@ -60,7 +60,7 @@ class _ElementsPageState extends State<ElementsPage> {
       appBar: HeaderComponent(
         currentPage: 'ElementsPage',
         lang: widget.lang!,
-        headerValues: widget.headerValues,
+        userId: widget.userId ?? "",
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
