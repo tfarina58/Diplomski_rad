@@ -8,6 +8,9 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:diplomski_rad/interfaces/user.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
+
 
 class FirebaseStorageService {
   var storage = FirebaseStorage.instance.ref();
@@ -327,6 +330,8 @@ class UserRepository {
   static Future<User?> loginUser(String email, String password) async {
     if (password.length < 8) return null;
 
+    password = sha256.convert(utf8.encode(password)).toString();
+
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await users
           .where("email", isEqualTo: email)
@@ -347,6 +352,7 @@ class UserRepository {
     } catch (err) {
       return null;
     }
+    return null;
   }
 
   // TODO: comment

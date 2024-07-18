@@ -55,8 +55,7 @@ class LanguageService {
           "account_successfully_updated":
               "Your account has successfully been updated!",
           "dismiss": "Dismiss",
-          "error_while_updating_user":
-              "There was an error while updating your account. Please try again (later)...",
+          "error_while_updating_user": "There was an error while updating your account.",
           "profile_image": "Profile image",
           "background_image": "Background image",
           "discard_image": "Discard image",
@@ -116,8 +115,7 @@ class LanguageService {
               "Your account has been banned by the admin. You can contact the admin at admin@diplomski.com for more information.",
           "blocked_by_admin":
               "Your account is currently blocked by the admin. You can contact the admin at admin@diplomski.com for more information.",
-          "cant_log_in":
-              "There was an error while logging in. Please try again (later)...",
+          "cant_log_in": "There was an error while logging in.",
           "successful_login": "You have successfully logged in!",
           "sign_up": "Sign up",
           "type_of_customer": "Type of customer",
@@ -195,6 +193,8 @@ class LanguageService {
           "create_element": "Create element",
           "delete_element": "Delete element",
           "update_element": "Update element",
+          "passwords_do_not_match": "Passwords do not match.",
+          "fill_all_requested_fields": "Please fill all requested field to continue with the registration process.",
         };
         return jsonEN;
       case "de":
@@ -236,8 +236,7 @@ class LanguageService {
           "account_successfully_updated":
               "Ihr Konto wurde erfolgreich aktualisiert!",
           "dismiss": "Zurückweisen",
-          "error_while_updating_user":
-              "Beim Aktualisieren Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es (später) noch einmal...",
+          "error_while_updating_user": "Beim Aktualisieren Ihres Kontos ist ein Fehler aufgetreten.",
           "profile_image": "Profilbild",
           "background_image": "Hintergrundbild",
           "discard_image": "Bild verwerfen",
@@ -298,8 +297,7 @@ class LanguageService {
               "Ihr Konto wurde vom Administrator gesperrt. Für weitere Informationen können Sie den Administrator unter admin@diplomski.com kontaktieren.",
           "blocked_by_admin":
               "Ihr Konto ist derzeit vom Administrator gesperrt. Für weitere Informationen können Sie den Administrator unter admin@diplomski.com kontaktieren.",
-          "cant_log_in":
-              "Beim Anmelden ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut ...",
+          "cant_log_in": "Beim Anmelden ist ein Fehler aufgetreten.",
           "successful_login": "Sie haben sich erfolgreich angemeldet!",
           "customers": "Kunden",
           "old_password": "Altes Passwort",
@@ -378,6 +376,8 @@ class LanguageService {
           "create_element": "Element erstellen",
           "delete_element": "Element löschen",
           "update_element": "Element aktualisieren",
+          "passwords_do_not_match": "Passwörter stimmen nicht überein.",
+          "fill_all_requested_fields": "Bitte füllen Sie alle erforderlichen Felder aus, um mit dem Registrierungsprozess fortzufahren.",
         };
         return jsonDE;
       case "hr":
@@ -418,8 +418,7 @@ class LanguageService {
           "language": "Jezik",
           "account_successfully_updated": "Vaš račun je uspješno ažuriran!",
           "dismiss": "Odbaci",
-          "error_while_updating_user":
-              "Došlo je do pogreške prilikom ažuriranja vašeg računa. Molimo pokušajte ponovo (kasnije)...",
+          "error_while_updating_user": "Došlo je do pogreške prilikom ažuriranja vašeg računa.",
           "profile_image": "Profilna slika",
           "background_image": "Pozadinska slika",
           "discard_image": "Odbaci sliku",
@@ -479,9 +478,8 @@ class LanguageService {
               "Administrator je izbrisao vaš korisnički račun. Za više informacija možete kontaktirati admina na admin@diplomski.com.",
           "blocked_by_admin":
               "Vaš korisnički račun je trenutno blokiran od strane administratora. Za više informacija možete kontaktirati admina na admin@diplomski.com.",
-          "cant_log_in":
-              "There was an error while logging in. Please try again (later)...",
-          "successful_login": "You have successfully logged in!",
+          "cant_log_in": "Došlo je do pogreške prilikom prijave.",
+          "successful_login": "Uspješno ste se prijavili!",
           "old_password": "Stara lozinka",
           "new_password": "Nova lozinka",
           "repeat_password": "Ponovite lozinku",
@@ -557,6 +555,8 @@ class LanguageService {
           "create_element": "Stvori element",
           "delete_element": "Izbriši element",
           "update_element": "Ažuriraj element",
+          "passwords_do_not_match": "Lozinke se ne podudaraju.",
+          "fill_all_requested_fields": "Ispunite sva tražena polja kako biste nastavili s postupkom registracije.",
         };
         return jsonHR;
     }

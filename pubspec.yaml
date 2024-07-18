@@ -45,13 +45,13 @@ dependencies:
   url_launcher: ^6.1.12
   flutter_map: ^5.0.0
   latlong2: ^0.9.0
-  cryptography: ^2.5.0
   google_sign_in: ^6.1.5
   firebase_storage: ^11.4.1
   shared_preferences: ^2.2.1
   rxdart: ^0.27.7
   nominatim_geocoding: ^0.0.6
   geocode: ^1.0.3
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

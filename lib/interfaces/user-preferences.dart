@@ -3,7 +3,7 @@ class UserPreferences {
   String dateFormat;
   String language;
   int usersPerPage;
-  int estatesPerPage;
+  // int estatesPerPage;
   // FontSize fontSize;
 
   UserPreferences({
@@ -11,7 +11,7 @@ class UserPreferences {
     this.dateFormat = "yyyy-MM-dd",
     this.language = "en",
     this.usersPerPage = 10,
-    this.estatesPerPage = 5,
+    // this.estatesPerPage = 5,
     // this.fontSize = FontSize.medium,
   });
 

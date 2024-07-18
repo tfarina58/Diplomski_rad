@@ -14,7 +14,7 @@ class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
 
   bool keepLoggedIn = false;
-  String email = "sandi.ljubic@gmail.com"; // "tfarina58@gmail.com";
+  String email = "tfarina58@gmail.com"; // "sandi.ljubic@gmail.com";
   String password = "password";
   LanguageService lang = LanguageService.getInstance("en");
 
@@ -129,8 +129,6 @@ class _LoginPageState extends State<LoginPage> {
   void signIn(double width, double height, String email, String password, bool keepLoggedIn) async {
     User? user = await UserRepository.loginUser(email, password);
 
-    // TODO: fix colors!
-    // TODO: keepLoggedIn!
     if (user != null) {
       if (user is Customer && user.banned == true) {
         showSnackBar(width, height, widget.lang.translate('banned_by_admin'));
@@ -160,15 +158,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void showSnackBar(double width, double height, String text) {
     SnackBar feedback = SnackBar(
-      content: Text(text),
+      dismissDirection: DismissDirection.down,
+      content: Center(child: Text(text)),
       backgroundColor: (Colors.white),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: height * 0.85,
-        left: width * 0.8,
-        right: width * 0.02,
-        top: height * 0.02,
-      ),
+      behavior: SnackBarBehavior.fixed,
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
         label: widget.lang.translate('dismiss'),

@@ -32,7 +32,7 @@ abstract class User {
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
         usersPerPage: user['usersPerPage'] ?? 10,
-        estatesPerPage: user['estatesPerPage'] ?? 5,
+        // estatesPerPage: user['estatesPerPage'] ?? 5,
       );
       res.birthday = DateTime.fromMillisecondsSinceEpoch((user['birthday'] as Timestamp).millisecondsSinceEpoch);
       res.street = user['street'] ?? "";
@@ -66,7 +66,7 @@ abstract class User {
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
         usersPerPage: user['usersPerPage'] ?? 10,
-        estatesPerPage: user['estatesPerPage'] ?? 5,
+        // estatesPerPage: user['estatesPerPage'] ?? 5,
       );
       res.companyName = user['companyName'] ?? "";
       res.street = user['street'] ?? "";
@@ -85,7 +85,7 @@ abstract class User {
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
         usersPerPage: user['usersPerPage'] ?? 10,
-        estatesPerPage: user['estatesPerPage'] ?? 5,
+        // estatesPerPage: user['estatesPerPage'] ?? 5,
       );
 
       return res;

@@ -11,6 +11,8 @@ import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class RegisterPage extends StatefulWidget {
   String firstname = "Sandi";
@@ -181,6 +183,27 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void signUp(double width, double height) async {
+    if (widget.typeOfUser == 'ind') {
+      DateTime now = DateTime.now();
+      DateTime todayBefore18Years = DateTime(now.year - 18, now.month, now.day);
+      if (widget.birthday.compareTo(todayBefore18Years) == 1) {
+        showSnackBar(width, height, widget.lang.translate('cant_register'));
+        return;
+      }
+    }
+
+    if (!checkMandatoryData()) {
+      showSnackBar(width, height, widget.lang.translate('fill_all_requested_fields'));
+      return;
+    }
+
+    if (widget.password != widget.repeatPassword) {
+      showSnackBar(width, height, widget.lang.translate('passwords_do_not_match'));
+      return;
+    }
+
+    String password = sha256.convert(utf8.encode(widget.password)).toString();
+
     Map<String, dynamic> userMap;
     if (widget.typeOfUser == 'ind') {
       userMap = {
@@ -201,7 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
         "birthday": widget.birthday,
         "email": widget.email,
         "typeOfUser": widget.typeOfUser,
-        "password": widget.password,
+        "password": password,
         "banned": false,
         "blocked": false,
       };
@@ -224,7 +247,7 @@ class _RegisterPageState extends State<RegisterPage> {
         "companyName": widget.companyName,
         "email": widget.email,
         "typeOfUser": widget.typeOfUser,
-        "password": widget.password,
+        "password": password,
         "banned": false,
         "blocked": false,
       };
@@ -254,17 +277,11 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void showSnackBar(double width, double height, String text) {
-    // TODO: fix colors!
     SnackBar feedback = SnackBar(
-      content: Text(text),
+      dismissDirection: DismissDirection.down,
+      content: Center(child: Text(text)),
       backgroundColor: (Colors.white),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: height * 0.85,
-        left: width * 0.8,
-        right: width * 0.02,
-        top: height * 0.02,
-      ),
+      behavior: SnackBarBehavior.fixed,
       closeIconColor: PalleteCommon.gradient2,
       action: SnackBarAction(
         label: widget.lang.translate('dismiss'),
@@ -290,5 +307,21 @@ class _RegisterPageState extends State<RegisterPage> {
         builder: (context) => LoginPage(),
       ),
     );
+  }
+
+  bool checkMandatoryData() {
+    if (widget.typeOfUser == 'ind') {
+      return widget.firstname.isNotEmpty &&
+        widget.lastname.isNotEmpty &&
+        widget.email.isNotEmpty &&
+        widget.password.isNotEmpty;
+    } else if (widget.typeOfUser == 'com') {
+      return widget.ownerFirstname.isNotEmpty &&
+        widget.ownerLastname.isNotEmpty &&
+        widget.companyName.isNotEmpty &&
+        widget.email.isNotEmpty &&
+        widget.password.isNotEmpty;
+    }
+    return false;
   }
 }
