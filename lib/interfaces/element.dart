@@ -9,6 +9,10 @@ class Element {
   Map<String, String> description;
   List<String> images;
   List<Map<String, dynamic>> links;
+  int template;
+  String entryFee;
+  int minimalAge;
+  List<Map<String, dynamic>> workingHours;
 
   // Used to save locally and display an image before saving on Firebase
   List<String?> tmpDescriptionImageNames = [null];
@@ -26,6 +30,10 @@ class Element {
     this.background = "",
     this.images = const [],
     this.links = const [],
+    this.template = 3,
+    this.entryFee = "",
+    this.minimalAge = 0,
+    this.workingHours = const [],
   }) : title = {
       "en": "",
       "de": "",
@@ -43,35 +51,52 @@ class Element {
     newElement.id = JSONElement['id'] ?? "";
     newElement.categoryId = JSONElement['categoryId'] ?? "";
     newElement.background = JSONElement['background'] as String? ?? "";
+    newElement.template = JSONElement['template'] as int? ?? 3;
+    newElement.entryFee = JSONElement['entryFee'] as String? ?? "";
+    newElement.minimalAge = JSONElement['minimalAge'] as int? ?? 0;
+
+    newElement.title = {
+      "en": "",
+      "de": "",
+      "hr": "",
+    };
 
     if (JSONElement['title'] != null) {
       JSONElement['title'].forEach((String key, dynamic value) {
         newElement.title[key] = value;
       });
-    } else {
-      newElement.title = {
-        "en": "",
-        "de": "",
-        "hr": "",
-      };
     }
 
+    newElement.description = {
+      "en": "",
+      "de": "",
+      "hr": "",
+    };
     if (JSONElement['description'] != null) {
       JSONElement['description'].forEach((String key, dynamic value) {
         newElement.description[key] =  value;
       });
-    } else {
-      newElement.description = {
-        "en": "",
-        "de": "",
-        "hr": "",
-      };
     }
 
     newElement.images = [];
     if (JSONElement['images'] != null) {
       for (int i = 0; i < (JSONElement['images'] as List).length; ++i) {
         newElement.images.add(JSONElement['images'][i]);
+      }
+    }
+
+    newElement.workingHours = [
+      {"from": 0, "to": 0}, 
+      {"from": 0, "to": 0}, 
+      {"from": 0, "to": 0}, 
+      {"from": 0, "to": 0}, 
+      {"from": 0, "to": 0}, 
+      {"from": 0, "to": 0}, 
+      {"from": 0, "to": 0}, 
+    ];
+    if (JSONElement['workingHours'] != null) {
+      for (int i = 0; i < (JSONElement['workingHours'] as List).length; ++i) {
+        newElement.workingHours[i] = (JSONElement['workingHours'][i] as Map<String, dynamic>);
       }
     }
 
@@ -120,6 +145,10 @@ class Element {
       "links": card.links,
       "background": card.background,
       "description": card.description,
+      "template": card.template,
+      "entryFee": card.entryFee,
+      "minimalAge": card.minimalAge,
+      "workingHours": card.workingHours
     };
   }
 

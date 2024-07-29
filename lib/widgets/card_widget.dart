@@ -143,7 +143,7 @@ class _CardWidgetState extends State<CardWidget> {
                     ],
                   ),
                 ),
-                showSettingsIcon(),
+                ...showCategoryOptions(),
               ],
             ),
           ),
@@ -244,33 +244,45 @@ class _CardWidgetState extends State<CardWidget> {
     );
   }
 
-  Widget showSettingsIcon() {
+  List<Widget> showCategoryOptions() {
     if (widget.showSettings) {
-      return Align(
-        alignment: Alignment.topRight,
-        child: SizedBox(
-          width: widget.width * 0.1,
-          height: widget.width * 0.1,
-          child: ElevatedButton(
-            onPressed: () =>
-              widget.onSettingsTap != null ?
-              widget.onSettingsTap!() :
-              () {}, // () => showImagesDialog(context, false),
-            style: const ButtonStyle(
-              backgroundColor: MaterialStatePropertyAll(PalleteHint.gradient3),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.settings,
-                size: widget.width * 0.045,
-                color: Colors.white,
+      return [
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            width: widget.width * 0.8,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, widget.height * 0.05),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: GradientButton(
+                      buttonText: widget.lang.translate('edit_category'),
+                      callback: () =>
+                        widget.onSettingsTap != null ?
+                        widget.onSettingsTap!() :
+                        () {}, // () => showImagesDialog(context, false),
+                    ),
+                  ),
+                  const Expanded(child: SizedBox(),),
+                  Expanded(
+                    flex: 3,
+                    child: GradientButton(
+                      buttonText: widget.lang.translate('edit_element'),
+                      callback: () => widget.onTap()
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      );
+      ];
     }
-    return const SizedBox();
+    return [];
   }
 
   

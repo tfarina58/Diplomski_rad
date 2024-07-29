@@ -4,6 +4,7 @@ import 'package:diplomski_rad/interfaces/category.dart';
 import 'package:diplomski_rad/interfaces/element.dart' as local;
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
+import 'package:diplomski_rad/widgets/dropdown_field.dart';
 import 'package:diplomski_rad/widgets/sequential_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/header_widget.dart';
@@ -13,10 +14,14 @@ import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:diplomski_rad/widgets/time_field.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/images_display_widget.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
+import 'package:diplomski_rad/widgets/calendar_field.dart';
+
+enum Template { complete, compact, minimal }
 
 class ElementsPage extends StatefulWidget {
 
@@ -24,10 +29,10 @@ class ElementsPage extends StatefulWidget {
   Category category;
   LanguageService? lang;
   FirebaseStorageService? storage;
-  Map<String, dynamic> headerValues = {};
   List<local.Element> elements;
   int elementIndex = 0;
   int currentImage = 0;
+  String? dateFormat;
 
   ElementsPage({
     Key? key,
@@ -97,6 +102,7 @@ class _ElementsPageState extends State<ElementsPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           ImagesDisplay(
+                            
                             category: widget.category,
                             lang: widget.lang!,
                             showAvatar: false,
@@ -104,6 +110,13 @@ class _ElementsPageState extends State<ElementsPage> {
                             callback: () {},
                           ),
                           SizedBox(height: height * 0.1),
+
+                          if (widget.elementIndex != widget.elements.length - 1) ...[
+                            showSectionTitles([widget.lang!.translate('template'), widget.lang!.translate('entry_fee'), widget.lang!.translate('minimal_age')], 22, Colors.white),
+                            SizedBox(height: height * 0.04),
+                            getTemplateEntranceAndAgeRow(width, height, setState),
+                            SizedBox(height: height * 0.04),
+                          ],
 
                           showSectionTitle(widget.lang!.translate('titles'), 22, Colors.white),
                           SizedBox(height: height * 0.04),
@@ -118,6 +131,11 @@ class _ElementsPageState extends State<ElementsPage> {
                           ],
 
                           showSectionTitle(widget.lang!.translate('description'), 22, Colors.white),
+                          SizedBox(height: height * 0.04),
+                          ...getDescriptionRow(width, height, cardSize, setState),
+                          SizedBox(height: height * 0.04),
+
+                          ...getWorkingHoursTable(width, height, setState),
                           SizedBox(height: height * 0.04),
                           ...getDescriptionRow(width, height, cardSize, setState),
                           SizedBox(height: height * 0.04),
@@ -241,6 +259,149 @@ class _ElementsPageState extends State<ElementsPage> {
     ];
   }
 
+  Widget getTemplateEntranceAndAgeRow(double width, double height, StateSetter setState) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Expanded(flex: 2, child: SizedBox()),
+        DropdownField(
+          labelText: widget.lang!.translate('template'),
+          callback: (String? value) {
+            if (value == null) return;
+
+            setState(() {
+              if (value == widget.lang!.translate('complete')) {
+                widget.elements[widget.elementIndex].template = 1;
+              } else if (value == widget.lang!.translate('compact')) {
+                widget.elements[widget.elementIndex].template = 2;
+              } else {
+                widget.elements[widget.elementIndex].template = 3;
+              }
+            });
+          },
+          choices: [
+            widget.lang!.translate('complete'),
+            widget.lang!.translate('compact'),
+            widget.lang!.translate('minimal')
+          ],
+          selected: widget.elements[widget.elementIndex].template == 1
+              ? widget.lang!.translate('complete')
+              : widget.elements[widget.elementIndex].template == 2
+                  ? widget.lang!.translate('compact')
+                  : widget.lang!.translate('minimal'),
+        ),
+        const Expanded(flex: 2, child: SizedBox()),
+        StringField(
+          labelText: widget.lang!.translate('entry_fee'),
+          presetText: widget.elements[widget.elementIndex].entryFee,
+          callback: (String? value) {
+            if (value == null) return;
+            widget.elements[widget.elementIndex].entryFee = value;
+          }
+        ),
+        const Expanded(flex: 2, child: SizedBox()),
+        DropdownField(
+          labelText: widget.lang!.translate('minimal_age'),
+          callback: (int? value) {
+            if (value == null) return;
+
+            widget.elements[widget.elementIndex].minimalAge = value;
+          },
+          choices: const [0, 3, 7, 12, 16, 18],
+          selected: widget.elements[widget.elementIndex].minimalAge,
+        ),
+        const Expanded(flex: 2, child: SizedBox()),
+      ],
+    );
+  }
+
+  List<Widget> getWorkingHoursTable(double width, double height, StateSetter setState) {
+    List<Widget> guestLines = [];
+    List<Widget> line;
+
+    for (int i = 0; i < 7; ++i) {
+      line = getWorkingHoursRow(width, height, setState, i);
+      for (int j = 0; j < line.length; ++j) {
+        guestLines.add(line[j]);
+      }
+    }
+
+    guestLines.add(
+      Divider(
+        height: height * 0.066,
+        thickness: 3,
+        color: PalleteCommon.gradient2,
+        indent: width * 0.1,
+        endIndent: width * 0.1,
+      )
+    );
+
+    return guestLines;
+  }
+
+  List<Widget> getWorkingHoursRow(double width, double height, StateSetter setState, int index) {
+    return [
+      Divider(
+        height: height * 0.066,
+        thickness: 3,
+        color: PalleteCommon.gradient2,
+        indent: width * 0.1,
+        endIndent: width * 0.1,
+      ),
+      Row(
+        key: ValueKey(index),
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Expanded(child: SizedBox()),
+          Expanded(
+            flex: 2,
+            child: Center(child: Text(indexToDayOfWeek(index))),
+          ),
+          const Expanded(flex: 2, child: SizedBox()),
+          Expanded(
+            flex: 2,
+            child: TimeField(
+              labelText: widget.lang!.translate('from_time'),
+              callback: (TimeOfDay? newValue) {
+                if (newValue == null) return;
+
+                setState(() {
+                  widget.elements[widget.elementIndex].workingHours[index]['from'] = (newValue).hour * 100 + (newValue).minute;
+                });
+              },
+              selectedTime: TimeOfDay(
+                hour: int.parse(((widget.elements[widget.elementIndex].workingHours[index]['from'] as int) / 100).toString()),
+                minute: int.parse(((widget.elements[widget.elementIndex].workingHours[index]['from'] as int) % 100).toString())
+              ),
+              lang: widget.lang!,
+            ),
+          ),
+          const Expanded(child: SizedBox()),
+          Expanded(
+            flex: 2,
+            child: TimeField(
+              labelText: widget.lang!.translate('to_time'),
+              callback: (TimeOfDay? newValue) {
+                if (newValue == null) return;
+
+                setState(() {
+                  widget.elements[widget.elementIndex].workingHours[index]['to'] = (newValue).hour * 100 + (newValue).minute;
+                });
+              },
+              selectedTime: TimeOfDay(
+                hour: int.parse(((widget.elements[widget.elementIndex].workingHours[index]['to'] as int) / 100).toString()),
+                minute: int.parse(((widget.elements[widget.elementIndex].workingHours[index]['to'] as int) % 100).toString())
+              ),
+              lang: widget.lang!,
+            ),
+          ),
+          const Expanded(flex: 5, child: SizedBox()),
+        ],
+      ),
+    ];
+  }
 
   Widget getBackgroundRow(double width, double height, StateSetter setState) {
     if (widget.elements[widget.elementIndex].background.isNotEmpty) {
@@ -678,6 +839,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+      String tmpDateFormat = sharedPreferencesService.getDateFormat();
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
       String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
@@ -694,9 +856,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
         widget.storage = storage;
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
-        widget.headerValues["userId"] = tmpUserId;
-        widget.headerValues["typeOfUser"] = tmpTypeOfUser;
-        widget.headerValues["avatarImage"] = tmpAvatarImage;
+        widget.dateFormat = tmpDateFormat;
       });
     });
   }
@@ -877,5 +1037,50 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
         const Expanded(flex: 2, child: SizedBox()),
       ],
     );
+  }
+
+  Widget showSectionTitles(List<String> titles, double fontSize, Color fontColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Expanded(flex: 1, child: SizedBox()),
+        for (int i = 0; i < titles.length; ++i) ...[
+          Expanded(
+            child: Center(
+              child: Text(
+                titles[i],
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                  color: fontColor,
+                ),
+              ),
+            ),
+          ),
+          const Expanded(flex: 2, child: SizedBox()),
+        ]
+      ],
+    );
+  }
+
+  String indexToDayOfWeek(int index) {
+    switch (index) {
+      case 0:
+        return widget.lang!.translate('monday');
+      case 1:
+        return widget.lang!.translate('tuesday');
+      case 2:
+        return widget.lang!.translate('wednesday');
+      case 3:
+        return widget.lang!.translate('thursday');
+      case 4:
+        return widget.lang!.translate('friday');
+      case 5:
+        return widget.lang!.translate('saturday');
+      case 6:
+        return widget.lang!.translate('sunday');
+    }
+    return "";
   }
 }

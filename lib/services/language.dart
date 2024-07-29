@@ -199,6 +199,20 @@ class LanguageService {
           "successfull_changed_password": "Your password has successfully been updated.",
           "error_while_gathering_your_data": "There was an error while gathering your data.",
           "error_while_deleting_account": "There was an error while deleting your account. Please try again later.",
+          "complete": "Complete",
+          "compact": "Compact",
+          "minimal": "Minimal",
+          "entry_fee": "Entrance fee",
+          "minimal_age": "Minimal age",
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday",
+          "edit_category": "Edit category",
+          "edit_element": "Edit element"
         };
         return jsonEN;
       case "de":
@@ -387,6 +401,20 @@ class LanguageService {
           "successfull_changed_password": "Ihr Passwort wurde erfolgreich aktualisiert.",
           "error_while_gathering_your_data": "Beim Sammeln Ihrer Daten ist ein Fehler aufgetreten.",
           "error_while_deleting_account": "Beim Löschen Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal.",
+          "complete": "Vollständig",
+          "compact": "Kompakt",
+          "minimal": "Minimal",
+          "entry_fee": "Eintrittspreis",
+          "minimal_age": "Mindestalter",
+          "monday": "Montag",
+          "tuesday": "Dienstag",
+          "wednesday": "Mittwoch",
+          "thursday": "Donnerstag",
+          "friday": "Freitag",
+          "saturday": "Samstag",
+          "sunday": "Sonntag",
+          "edit_category": "Kategorie bearbeiten",
+          "edit_element": "Element bearbeiten"
         };
         return jsonDE;
       case "hr":
@@ -571,6 +599,20 @@ class LanguageService {
           "successfull_changed_password": "Vaša lozinka je uspješno ažurirana.",
           "error_while_gathering_your_data": "Došlo je do pogreške prilikom prikupljanja vaših podataka.",
           "error_while_deleting_account": "Došlo je do pogreške prilikom brisanja vašeg računa. Molimo pokušajte ponovo kasnije.",
+          "complete": "Potpun",
+          "compact": "Kompaktan",
+          "minimal": "minimalan",
+          "entry_fee": "Ulaznica",
+          "minimal_age": "Minimalna dob",
+          "monday": "Ponedjeljak",
+          "tuesday": "Utorak",
+          "wednesday": "Srijeda",
+          "thursday": "Četvrtak",
+          "friday": "Petak",
+          "saturday": "Subota",
+          "sunday": "Nedjelja",
+          "edit_category": "Uredi kategoriju",
+          "edit_element": "Uredi element"
         };
         return jsonHR;
     }
