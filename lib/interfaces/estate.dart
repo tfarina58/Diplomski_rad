@@ -12,9 +12,7 @@ class Estate {
   String country;
   LatLng? coordinates;
   String phone;
-  String description;
   List<Map<String, dynamic>> guests;
-  List<List<dynamic>> variables;
 
   Estate({
     this.id = "",
@@ -27,9 +25,7 @@ class Estate {
     this.country = "",
     this.coordinates,
     this.phone = "",
-    this.description = "",
     this.guests = const [],
-    this.variables = const [],
   }) : super();
 
   static Estate? toEstate(Map<String, dynamic>? estate) {
@@ -51,7 +47,6 @@ class Estate {
     newEstate.city = estate['city'] ?? "";
     newEstate.country = estate['country'] ?? "";
     newEstate.phone = estate['phone'] ?? "";
-    newEstate.description = estate['description'] ?? "";
 
     Map<String, String> name = {
       "en": estate['name']['en'] ?? "",
@@ -62,7 +57,6 @@ class Estate {
     
     newEstate.phone = estate['phone'] ?? "";
     newEstate.guests = toGuestTable(estate['guests']);
-    newEstate.variables = toVariableTable(estate['variables']);
     return newEstate;
   }
 
@@ -78,10 +72,8 @@ class Estate {
       "coordinates": estate.coordinates != null
           ? GeoPoint(estate.coordinates!.latitude, estate.coordinates!.longitude)
           : null,
-      "description": estate.description,
       "phone": estate.phone,
       "guests": estate.guests,
-      "variables": toVariableJSON(estate.variables),
     };
   }
 
@@ -100,43 +92,6 @@ class Estate {
     return newGuests;
   }
 
-  static List<List<dynamic>> toVariableTable(Map<String, dynamic>? JSONVariables) {
-    if (JSONVariables == null) return [];
-
-    List<List<dynamic>> newVariables = [];
-
-    JSONVariables.forEach((String key, dynamic value) {
-      List<dynamic> row = [key, value[0] as String, (value[1] as Timestamp).toDate()];
-      newVariables = [...newVariables, row];
-    });
-
-    return newVariables;
-  }
-
-  static Map<String, dynamic> toVariableJSON(List<List<dynamic>>? variablesTable) {
-    if (variablesTable == null) return {};
-
-    Map<String, dynamic> output = {};
-
-    for (int i = 0; i < variablesTable.length; ++i) {
-      Timestamp from = Timestamp.fromDate(variablesTable[i][2] as DateTime);
-
-      DateTime now = DateTime.now();
-      if ((variablesTable[i][0] as String).isEmpty || (variablesTable[i][1] as String).isEmpty || from.millisecondsSinceEpoch < now.millisecondsSinceEpoch) {
-        continue;
-      }
-
-      output[variablesTable[i][0] as String] = [variablesTable[i][1] as String, from];
-    }
-
-    return output;
-  }
-
-  static List<dynamic> newVariableRow() {
-    DateTime now = DateTime.now();
-    return ["", "", DateTime(now.year, now.month, now.day)];
-  }
-
   static Map<String, dynamic> newGuestRow() {
     DateTime now = DateTime.now();
     return {
@@ -148,7 +103,7 @@ class Estate {
 
   static String asString(Estate? estate) {
     if (estate == null) return "";
-    return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\ndescription: ${estate.description}\n";
+    return "id: ${estate.id}\nownerId: ${estate.ownerId}\nlatitude: ${estate.coordinates?.latitude}\nlongitude: ${estate.coordinates?.longitude}\nstreet: ${estate.street}\nzip: ${estate.zip}\ncity: ${estate.city}\ncountry: ${estate.country}\nphone: ${estate.phone}\n";
   }
 
   static List<Estate> setupEstatesFromFirebaseDocuments(List<QueryDocumentSnapshot<Map<String, dynamic>>>? document) {

@@ -15,7 +15,6 @@ abstract class User {
       res.avatarImage = user['avatarImage'] ?? "";
       res.backgroundImage = user['backgroundImage'] ?? "";
       res.banned = user['banned'] ?? false;
-      res.bio = user['bio'] ?? "";
       res.blocked = user['blocked'] ?? false;
       res.city = user['city'] ?? "";
       if (user['coordinates'] != null) {
@@ -46,7 +45,6 @@ abstract class User {
       res.avatarImage = user['avatarImage'] ?? "";
       res.backgroundImage = user['backgroundImage'] ?? "";
       res.banned = user['banned'] ?? false;
-      res.bio = user['bio'] ?? "";
       res.blocked = user['blocked'] ?? false;
       res.city = user['city'] ?? "";
       if (user['coordinates'] != null) {
@@ -110,7 +108,6 @@ abstract class User {
             ? GeoPoint(user.coordinates!.latitude, user.coordinates!.longitude)
             : null,
         "phone": user.phone,
-        "bio": user.bio,
         "blocked": user.blocked,
         "banned": user.banned,
         "temperature": user.preferences.temperature,
@@ -136,7 +133,6 @@ abstract class User {
             ? GeoPoint(user.coordinates!.latitude, user.coordinates!.longitude)
             : null,
         "phone": user.phone,
-        "bio": user.bio,
         "blocked": user.blocked,
         "banned": user.banned,
         "temperature": user.preferences.temperature,
@@ -202,7 +198,6 @@ abstract class Customer extends User {
   abstract String city;
   abstract String country;
   abstract LatLng? coordinates;
-  abstract String bio;
   abstract bool blocked;
   abstract bool banned;
   abstract int numOfEstates;
@@ -223,8 +218,6 @@ class Company extends Customer {
   String country;
   @override
   LatLng? coordinates;
-  @override
-  String bio;
   @override
   String email;
   @override
@@ -258,7 +251,6 @@ class Company extends Customer {
     this.country = "",
     this.coordinates,
     this.phone = "",
-    this.bio = "",
     this.blocked = false,
     this.banned = false,
     this.numOfEstates = 0,
@@ -287,8 +279,6 @@ class Individual extends Customer {
   @override
   String phone;
   @override
-  String bio;
-  @override
   bool blocked;
   @override
   bool banned;
@@ -314,7 +304,6 @@ class Individual extends Customer {
     this.country = "",
     this.coordinates,
     this.phone = "",
-    this.bio = "",
     this.blocked = false,
     this.banned = false,
     this.numOfEstates = 0,

@@ -146,7 +146,10 @@ class _EstatesPageState extends State<EstatesPage> {
         ),
     const SizedBox(height: 36),
 
-    for (int i = 0; i < widget.estates.length; ++i)
+    if (widget.estates.isEmpty) 
+      SnapshotErrorField(text: widget.lang!.translate('no_estates'))
+
+    else for (int i = 0; i < widget.estates.length; ++i)
       ...[
         getEstateCard(cardSize, i),
         const SizedBox(height: 36),
@@ -254,5 +257,9 @@ class _EstatesPageState extends State<EstatesPage> {
         ),
       ),
     );
+  }
+
+  bool checkMandatoryData() {
+    return true;
   }
 }

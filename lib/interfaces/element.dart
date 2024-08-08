@@ -139,6 +139,17 @@ class Element {
   static Map<String, dynamic>? toJSON(Element? card) {
     if (card == null) return null;
 
+    List<Map<String, dynamic>> workingHours = [];
+
+    int counter = 0;
+    for (int i = 0; i < 7; ++i) {
+      if (card.workingHours[i]["from"] == 0 && card.workingHours[i]["to"] == 0) {
+        counter++;
+      }
+    }
+
+    if (counter != 7) workingHours = card.workingHours;
+
     return {
       "categoryId": card.categoryId,
       "title": card.title,
@@ -148,7 +159,7 @@ class Element {
       "template": card.template,
       "entryFee": card.entryFee,
       "minimalAge": card.minimalAge,
-      "workingHours": card.workingHours
+      "workingHours": workingHours
     };
   }
 

@@ -13,7 +13,7 @@ class StringField extends StatefulWidget {
   final TextInputType inputType;
   final int? maxNum;
 
-  StringField({
+  const StringField({
     Key? key,
     required this.labelText,
     required this.callback,

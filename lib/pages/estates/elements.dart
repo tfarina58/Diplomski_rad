@@ -21,8 +21,6 @@ import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
 import 'package:diplomski_rad/widgets/calendar_field.dart';
 
-enum Template { complete, compact, minimal }
-
 class ElementsPage extends StatefulWidget {
 
   String? userId;
@@ -33,6 +31,7 @@ class ElementsPage extends StatefulWidget {
   int elementIndex = 0;
   int currentImage = 0;
   String? dateFormat;
+  String typeOfUser = "";
 
   ElementsPage({
     Key? key,
@@ -135,9 +134,9 @@ class _ElementsPageState extends State<ElementsPage> {
                           ...getDescriptionRow(width, height, cardSize, setState),
                           SizedBox(height: height * 0.04),
 
-                          ...getWorkingHoursTable(width, height, setState),
+                          showSectionTitle(widget.lang!.translate('working_hours'), 22, Colors.white),
                           SizedBox(height: height * 0.04),
-                          ...getDescriptionRow(width, height, cardSize, setState),
+                          ...getWorkingHoursTable(width, height, setState),
                           SizedBox(height: height * 0.04),
 
                           if (widget.elementIndex != widget.elements.length - 1) ...[
@@ -178,6 +177,7 @@ class _ElementsPageState extends State<ElementsPage> {
         Expanded(
           flex: 3,
           child: StringField(
+            readOnly: widget.typeOfUser == "adm",
             labelText: widget.lang!.translate('title_en'),
             callback: (value) => widget.elements[widget.elementIndex].title['en'] = value,
             presetText: widget.elements[widget.elementIndex].title['en']!,
@@ -187,6 +187,7 @@ class _ElementsPageState extends State<ElementsPage> {
         Expanded(
           flex: 3,
           child: StringField(
+            readOnly: widget.typeOfUser == "adm",
             labelText: widget.lang!.translate('title_de'),
             callback: (value) => widget.elements[widget.elementIndex].title['de'] = value,
             presetText: widget.elements[widget.elementIndex].title['de']!,
@@ -196,6 +197,7 @@ class _ElementsPageState extends State<ElementsPage> {
         Expanded(
           flex: 3,
           child: StringField(
+            readOnly: widget.typeOfUser == "adm",
             labelText: widget.lang!.translate('title_hr'),
             callback: (value) => widget.elements[widget.elementIndex].title['hr'] = value,
             presetText: widget.elements[widget.elementIndex].title['hr']!,
@@ -221,6 +223,7 @@ class _ElementsPageState extends State<ElementsPage> {
               Expanded(
                 flex: 3,
                 child: StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('title_en'),
                   callback: (value) => widget.elements[widget.elementIndex].links[index]['title']['en'] = value,
                   presetText: widget.elements[widget.elementIndex].links[index]['title']['en'],
@@ -230,6 +233,7 @@ class _ElementsPageState extends State<ElementsPage> {
               Expanded(
                 flex: 3,
                 child: StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('title_de'),
                   callback: (value) => widget.elements[widget.elementIndex].links[index]['title']['de'] = value,
                   presetText: widget.elements[widget.elementIndex].links[index]['title']['de'],
@@ -239,6 +243,7 @@ class _ElementsPageState extends State<ElementsPage> {
               Expanded(
                 flex: 3,
                 child: StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('title_hr'),
                   callback: (value) => widget.elements[widget.elementIndex].links[index]['title']['hr'] = value,
                   presetText: widget.elements[widget.elementIndex].links[index]['title']['hr'],
@@ -249,6 +254,7 @@ class _ElementsPageState extends State<ElementsPage> {
           ),
           SizedBox(height: height * 0.04),
           StringField(
+            readOnly: widget.typeOfUser == "adm",
             maxWidth: width * 0.82,
             labelText: widget.lang!.translate('links_url'),
             callback: (value) => widget.elements[widget.elementIndex].links[index]['url'] = value,
@@ -264,54 +270,66 @@ class _ElementsPageState extends State<ElementsPage> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Expanded(flex: 2, child: SizedBox()),
-        DropdownField(
-          labelText: widget.lang!.translate('template'),
-          callback: (String? value) {
-            if (value == null) return;
-
-            setState(() {
-              if (value == widget.lang!.translate('complete')) {
-                widget.elements[widget.elementIndex].template = 1;
-              } else if (value == widget.lang!.translate('compact')) {
-                widget.elements[widget.elementIndex].template = 2;
-              } else {
-                widget.elements[widget.elementIndex].template = 3;
-              }
-            });
-          },
-          choices: [
-            widget.lang!.translate('complete'),
-            widget.lang!.translate('compact'),
-            widget.lang!.translate('minimal')
-          ],
-          selected: widget.elements[widget.elementIndex].template == 1
-              ? widget.lang!.translate('complete')
-              : widget.elements[widget.elementIndex].template == 2
-                  ? widget.lang!.translate('compact')
-                  : widget.lang!.translate('minimal'),
+        const Expanded(flex: 1, child: SizedBox()),
+        Expanded(
+          flex: 3,
+          child: DropdownField(
+            readOnly: widget.typeOfUser == "adm",
+            labelText: widget.lang!.translate('template'),
+            callback: (String? value) {
+              if (value == null) return;
+        
+              setState(() {
+                if (value == widget.lang!.translate('complete')) {
+                  widget.elements[widget.elementIndex].template = 1;
+                } else if (value == widget.lang!.translate('compact')) {
+                  widget.elements[widget.elementIndex].template = 2;
+                } else {
+                  widget.elements[widget.elementIndex].template = 3;
+                }
+              });
+            },
+            choices: [
+              widget.lang!.translate('complete'),
+              widget.lang!.translate('compact'),
+              widget.lang!.translate('minimal')
+            ],
+            selected: widget.elements[widget.elementIndex].template == 1
+                ? widget.lang!.translate('complete')
+                : widget.elements[widget.elementIndex].template == 2
+                    ? widget.lang!.translate('compact')
+                    : widget.lang!.translate('minimal'),
+          ),
         ),
-        const Expanded(flex: 2, child: SizedBox()),
-        StringField(
-          labelText: widget.lang!.translate('entry_fee'),
-          presetText: widget.elements[widget.elementIndex].entryFee,
-          callback: (String? value) {
-            if (value == null) return;
-            widget.elements[widget.elementIndex].entryFee = value;
-          }
+        const Expanded(flex: 1, child: SizedBox()),
+        Expanded(
+          flex: 3,
+          child: StringField(
+            readOnly: widget.typeOfUser == "adm",
+            labelText: widget.lang!.translate('entry_fee'),
+            presetText: widget.elements[widget.elementIndex].entryFee,
+            callback: (String? value) {
+              if (value == null) return;
+              widget.elements[widget.elementIndex].entryFee = value;
+            }
+          ),
         ),
-        const Expanded(flex: 2, child: SizedBox()),
-        DropdownField(
-          labelText: widget.lang!.translate('minimal_age'),
-          callback: (int? value) {
-            if (value == null) return;
-
-            widget.elements[widget.elementIndex].minimalAge = value;
-          },
-          choices: const [0, 3, 7, 12, 16, 18],
-          selected: widget.elements[widget.elementIndex].minimalAge,
+        const Expanded(flex: 1, child: SizedBox()),
+        Expanded(
+          flex: 3,
+          child: DropdownField(
+            readOnly: widget.typeOfUser == "adm",
+            labelText: widget.lang!.translate('minimal_age'),
+            callback: (int? value) {
+              if (value == null) return;
+        
+              widget.elements[widget.elementIndex].minimalAge = value;
+            },
+            choices: const [0, 3, 7, 12, 16, 18],
+            selected: widget.elements[widget.elementIndex].minimalAge,
+          ),
         ),
-        const Expanded(flex: 2, child: SizedBox()),
+        const Expanded(flex: 1, child: SizedBox()),
       ],
     );
   }
@@ -363,7 +381,8 @@ class _ElementsPageState extends State<ElementsPage> {
           Expanded(
             flex: 2,
             child: TimeField(
-              labelText: widget.lang!.translate('from_time'),
+              readOnly: widget.typeOfUser == "adm",
+              labelText: widget.lang!.translate('opening_hour'),
               callback: (TimeOfDay? newValue) {
                 if (newValue == null) return;
 
@@ -382,7 +401,8 @@ class _ElementsPageState extends State<ElementsPage> {
           Expanded(
             flex: 2,
             child: TimeField(
-              labelText: widget.lang!.translate('to_time'),
+              readOnly: widget.typeOfUser == "adm",
+              labelText: widget.lang!.translate('closing_hour'),
               callback: (TimeOfDay? newValue) {
                 if (newValue == null) return;
 
@@ -425,28 +445,29 @@ class _ElementsPageState extends State<ElementsPage> {
           ),
 
           // Delete image
-          SizedBox(
-            width: width * 0.5,
-            height: height * 0.5,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () async {
-                  await widget.storage!.deleteBackgroundForElement(
-                    widget.elements[widget.elementIndex].id,
-                    widget.elements[widget.elementIndex].images[widget.currentImage],
-                  );
-                },
-                child: const Align(
-                  alignment: AlignmentDirectional.topEnd,
-                  child: Icon(Icons.close, color: Colors.red),
+          if (widget.typeOfUser != "adm")
+            SizedBox(
+              width: width * 0.5,
+              height: height * 0.5,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () async {
+                    await widget.storage!.deleteBackgroundForElement(
+                      widget.elements[widget.elementIndex].id,
+                      url: widget.elements[widget.elementIndex].background
+                    );
+                  },
+                  child: const Align(
+                    alignment: AlignmentDirectional.topEnd,
+                    child: Icon(Icons.close, color: Colors.red),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       );
-    } else {
+    } else if (widget.typeOfUser != "adm") {
       // No image to show
       return DropzoneWidget(
         width: width * 0.4,
@@ -462,12 +483,15 @@ class _ElementsPageState extends State<ElementsPage> {
           );
         },
       );
+    } else {
+      return const SizedBox();
     }
   }
 
 List<Widget> getDescriptionRow(double width, double height, double cardSize, StateSetter setState) {
     return [
       StringField(
+        readOnly: widget.typeOfUser == "adm",
         labelText: widget.lang!.translate('description_en'),
         callback: (value) => widget.elements[widget.elementIndex].description['en'] = value,
         presetText: widget.elements[widget.elementIndex].description['en']!,
@@ -476,6 +500,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
       ),
       SizedBox(height: height * 0.04),
       StringField(
+        readOnly: widget.typeOfUser == "adm",
         labelText: widget.lang!.translate('description_de'),
         callback: (value) => widget.elements[widget.elementIndex].description['de'] = value,
         presetText: widget.elements[widget.elementIndex].description['de']!,
@@ -484,6 +509,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
       ),
       SizedBox(height: height * 0.04),
       StringField(
+        readOnly: widget.typeOfUser == "adm",
         labelText: widget.lang!.translate('description_hr'),
         callback: (value) => widget.elements[widget.elementIndex].description['hr'] = value,
         presetText: widget.elements[widget.elementIndex].description['hr']!,
@@ -536,7 +562,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
       );
     }
 
-    if (widget.currentImage < widget.elements[widget.elementIndex].images.length + widget.elements[widget.elementIndex].tmpDescriptionImageBytes.length) {
+    if (widget.currentImage < widget.elements[widget.elementIndex].images.length) {
       rightButton = Align(
         alignment: Alignment.centerRight,
         child: SizedBox(
@@ -544,7 +570,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
           height: cardSize * 0.15,
           child: ElevatedButton(
             onPressed: () {
-              if (widget.currentImage >= widget.elements[widget.elementIndex].images.length + widget.elements[widget.elementIndex].tmpDescriptionImageBytes.length) return;
+              if (widget.currentImage >= widget.elements[widget.elementIndex].images.length) return;
               setState(() {
                 widget.currentImage += 1;
               });
@@ -785,46 +811,67 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
                       ),
                     ),
         
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
-                      child: SizedBox(
-                        width: width * 0.5,
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () async {
-                              await widget.storage!.deleteImagesForElement(
-                                widget.elements[widget.elementIndex].id,
-                                widget.elements[widget.elementIndex].images[widget.currentImage],
-                                widget.elements[widget.elementIndex].images
-                              );
-                            },
-                            child: const Align(
-                              alignment: AlignmentDirectional.topEnd,
-                              child: Icon(Icons.close, color: Colors.red),
+                    if (widget.typeOfUser != "adm")
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(width * 0.05, 0, width * 0.05, 0),
+                        child: SizedBox(
+                          width: width * 0.5,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: GestureDetector(
+                              onTap: () async {
+                                await widget.storage!.deleteImagesForElement(
+                                  widget.elements[widget.elementIndex].id,
+                                  widget.elements[widget.elementIndex].images,
+                                  widget.currentImage
+                                );
+
+                                controller.animateToPage(
+                                  widget.currentImage,
+                                  duration: const Duration(milliseconds: 1),
+                                  curve: Curves.linear,
+                                );
+                              },
+                              child: const Align(
+                                alignment: AlignmentDirectional.topEnd,
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.red
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
 
-              DropzoneWidget(
-                width: width * 0.4,
-                height: height * 0.4,
-                onDroppedFile: (Map<String, dynamic>? file) async {
-                  if (file == null) return;
+              if (widget.typeOfUser != "adm")
+                DropzoneWidget(
+                  width: width * 0.4,
+                  height: height * 0.4,
+                  onDroppedFile: (Map<String, dynamic>? file) async {
+                    if (file == null) return;
 
-                  await widget.storage!.uploadNewImageForElement(
-                    widget.elements[widget.elementIndex].id,
-                    file['name'],
-                    file['bytes'],
-                    widget.elements[widget.elementIndex].images
-                  );
-                },
-                lang: widget.lang!
-              ),
+                    await widget.storage!.uploadNewImagesForElement(
+                      widget.elements[widget.elementIndex].id,
+                      file['name'],
+                      file['bytes'],
+                      widget.elements[widget.elementIndex].images
+                    );
+
+                    controller.animateToPage(
+                      widget.currentImage,
+                      duration: const Duration(milliseconds: 1),
+                      curve: Curves.linear,
+                    );
+
+                    /*setState(() {
+                      widget.currentImage = 0;
+                    });*/
+                  },
+                  lang: widget.lang!
+                ),
             ],
           ),
           FABButtons(cardSize, setState),
@@ -842,7 +889,6 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
       String tmpDateFormat = sharedPreferencesService.getDateFormat();
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
-      String tmpAvatarImage = sharedPreferencesService.getAvatarImage();
       String tmpLanguage = sharedPreferencesService.getLanguage();
 
       if (tmpUserId.isEmpty) return;
@@ -856,6 +902,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
         widget.storage = storage;
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
+        widget.typeOfUser = tmpTypeOfUser;
         widget.dateFormat = tmpDateFormat;
       });
     });
@@ -879,7 +926,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
             Expanded(
               flex: 3,
               child: GradientButton(
-                buttonText: widget.lang!.translate('delete_estate'),
+                buttonText: widget.lang!.translate('delete_element'),
                 callback: () => showDialog(
                   context: context,
                   builder: (BuildContext context) => showDeleteAlert(width, height),
@@ -923,7 +970,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
             Expanded(
               flex: 2,
               child: Text(
-                widget.lang!.translate('delete_estate_warning_message'),
+                widget.lang!.translate('delete_element_warning_message'),
                 style: const TextStyle(
                   fontSize: 18,
                   color: PalleteCommon.gradient2,
@@ -946,7 +993,7 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
                     flex: 3,
                     child: GradientButton(
                       colors: PalleteDanger.getGradients(),
-                      buttonText: widget.lang!.translate('delete_estate'),
+                      buttonText: widget.lang!.translate('delete_element'),
                       callback: () => deleteElement(),
                     ),
                   ),

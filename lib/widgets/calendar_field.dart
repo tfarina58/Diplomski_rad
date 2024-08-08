@@ -13,6 +13,7 @@ class CalendarField extends StatefulWidget {
   final String dateFormat;
   DateTime? selectedDate;
   DateTime? tmpDate;
+  bool readOnly;
   LanguageService lang;
 
   CalendarField({
@@ -25,6 +26,7 @@ class CalendarField extends StatefulWidget {
     this.lastDate,
     this.dateFormat = "yyyy-MM-dd",
     this.selectedDate,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -51,69 +53,73 @@ class _CalendarFieldState extends State<CalendarField> {
       child: TextFormField(
         controller: textController,
         readOnly: true,
-        onTap: () => showDialog<String>(
-          context: context,
-          builder: (BuildContext context) => Dialog(
-            backgroundColor: PalleteCommon.backgroundColor,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: width + 20,
-              height: height,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(),
-                        ),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            child: const Icon(
-                              Icons.close,
-                              color: PalleteCommon.gradient2,
+        onTap: () {
+          if (!widget.readOnly) {
+            showDialog<String>(
+              context: context,
+              builder: (BuildContext context) => Dialog(
+                backgroundColor: PalleteCommon.backgroundColor,
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: width + 20,
+                  height: height,
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(),
                             ),
-                            onTap: () => Navigator.pop(context),
-                          ),
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                child: const Icon(
+                                  Icons.close,
+                                  color: PalleteCommon.gradient2,
+                                ),
+                                onTap: () => Navigator.pop(context),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: PalleteCommon.borderColor)),
+                        width: MediaQuery.of(context).size.width * 0.3,
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        padding: const EdgeInsets.all(16),
+                        child: CalendarDatePicker(
+                          firstDate: widget.firstDate ?? DateTime(1900),
+                          initialDate: widget.tmpDate!,
+                          lastDate: widget.lastDate ?? (widget.selectingBirthday ? DateTime.now() : DateTime(2100)),
+                          onDateChanged: (DateTime value) {
+                            widget.tmpDate = value;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      GradientButton(
+                        buttonText: widget.lang.translate('set_date'),
+                        callback: () {
+                          setState(() {
+                            widget.selectedDate = widget.tmpDate;
+                            widget.callback(widget.tmpDate);
+                            textController.text = DateFormat(widget.dateFormat)
+                                .format(widget.tmpDate!);
+                          });
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: PalleteCommon.borderColor)),
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    height: MediaQuery.of(context).size.height * 0.4,
-                    padding: const EdgeInsets.all(16),
-                    child: CalendarDatePicker(
-                      firstDate: widget.firstDate ?? DateTime(1900),
-                      initialDate: widget.tmpDate!,
-                      lastDate: widget.lastDate ?? (widget.selectingBirthday ? DateTime.now() : DateTime(2100)),
-                      onDateChanged: (DateTime value) {
-                        widget.tmpDate = value;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  GradientButton(
-                    buttonText: widget.lang.translate('set_date'),
-                    callback: () {
-                      setState(() {
-                        widget.selectedDate = widget.tmpDate;
-                        widget.callback(widget.tmpDate);
-                        textController.text = DateFormat(widget.dateFormat)
-                            .format(widget.tmpDate!);
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
+            );
+          }
+        },
         decoration: InputDecoration(
           labelText: widget.labelText,
           contentPadding: const EdgeInsets.all(27),

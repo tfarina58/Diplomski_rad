@@ -3,9 +3,7 @@ import 'package:diplomski_rad/interfaces/category.dart' as localCategory;
 import 'package:diplomski_rad/interfaces/user.dart' as localUser;
 import 'package:diplomski_rad/interfaces/element.dart' as localElement;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:diplomski_rad/interfaces/user.dart';
 import 'package:crypto/crypto.dart';
@@ -88,21 +86,8 @@ class FirebaseStorageService {
       return;
     }
   }
-  
-  Future<void> deleteOldImagesForElement(String elementId, dynamic toRemoveUrl) async {
-    if (elementId.isEmpty || toRemoveUrl.isEmpty) return;
 
-    try {
-      String name = extractFileName(toRemoveUrl);
-      final Reference folder = storage.child("$elementId/$name");
-      await folder.delete();
-    } catch (err) {
-      return;
-    }
-    return;
-  }
-
-  Future<void> uploadNewImageForElement(String elementId, dynamic toUploadName, Uint8List? toUploadBytes, List<String> images) async {
+  Future<void> uploadNewImagesForElement(String elementId, String toUploadName, Uint8List? toUploadBytes, List<String> images) async {
     if (toUploadBytes == null) return;
 
     try {
@@ -143,16 +128,21 @@ class FirebaseStorageService {
   }
 
   // TODO: comment
-  Future<void> deleteImageForEstate(String id, String url) async {
+  Future<void> deleteImageForEstate(String estateId, {String url = ""}) async {
+    if (url.isEmpty) {
+        final estates = FirebaseFirestore.instance.collection("estates");
+        url = (await estates.doc(estateId).get()).get("image");
+    }
+
     String name = extractFileName(url);
     Map<String, dynamic> updateObject = {
       "image": ""
     };
 
     try {
-      bool success = await EstateRepository.updateEstate(id, updateObject);
+      bool success = await EstateRepository.updateEstate(estateId, updateObject);
       if (success) {
-        final Reference folder = storage.child("$id/$name");
+        final Reference folder = storage.child("$estateId/$name");
         await folder.delete();
         // TODO: give feedback
       }
@@ -162,16 +152,21 @@ class FirebaseStorageService {
   }
 
     // TODO: comment
-  Future<void> deleteImageForCategory(String id, String url) async {
+  Future<void> deleteImageForCategory(String categoryId, {String url = ""}) async {
+    if (url.isEmpty) {
+        final categories = FirebaseFirestore.instance.collection("categories");
+        url = (await categories.doc(categoryId).get()).get("image");
+    }
+
     String name = extractFileName(url);
     Map<String, dynamic> updateObject = {
       "image": ""
     };
 
     try {
-      bool success = await EstateRepository.updateEstate(id, updateObject);
+      bool success = await CategoryRepository.updateCategory(categoryId, updateObject);
       if (success) {
-        final Reference folder = storage.child("$id/$name");
+        final Reference folder = storage.child("$categoryId/$name");
         await folder.delete();
         // TODO: give feedback
       }
@@ -181,18 +176,15 @@ class FirebaseStorageService {
   }
 
   // TODO: comment
-  Future<void> deleteImagesForElement(String id, String url, List<String> images) async {
-    String name = extractFileName(url);
-
-    int index = images.indexWhere((element) => element == url);
-    if (index == -1) return;
+  Future<void> deleteImagesForElement(String elementId, List<String> images, int index) async {
+    String name = extractFileName(images[index]);
 
     images = [...images.sublist(0, index), ...images.sublist(index + 1, images.length)];
 
     try {
-      bool success = await ElementRepository.updateElement(id, {"images": images});
+      bool success = await ElementRepository.updateElement(elementId, {"images": images});
       if (success) {
-        final Reference folder = storage.child("$id/$name");
+        final Reference folder = storage.child("$elementId/$name");
         await folder.delete();
         // TODO: give feedback
       }
@@ -201,14 +193,42 @@ class FirebaseStorageService {
     }
   }
 
-    // TODO: comment
-  Future<void> deleteBackgroundForElement(String id, String url) async {
-    String name = extractFileName(url);
+  Future<void> deleteAllImagesForElement(String elementId) async {
+    final elements = FirebaseFirestore.instance.collection("elements");
 
     try {
-      bool success = await ElementRepository.updateElement(id, {"background": ""});
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await elements.doc(elementId).get();
+      Map<String, dynamic>? map = snapshot.data();
+      if (map == null) return;
+
+      List<dynamic> images = map["images"];
+      Reference storedImage;
+
+      for (int i = 0; i < images.length; ++i) {
+        storedImage = storage.child("$elementId/${extractFileName(images[i])}");
+        await storedImage.delete();
+      }
+
+      bool success = await ElementRepository.updateElement(elementId, {"images": []});
+      // TODO: feedback
+    } catch (err) {
+      return;
+    }
+  }
+
+    // TODO: comment
+  Future<void> deleteBackgroundForElement(String elementId, {String url = ""}) async {
+    try {
+      if (url.isEmpty) {
+        final elements = FirebaseFirestore.instance.collection("elements");
+        url = (await elements.doc(elementId).get()).get("background");
+      }
+
+      String name = extractFileName(url);
+
+      bool success = await ElementRepository.updateElement(elementId, {"background": ""});
       if (success) {
-        final Reference folder = storage.child("$id/$name");
+        final Reference folder = storage.child("$elementId/$name");
         await folder.delete();
         // TODO: give feedback
       }
@@ -235,63 +255,10 @@ class FirebaseStorageService {
   } 
 }
 
-class GoogleAuthService {
-  static final firebase.FirebaseAuth firebaseAuth =
-      firebase.FirebaseAuth.instance;
-  static final GoogleSignIn googleSignIn = GoogleSignIn(
-      clientId:
-          "236389351601-0q6kgflcvpferc94od95bk5o79385q8m.apps.googleusercontent.com",
-      scopes: []);
-
-  /*Firebase.User? userFromFirebase(Firebase.UserCredential? credentials) {
-    if (credentials == null) return null;
-credentials.user.
-
-    return  Firebase.User(uid: credentials.user!.uid);
-  }*/
-
-  /*Stream<Firebase.User> get onAuthStateChanged {
-    return firebaseAuth.
-  }*/
-
-  // Future<Firebase.User?> signInWithGoogle() async {
-  static Future<firebase.User?> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser =
-          await googleSignIn.signInSilently();
-      if (googleUser == null) return null;
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final firebase.AuthCredential credential =
-          firebase.GoogleAuthProvider.credential(
-              accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
-
-      final firebase.UserCredential authResult =
-          await firebaseAuth.signInWithCredential(credential);
-
-      return authResult.user;
-    } catch (err) {
-      return null;
-    }
-    // return userFromFirebase(authResult);
-  }
-
-  static Future<void> signOut() async {
-    return firebaseAuth.signOut();
-  }
-
-  static Future<firebase.User?> currentUser() async {
-    final firebase.User? user = firebaseAuth.currentUser;
-    // return userFromFirebase(user);
-    return user;
-  }
-}
-
 // TODO: comment
 class UserRepository {
   static final users = FirebaseFirestore.instance.collection("users");
+  static final estates = FirebaseFirestore.instance.collection("estates");
   
   // TODO: comment
   static Future<localUser.User?> createCustomer(Map<String, dynamic> userMap) async {
@@ -310,40 +277,6 @@ class UserRepository {
       return null;
     } catch (err) {
       return null;
-    }
-  }
-
-  static Future<void> addEstate(String userId) async {
-    if (userId.isEmpty) return;
-
-    try {
-      DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await users.doc(userId).get();
-      Map<String, dynamic>? userMap = documentSnapshot.data();
-      if (userMap == null) return;
-
-      int numOfEstates = userMap['numOfEstates'];
-
-      await users.doc(userId).update({"numOfEstates": (numOfEstates + 1)});
-    } catch (err) {
-      return;
-    }
-  }
-  
-  static Future<void> removeEstate(String userId) async {
-    if (userId.isEmpty) return;
-
-    try {
-      DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await users.doc(userId).get();
-      Map<String, dynamic>? userMap = documentSnapshot.data();
-      if (userMap == null) return;
-
-      int numOfEstates = userMap['numOfEstates'];
-
-      if (numOfEstates > 0) {
-        await users.doc(userId).update({"numOfEstates": (numOfEstates - 1)});
-      }
-    } catch (err) {
-      return;
     }
   }
 
@@ -416,13 +349,27 @@ class UserRepository {
       if (userMap == null) return false;
 
       if (userMap["password"] != null && userMap["password"] == password) {
+        List<QueryDocumentSnapshot<Map<String, dynamic>>> documents = (await estates.where("ownerId", isEqualTo: userId).get()).docs;
+
+        for (int i = 0; i < documents.length; ++i) {
+          await EstateRepository.deleteEstate(documents[i].id);
+        }
+
         await users.doc(userId).delete();
         return true;
       }
+
       return false;
     } catch (err) {
       return false;
     }
+  }
+
+  static Future<void> getNumOfEstates(String userId) async {
+    try {
+      int numOfEstates = (await estates.where("ownerId", isEqualTo: userId).get()).docs.length;
+      await users.doc(userId).update({"numOfEstates": numOfEstates});
+    } catch (err) {}
   }
 
   // TODO: comment
@@ -453,6 +400,7 @@ class UserRepository {
       if (res["banned"] == true) {
         return null;
       } else if (res["banned"] == false) {
+        // TODO: test users.doc(id).set()
         await users.doc(id).update({
           "avatarImage": "",
           "backgroundImage": "",
@@ -498,6 +446,8 @@ class UserRepository {
 // TODO: comment
 class EstateRepository {
   static final estates = FirebaseFirestore.instance.collection("estates");
+  static final categories = FirebaseFirestore.instance.collection("categories");
+  static final elements = FirebaseFirestore.instance.collection("elements");
 
   // TODO: comment
   static Future<Estate?> createEstate(Map<String, dynamic> estateMap) async {
@@ -531,6 +481,15 @@ class EstateRepository {
     bool success = false;
 
     try {
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> documents = (await categories.where("estateId", isEqualTo: estateId).get()).docs;
+
+      for (int i = 0; i < documents.length; ++i) {
+        await CategoryRepository.deleteCategory(documents[i].id);
+      }
+
+      FirebaseStorageService service = FirebaseStorageService();
+      service.deleteImageForEstate(estateId);
+
       await estates.doc(estateId).delete();
       success = true;
     } catch (err) {
@@ -543,6 +502,7 @@ class EstateRepository {
 // TODO: comment
 class CategoryRepository {
   static final categories = FirebaseFirestore.instance.collection("categories");
+  static final elements = FirebaseFirestore.instance.collection("elements");
 
   // TODO: comment
   static Future<localCategory.Category?> createCategory(Map<String, dynamic> categoryMap) async {
@@ -576,6 +536,15 @@ class CategoryRepository {
     bool success = false;
 
     try {
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> documents = (await elements.where("categoryId", isEqualTo: categoryId).get()).docs;
+
+      for (int i = 0; i < documents.length; ++i) {
+        await ElementRepository.deleteElement(documents[i].id);
+      }
+
+      FirebaseStorageService service = FirebaseStorageService();
+      service.deleteImageForCategory(categoryId);
+
       await categories.doc(categoryId).delete();
       success = true;
     } catch (err) {
@@ -618,6 +587,10 @@ class ElementRepository {
   // TODO: comment
   static Future<bool> deleteElement(String elementId) async {
     bool success = false;
+
+    FirebaseStorageService storage = FirebaseStorageService();
+    storage.deleteAllImagesForElement(elementId);
+    storage.deleteBackgroundForElement(elementId);
 
     try {
       await elements.doc(elementId).delete();

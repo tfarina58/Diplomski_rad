@@ -1,5 +1,5 @@
 import 'package:diplomski_rad/pages/auth/login.dart';
-import 'package:diplomski_rad/pages/header/home.dart';
+import 'package:diplomski_rad/pages/estates/estates.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
@@ -15,18 +15,18 @@ import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
 class RegisterPage extends StatefulWidget {
-  String firstname = "Sandi";
-  String lastname = "Ljubić";
+  String firstname = "";
+  String lastname = "";
   DateTime birthday = DateTime.now();
 
-  String ownerFirstname = "Sandi";
-  String ownerLastname = "Ljubić";
-  String companyName = "Ljubić Ltd.";
+  String ownerFirstname = "";
+  String ownerLastname = "";
+  String companyName = "";
 
   String typeOfUser = "com";
-  String email = "sandi.ljubic@gmail.com";
-  String password = "password";
-  String repeatPassword = "password";
+  String email = "";
+  String password = "";
+  String repeatPassword = "";
   bool keepLoggedIn = false;
 
   LanguageService lang = LanguageService.getInstance("en");
@@ -187,18 +187,18 @@ class _RegisterPageState extends State<RegisterPage> {
       DateTime now = DateTime.now();
       DateTime todayBefore18Years = DateTime(now.year - 18, now.month, now.day);
       if (widget.birthday.compareTo(todayBefore18Years) == 1) {
-        showSnackBar(width, height, widget.lang.translate('cant_register'));
+        showSnackBar(widget.lang.translate('cant_register'));
         return;
       }
     }
 
     if (!checkMandatoryData()) {
-      showSnackBar(width, height, widget.lang.translate('fill_all_requested_fields'));
+      showSnackBar(widget.lang.translate('fill_all_requested_fields'));
       return;
     }
 
     if (widget.password != widget.repeatPassword) {
-      showSnackBar(width, height, widget.lang.translate('passwords_do_not_match'));
+      showSnackBar(widget.lang.translate('passwords_do_not_match'));
       return;
     }
 
@@ -257,7 +257,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     User? user = await UserRepository.createCustomer(userMap);
     if (user == null) {
-      showSnackBar(width, height, widget.lang.translate('cant_register'));
+      showSnackBar(widget.lang.translate('cant_register'));
       return;
     }
 
@@ -272,11 +272,11 @@ class _RegisterPageState extends State<RegisterPage> {
     await sharedPreferencesService.setKeepLoggedIn(widget.keepLoggedIn);
     await sharedPreferencesService.setAvatarImage(user is Customer ? user.avatarImage : "");
     
-    showSnackBar(width, height, widget.lang.translate('account_successfully_created'));
+    showSnackBar(widget.lang.translate('account_successfully_created'));
     toHomePage();
   }
 
-  void showSnackBar(double width, double height, String text) {
+  void showSnackBar(String text) {
     SnackBar feedback = SnackBar(
       dismissDirection: DismissDirection.down,
       content: Center(child: Text(text)),
@@ -295,7 +295,7 @@ class _RegisterPageState extends State<RegisterPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => HomePage(),
+        builder: (context) => EstatesPage(),
       ),
     );
   }

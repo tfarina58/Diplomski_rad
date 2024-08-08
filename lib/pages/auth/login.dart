@@ -5,17 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/other/pallete.dart';
-import 'package:diplomski_rad/pages/header/home.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/interfaces/user.dart';
+import 'package:diplomski_rad/pages/estates/estates.dart';
+import 'package:diplomski_rad/pages/header/users.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
 
   bool keepLoggedIn = false;
-  String email = "tfarina58@gmail.com"; // "sandi.ljubic@gmail.com";
-  String password = "password";
+  String email = "tfarina58@gmail.com"; // "sandi.ljubic@gmail.com", "";
+  String password = "password"; // ""
   LanguageService lang = LanguageService.getInstance("en");
 
   @override
@@ -122,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
       if (!tmpKeepLoggedIn || tmpUserId.isEmpty && tmpTypeOfUser.isEmpty) return;
 
-      toHomePage();
+      toHomePage(tmpTypeOfUser);
     });
   }
 
@@ -131,9 +132,9 @@ class _LoginPageState extends State<LoginPage> {
 
     if (user != null) {
       if (user is Customer && user.banned == true) {
-        showSnackBar(width, height, widget.lang.translate('banned_by_admin'));
+        showSnackBar(widget.lang.translate('banned_by_admin'));
       } else if (user is Customer && user.blocked == true) {
-        showSnackBar(width, height, widget.lang.translate('blocked_by_admin'));
+        showSnackBar(widget.lang.translate('blocked_by_admin'));
       } else {
         SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
         await sharedPreferencesService.setUserId(user.id);
@@ -149,14 +150,20 @@ class _LoginPageState extends State<LoginPage> {
         await sharedPreferencesService.setKeepLoggedIn(keepLoggedIn);
         await sharedPreferencesService.setAvatarImage(user is Customer && user.avatarImage.isNotEmpty ? user.avatarImage : "");
 
-        toHomePage();
+        if (user is Individual) {
+          toHomePage("ind");
+        } else if (user is Company) {
+          toHomePage("com");
+        } else if (user is Admin) {
+          toHomePage("adm");
+        }
       }
     } else {
-      showSnackBar(width, height, widget.lang.translate('cant_log_in'));
+      showSnackBar(widget.lang.translate('cant_log_in'));
     }
   }
 
-  void showSnackBar(double width, double height, String text) {
+  void showSnackBar(String text) {
     SnackBar feedback = SnackBar(
       dismissDirection: DismissDirection.down,
       content: Center(child: Text(text)),
@@ -171,13 +178,22 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(feedback);
   }
 
-  void toHomePage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomePage(),
-      ),
-    );
+  void toHomePage(String tmpTypeOfUser) {
+    if (tmpTypeOfUser == "adm") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UsersPage(),
+        ),
+      );
+    } else {
+            Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EstatesPage(),
+        ),
+      );
+    }
   }
 
   void toRegisterPage() {

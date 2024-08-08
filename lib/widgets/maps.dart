@@ -76,7 +76,7 @@ class _MapsWidgetState extends State<MapsWidget> {
 
   double getMapZoom(LatLng center) {
     if (widget.estates.isEmpty) return 1.5;
-    return 8;
+    return 1.5;
   }
 
   double distance(double lat1, double long1, double lat2, double long2) {

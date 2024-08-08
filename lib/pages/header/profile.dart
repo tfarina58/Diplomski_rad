@@ -477,14 +477,19 @@ class _ProfilePageState extends State<ProfilePage> {
       choices: [
         widget.lang!.translate('en'),
         widget.lang!.translate('de'),
+        widget.lang!.translate('hr'),
       ],
       labelText: widget.lang!.translate('language'),
       selected: widget.user!.preferences.language == "de"
           ? widget.lang!.translate('de')
-          : widget.lang!.translate('en'),
+          : widget.user!.preferences.language == "hr"
+          ? widget.lang!.translate('hr') :
+          widget.lang!.translate('en'),
       callback: (String value) async {
         if (value == widget.lang!.translate('de')) {
           widget.user!.preferences.language = "de";
+        } else if (value == widget.lang!.translate('hr')) {
+          widget.user!.preferences.language = "hr";
         } else {
           widget.user!.preferences.language = "en";
         }
@@ -509,6 +514,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> saveChanges(double width, double height) async {
+    if (!checkMandatoryValues()) {
+      showSnackBar(widget.lang!.translate('first_column_must_be_filled'));
+      return;
+    }
+
     Map<String, dynamic>? userMap = User.toJSON(widget.user);
 
     if (userMap == null) return;
@@ -527,14 +537,14 @@ class _ProfilePageState extends State<ProfilePage> {
         widget.lang = tmpLang;
       });
 
-      showSnackBar(width, height, widget.lang!.translate('account_successfully_updated'));
+      showSnackBar(widget.lang!.translate('account_successfully_updated'));
       return;
     }
 
-    showSnackBar(width, height, widget.lang!.translate('error_while_updating_user'));
+    showSnackBar(widget.lang!.translate('error_while_updating_user'));
   }
 
-  void showSnackBar(double width, double height, String text) {
+  void showSnackBar(String text) {
     SnackBar feedback = SnackBar(
       dismissDirection: DismissDirection.down,
       content: Center(child: Text(text)),
@@ -547,5 +557,23 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
     ScaffoldMessenger.of(context).showSnackBar(feedback);
+  }
+
+  bool checkMandatoryValues() {
+    if (widget.user is Individual) {
+      return (widget.user as Individual).firstname.isNotEmpty &&
+        (widget.user as Individual).lastname.isNotEmpty &&
+        // (widget.user as Individual).birthday != null &&
+        (widget.user as Individual).phone.isNotEmpty;
+    } else if (widget.user is Company) {
+      return (widget.user as Company).ownerFirstname.isNotEmpty &&
+        (widget.user as Company).ownerLastname.isNotEmpty &&
+        (widget.user as Company).companyName.isNotEmpty &&
+        (widget.user as Company).phone.isNotEmpty;
+    } else if (widget.user is Admin) {
+      return (widget.user as Admin).firstname.isNotEmpty &&
+        (widget.user as Admin).phone.isNotEmpty;
+    }
+    return false;
   }
 }

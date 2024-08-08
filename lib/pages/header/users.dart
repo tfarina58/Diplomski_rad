@@ -278,7 +278,7 @@ class _UsersPageState extends State<UsersPage> {
                         });
                       },
                     ),
-                    const SizedBox(width: 16,),
+                    const SizedBox(width: 16),
                     StringField(
                       presetText: to != null ? to.toString() : '',
                       inputType: TextInputType.number,
@@ -913,9 +913,7 @@ class _UsersPageState extends State<UsersPage> {
                     height: height * 0.08,
                     child: InkWell(
                       onHover: (value) {},
-                      onTap: () {
-                        changeBannedValue(widget.customers[i]);
-                      },
+                      onTap: () => banningConfirmationWindow(width, height, i),
                       child: Icon(
                         widget.customers[i].banned ? Icons.done : Icons.close,
                         color: PalleteCommon.gradient2,
@@ -1362,5 +1360,85 @@ class _UsersPageState extends State<UsersPage> {
         ),
       ),
     );
+  }
+
+  void banningConfirmationWindow(double width, double height, int index) {
+    if (widget.customers[index].banned) return;
+
+    showDialog(context: context, builder: (BuildContext context) {
+      return Dialog(
+        insetPadding: EdgeInsets.fromLTRB(
+          width * 0.28,
+          height * 0.3,
+          width * 0.28,
+          height * 0.3,
+        ),
+        backgroundColor: PalleteCommon.backgroundColor,
+        alignment: Alignment.center,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Expanded(flex: 2, child: SizedBox()),
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(width * 0.03, 0, width * 0.03, 0),
+                  child: Text(
+                    "${widget.lang!.translate('ban_user_text_1')}${widget.customers[index].email}${widget.lang!.translate('ban_user_text_2')}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: PalleteCommon.gradient2,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const Expanded(flex: 2, child: SizedBox()),
+              Expanded(
+                flex: 2,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Expanded(
+                      flex: 2,
+                      child: SizedBox(),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: GradientButton(
+                        colors: PalleteDanger.getGradients(),
+                        buttonText: widget.lang!.translate('delete_estate'),
+                        callback: () => changeBannedValue(widget.customers[index]),
+                      ),
+                    ),
+                    const Expanded(
+                      flex: 1,
+                      child: SizedBox(),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: GradientButton(
+                        buttonText: widget.lang!.translate('cancel'),
+                        callback: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    const Expanded(
+                      flex: 2,
+                      child: SizedBox(),
+                    ),
+                  ],
+                ),
+              ),
+              const Expanded(flex: 1, child: SizedBox()),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }

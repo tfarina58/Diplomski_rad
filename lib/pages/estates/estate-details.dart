@@ -22,11 +22,15 @@ import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/widgets/images_display_widget.dart';
 import 'package:diplomski_rad/services/geocoding.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
+import 'dart:math';
 
 class EstateDetailsPage extends StatefulWidget {
   String? userId;
   Estate estate;
   List<Category> categories = [];
+  String typeOfUser = "";
 
   Category newCategorory = Category(title: Map.from({"en": "", "de": "", "hr": ""}));
   int currentPage = 0;
@@ -157,6 +161,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
         widget.userId = tmpUserId;
         widget.lang = tmpLang;
         widget.dateFormat = tmpDateFormat;
+        widget.typeOfUser = tmpTypeOfUser;
       });
     });
   }
@@ -172,9 +177,21 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       }
     }
 
-    line = getGuestLine(width, height, setState);
-    for (int j = 0; j < line.length; ++j) {
-      guestLines.add(line[j]);
+    if (widget.typeOfUser != "adm") {
+      line = getGuestLine(width, height, setState);
+      for (int j = 0; j < line.length; ++j) {
+        guestLines.add(line[j]);
+      }
+    } else { 
+      guestLines.add(
+        Divider(
+          height: height * 0.066,
+          thickness: 3,
+          color: PalleteCommon.gradient2,
+          indent: width * 0.025,
+          endIndent: width * 0.025,
+        )
+      );
     }
 
     return guestLines;
@@ -235,6 +252,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             Expanded(
               flex: 3,
               child: CalendarField(
+                readOnly: widget.typeOfUser == "adm",
                 dateFormat: widget.dateFormat!,
                 labelText: widget.lang!.translate('from_date'),
                 callback: (newValue) => setState(() {
@@ -248,6 +266,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             Expanded(
               flex: 3,
               child: TimeField(
+                readOnly: widget.typeOfUser == "adm",
                 labelText: widget.lang!.translate('from_time'),
                 callback: (TimeOfDay newValue) {
                   DateTime oldDate = widget.estate.guests[index]['from'] as DateTime;
@@ -265,6 +284,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             Expanded(
               flex: 6,
               child: StringField(
+                readOnly: widget.typeOfUser == "adm",
                 labelText: widget.lang!.translate('name'),
                 callback: (newValue) => widget.estate.guests[index]['name'] = newValue,
                 presetText: widget.estate.guests[index]['name'],
@@ -274,6 +294,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             Expanded(
               flex: 3,
               child: CalendarField(
+                readOnly: widget.typeOfUser == "adm",
                 dateFormat: widget.dateFormat!,
                 labelText: widget.lang!.translate('to_date'),
                 callback: (newValue) => setState(() {
@@ -287,6 +308,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             Expanded(
               flex: 3,
               child: TimeField(
+                readOnly: widget.typeOfUser == "adm",
                 labelText: widget.lang!.translate('to_time'),
                 callback: (TimeOfDay newValue) {
                   DateTime oldDate = widget.estate.guests[index]['to'] as DateTime;
@@ -300,111 +322,15 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 lang: widget.lang!,
               ),
             ),
-            const Expanded(child: SizedBox()),
-            Expanded(
-              child: SizedBox(
-                height: height * 0.068,	
-                child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      widget.estate.guests.removeAt(index);
-                    });
-                  },
-                  onHover: (value) {},
-                  child: const Icon(Icons.remove),
-                ),
-              ),
-            ),
-            const Expanded(child: SizedBox()),
-          ],
-        )
-    ];
-  }
-
-  List<Widget> showSlideVariables(double width, double height, StateSetter setState) {
-    return [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: Text(
-                widget.lang!.translate('variables'),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const Expanded(
-            flex: 2,
-            child: SizedBox(),
-          ),
-        ],
-      ),
-      SizedBox(height: height * 0.015),
-
-      for (int i = 0; i < widget.estate.variables.length; ++i)
-        ...[
-          Divider(
-            height: height * 0.066,
-            thickness: 3,
-            color: PalleteCommon.gradient2,
-            indent: width * 0.025,
-            endIndent: width * 0.025,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Expanded(child: SizedBox()),
-              Expanded(
-                child: Text(i.toString()),
-              ),
-              Expanded(
-                flex: 4,
-                child: StringField(
-                  labelText: widget.lang!.translate('key'),
-                  callback: (newValue) => setState(() {
-                    widget.estate.variables[i][0] = newValue;
-                  }),
-                  presetText: widget.estate.variables[i][0],
-                ),
-              ),
-              const Expanded(child: SizedBox()),
-              Expanded(
-                flex: 4,
-                child: StringField(
-                  labelText: widget.lang!.translate('value'),
-                  callback: (newValue) => setState(() {
-                    widget.estate.variables[i][1] = newValue;
-                  }),
-                  presetText: widget.estate.variables[i][1],
-                ),
-              ),
-              const Expanded(child: SizedBox()),
-              Expanded(
-                flex: 4,
-                child: CalendarField(
-                  labelText: widget.lang!.translate('from'),
-                  callback: (newValue) => setState(() {
-                    widget.estate.variables[i][2] = newValue;
-                  }),
-                  selectedDate: widget.estate.variables[i][2] as DateTime,
-                  lang: widget.lang!,
-                ),
-              ),
-              const Expanded(child: SizedBox()),
+            const Expanded( child: SizedBox()),
+            if (widget.typeOfUser != "adm")
               Expanded(
                 child: SizedBox(
-                  height: 50,
+                  height: height * 0.068,	
                   child: InkWell(
                     onTap: () {
                       setState(() {
-                        widget.estate.variables.removeAt(i);
+                        widget.estate.guests.removeAt(index);
                       });
                     },
                     onHover: (value) {},
@@ -412,51 +338,15 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                   ),
                 ),
               ),
-              const Expanded(child: SizedBox()),
-            ],
-          ),
-        ],
-
-      Divider(
-        height: height * 0.066,
-        thickness: 3,
-        color: PalleteCommon.gradient2,
-        indent: width * 0.025,
-        endIndent: width * 0.025,
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Expanded(flex: 18, child: SizedBox()),
-          Expanded(
-            child: SizedBox(
-              height: 50,	
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    widget.estate.variables.add(Estate.newVariableRow());
-                  });
-                },
-                onHover: (value) {},
-                child: const Icon(Icons.add),
-              ),
-            ),
-          ),
-          const Expanded(child: SizedBox()),
-        ],
-      ),
-      Divider(
-        height: height * 0.066,
-        thickness: 3,
-        color: PalleteCommon.gradient2,
-        indent: width * 0.025,
-        endIndent: width * 0.025,
-      )
+            const Expanded(child: SizedBox()),
+          ],
+        )
     ];
   }
 
   Widget optionButtons(double width, double height) {
+    if (widget.typeOfUser == "adm") return const SizedBox();
+
     List<Widget> buttonsRow = [];
 
     if (!widget.isNewEstate) {
@@ -480,7 +370,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
           flex: 3,
           child: GradientButton(
             buttonText: widget.lang!.translate('save_changes'),
-            callback: updateEstateAndCategories,
+            callback: updateEstate,
           ),
         ),
         const Expanded(flex: 2, child: SizedBox()),
@@ -519,7 +409,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             for (int i = 0; i < widget.categories.length; ++i)
               getCategoryCard(width, height, cardSize, context, index: i),
               
-            getCategoryCard(width, height, cardSize, context),
+            if (widget.typeOfUser != "adm") getCategoryCard(width, height, cardSize, context),
           ],
         ),
       ),
@@ -600,10 +490,10 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             ImagesDisplay(
+              enableEditing: !widget.isNewEstate && widget.typeOfUser != "adm",
               estate: widget.estate,
               lang: widget.lang!,
               showAvatar: false,
-              enableEditing: !widget.isNewEstate,
               callback: (String value) => setState(() {
                 widget.estate.image = value;
               }),
@@ -616,8 +506,6 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             if (!widget.isNewEstate) showSectionTitle(widget.lang!.translate('guests'), 22, Colors.white),
             if (!widget.isNewEstate) SizedBox(height: height * 0.01),
             if (!widget.isNewEstate) ...showGuestTable(width, height, setState),
-            /*if (!widget.isNewEstate) ...showSlideVariables(width, height, setState),
-            if (!widget.isNewEstate) SizedBox(height: height * 0.075),*/
           ],
         ),
       );
@@ -634,24 +522,28 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('name_en'),
                   callback: (String value) => widget.estate.name['en'] = value,
                   presetText: widget.estate.name['en'],
                 ),
                 const SizedBox(height: 15),
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('name_de'),
                   callback: (value) => widget.estate.name['de'] = value,
                   presetText: widget.estate.name['de'],
                 ),
                 const SizedBox(height: 15),
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('name_hr'),
                   callback: (value) => widget.estate.name['hr'] = value,
                   presetText: widget.estate.name['hr'],
                 ),
                 const SizedBox(height: 15),
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('phone_number'),
                   callback: (value) => widget.estate.phone = value,
                   presetText: widget.estate.phone,
@@ -667,24 +559,28 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
             child: Column(
               children: [
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('street'),
                   callback: (value) => widget.estate.street = value,
                   presetText: widget.estate.street,
                 ),
                 const SizedBox(height: 15),
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('zip'),
                   callback: (value) => widget.estate.zip = value,
                   presetText: widget.estate.zip,
                 ),
                 const SizedBox(height: 15),
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('city'),
                   callback: (value) => widget.estate.city = value,
                   presetText: widget.estate.city,
                 ),
                 const SizedBox(height: 15),
                 StringField(
+                  readOnly: widget.typeOfUser == "adm",
                   labelText: widget.lang!.translate('country'),
                   callback: (value) => widget.estate.country = value,
                   presetText: widget.estate.country,
@@ -698,24 +594,41 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     );
   }
 
-  bool checkMandatoryData() {
+  int checkMandatoryValues() {
+    bool generalInfoCompleted = 
+      (widget.estate.street.isNotEmpty || widget.estate.zip.isNotEmpty) &&
+      widget.estate.city.isNotEmpty &&
+      widget.estate.country.isNotEmpty &&
+      widget.estate.phone.isNotEmpty &&
+      (widget.estate.name['en'] as String).isNotEmpty &&
+      (widget.estate.name['de'] as String).isNotEmpty &&
+      (widget.estate.name['hr'] as String).isNotEmpty;
+
+    if (!generalInfoCompleted) return 1;
+
     bool allGuestRowsCompleted = true;
     for (int i = 0; i < widget.estate.guests.length; ++i) {
-      if (widget.estate.guests[i]['from'] == null || widget.estate.guests[i]['name'] == null || widget.estate.guests[i]['to'] == null) {
+      if (widget.estate.guests[i]['from'] == null || widget.estate.guests[i]['name'] == null || (widget.estate.guests[i]['name'] as String).isEmpty || widget.estate.guests[i]['to'] == null) {
         allGuestRowsCompleted = false;
         break;
       }
     }
 
-    return allGuestRowsCompleted &&
-        widget.estate.street.isNotEmpty &&
-        widget.estate.zip.isNotEmpty &&
-        widget.estate.city.isNotEmpty &&
-        widget.estate.country.isNotEmpty &&
-        (widget.estate.name['en'] as String).isNotEmpty &&
-        (widget.estate.name['de'] as String).isNotEmpty &&
-        (widget.estate.name['hr'] as String).isNotEmpty;
+    if (!allGuestRowsCompleted) return 2;
+    return 0;
   }
+
+  bool checkMandatoryValuesForEmptyCategory() {
+    return widget.newCategorory.title['en']!.isNotEmpty &&
+        widget.newCategorory.title['de']!.isNotEmpty &&
+        widget.newCategorory.title['hr']!.isNotEmpty;
+  }
+
+  bool checkMandatoryValuesForCategory(int index) {
+    return widget.categories[index].title['en']!.isNotEmpty &&
+        widget.categories[index].title['de']!.isNotEmpty &&
+        widget.categories[index].title['hr']!.isNotEmpty;
+  }  
 
   Widget showDeleteAlert(double width, double height) {
     return Dialog(
@@ -790,32 +703,20 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     );
   }
 
-  Future<String> uploadCategoryImage({int index = -1}) async {
+  Future<String> uploadCategoryImage(Category category) async {
     FirebaseStorageService storage = FirebaseStorageService();
-    if (index == -1) {
-      await storage.uploadImageForCategory(
-        widget.newCategorory,
-        widget.newCategorory.tmpImageName!,
-        widget.newCategorory.tmpImageBytes!
-      );
-      
-      return await storage.downloadImage(
-        widget.newCategorory.id,
-        widget.newCategorory.tmpImageName!,
-      );
-    } else {
-      await storage.uploadImageForCategory(
-        widget.categories[index],
-        widget.categories[index].tmpImageName!,
-        widget.categories[index].tmpImageBytes!
-      );
-      
-      return await storage.downloadImage(
-        widget.categories[index].id,
-        widget.categories[index].tmpImageName!,
-      );
-    }
+    await storage.uploadImageForCategory(
+      category,
+      category.tmpImageName!,
+      category.tmpImageBytes!
+    );
 
+    String imageUrl = await storage.downloadImage(
+      category.id,
+      category.tmpImageName!,
+    );
+
+    return imageUrl;
   }
 
    Widget showCategoriesInformation(double width, double height) {
@@ -900,6 +801,8 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     return Padding(
       padding: EdgeInsets.fromLTRB(width * 0.005, 0, width * 0.005, 0),
       child: CardWidget(
+        leftButtonTitle: widget.typeOfUser == "adm" ? widget.lang!.translate('show_category') : widget.lang!.translate('edit_category'),
+        rightButtonTitle: widget.typeOfUser == "adm" ? widget.lang!.translate('show_elements') : widget.lang!.translate('edit_elements'),
         title: widget.categories[index].title[widget.lang!.language]!,
         showSettings: true,
         width: cardSize,
@@ -907,13 +810,14 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
         lang: widget.lang!,
         backgroundImage: widget.categories[index].image,
         category: widget.categories[index],
-        onTap: () => Navigator.push(
+        onTap: () {},
+        onRightButtonTap: () => Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ElementsPage(category: widget.categories[index]),
           ),
         ),
-        onSettingsTap: () => showCategoryDialog(width, height, context, index),
+        onLeftButtonTap: () => showCategoryDialog(width, height, context, index),
       ),
     );
   }
@@ -1220,6 +1124,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         Expanded(
                           flex: 5,
                           child: StringField(
+                            readOnly: widget.typeOfUser == "adm",
                             labelText: widget.lang!.translate('title_en'),
                             callback: (value) => widget.categories[index].title['en'] = value,
                             presetText: widget.categories[index].title['en'],
@@ -1229,6 +1134,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         Expanded(
                           flex: 5,
                           child: StringField(
+                            readOnly: widget.typeOfUser == "adm",
                             labelText: widget.lang!.translate('title_de'),
                             callback: (value) => widget.categories[index].title['de'] = value,
                             presetText: widget.categories[index].title['de'],
@@ -1238,6 +1144,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         Expanded(
                           flex: 5,
                           child: StringField(
+                            readOnly: widget.typeOfUser == "adm",
                             labelText: widget.lang!.translate('title_hr'),
                             callback: (value) => widget.categories[index].title['hr'] = value,
                             presetText: widget.categories[index].title['hr'],
@@ -1270,27 +1177,29 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                         ),
 
                         // Delete image
-                        SizedBox(
-                          width: width * 0.3,
-                          height: height * 0.3,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  widget.categories[index].image = "";
-                                });
-                              },
-                              child: const Align(
-                                alignment: AlignmentDirectional.topEnd,
-                                child: Icon(
-                                  Icons.close,
-                                  color: Colors.red,
+                        
+                        if (widget.typeOfUser != "adm")
+                          SizedBox(
+                            width: width * 0.3,
+                            height: height * 0.3,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    widget.categories[index].image = "";
+                                  });
+                                },
+                                child: const Align(
+                                  alignment: AlignmentDirectional.topEnd,
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.red,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
                       ],
                     )
                   else if (widget.categories[index].tmpImageBytes != null)
@@ -1355,8 +1264,13 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                       },
                     ),
 
-                  SizedBox(height: height * 0.05),
-                  GradientButton(buttonText: widget.lang!.translate('save_changes'), callback: () => saveChanges(width, height, index))
+                  if (widget.typeOfUser != "adm") ...[
+                    SizedBox(height: height * 0.05),
+                    GradientButton(
+                      buttonText: widget.lang!.translate('save_changes'),
+                      callback: () => saveChanges(width, height, index)
+                    ),
+                  ]
                 ],
               ),
             );
@@ -1366,8 +1280,15 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     });
   }
 
-    void createEstate() async {
-    if (!checkMandatoryData()) return;
+  void createEstate() async {
+    int checkValue = checkMandatoryValues();
+    if (checkValue == 1) {
+      showSnackBar(widget.lang!.translate('all_general_info_has_to_be_filled'));
+      return;
+    } else if (checkValue == 2) {
+      showSnackBar(widget.lang!.translate('all_guest_info_has_to_be_filled'));
+      return;
+    }
 
     LatLng? coordinates = await Geocoding.geocode(widget.estate.street, widget.estate.zip, widget.estate.city, widget.estate.country);
     widget.estate.coordinates = coordinates;
@@ -1380,7 +1301,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     Estate? res = await EstateRepository.createEstate(estateMap);
     if (res == null) return;
 
-    UserRepository.addEstate(widget.userId!);
+    UserRepository.getNumOfEstates(widget.userId!);
 
     setState(() {
       widget.estate = res;
@@ -1388,8 +1309,24 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     });
   }
 
-  void updateEstateAndCategories() async {
-    if (!checkMandatoryData()) return;
+  void updateEstate() async {
+    int checkValue = checkMandatoryValues();
+    if (checkValue == 1) {
+      showSnackBar(widget.lang!.translate('all_general_info_has_to_be_filled'));
+      return;
+    } else if (checkValue == 2) {
+      showSnackBar(widget.lang!.translate('all_guest_info_has_to_be_filled'));
+      return;
+    }
+
+    LatLng? coordinates = await Geocoding.geocode(widget.estate.street, widget.estate.zip, widget.estate.city, widget.estate.country);
+    widget.estate.coordinates = coordinates;
+
+    for (int i = 0; i < widget.estate.guests.length; ++i) {
+      if (widget.estate.guests[i]['id'] == null || widget.estate.guests[i]['id'] == "") {
+        widget.estate.guests[i]['id'] = createGuestId(widget.estate.guests[i]);
+      }
+    }
 
     Map<String, dynamic>? estateMap = Estate.toJSON(widget.estate);
     if (estateMap == null) return null;
@@ -1397,9 +1334,10 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     bool estateRes = await EstateRepository.updateEstate(widget.estate.id, estateMap);
     
     if (!estateRes) {
-      // TODO: set failure snackbar
+      showSnackBar(widget.lang!.translate('cannot_update_estate'));
+      return;
     }
-    // TODO: set success snackbar
+    showSnackBar(widget.lang!.translate('estate_successfully_updated'));
   }
 
   void deleteEstate(/*double width, double height*/) async {
@@ -1408,7 +1346,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     bool res = await EstateRepository.deleteEstate(widget.estate.id);
 
     if (res) {
-      UserRepository.removeEstate(widget.userId!);
+      UserRepository.getNumOfEstates(widget.userId!);
 
       Navigator.pop(context);
       Navigator.pop(context);
@@ -1419,33 +1357,40 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
   }
 
   Future<void> createCategory() async {
-    final double width = MediaQuery.of(context).size.width;
-    final double height = MediaQuery.of(context).size.height;
-
-    if (widget.newCategorory.tmpImageBytes != null) {
-      widget.newCategorory.image = await uploadCategoryImage();
+    if (!checkMandatoryValuesForEmptyCategory()) {
+      showSnackBar(widget.lang!.translate('you_must_enter_all_names'));
+      return;
     }
 
     widget.newCategorory.estateId = widget.estate.id;
     Map<String, dynamic>? categoryMap = Category.toJSON(widget.newCategorory);
-
     if (categoryMap == null) return;
 
-    widget.newCategorory = Category(title: Map.from({"en": "", "de": "", "hr": ""}));
+    Category? newCategory = await CategoryRepository.createCategory(categoryMap);
+    if (newCategory != null) {
+      if (widget.newCategorory.tmpImageBytes != null) {
+        widget.newCategorory.id = newCategory.id;
+        newCategory.image = await uploadCategoryImage(widget.newCategorory);
 
-    Category? res = await CategoryRepository.createCategory(categoryMap);
-    if (res != null) {
-      showSnackBar(width, height, widget.lang!.translate('account_successfully_updated'));
-      Navigator.pop(context);
+        showSnackBar(widget.lang!.translate('category_successfully_created'));
+
+        widget.newCategorory = Category(title: Map.from({"en": "", "de": "", "hr": ""}));
+
+        Navigator.pop(context);
+      }
       return;
     }
-
-    showSnackBar(width, height, widget.lang!.translate('error_while_updating_user'));
+    showSnackBar(widget.lang!.translate('category_successfully_created'));
   }
 
   Future<void> saveChanges(double width, double height, int index) async {
+    if (!checkMandatoryValuesForCategory(index)) {
+      showSnackBar(widget.lang!.translate('you_must_enter_all_names'));
+      return;
+    }
+
     if (widget.categories[index].image.isEmpty && widget.categories[index].tmpImageBytes != null) {
-      widget.categories[index].image = await uploadCategoryImage(index: index);
+      widget.categories[index].image = await uploadCategoryImage(widget.categories[index]);
     }
 
     Map<String, dynamic>? categoryMap = Category.toJSON(widget.categories[index]);
@@ -1454,15 +1399,15 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
     bool res = await CategoryRepository.updateCategory(widget.categories[index].id, categoryMap);
     if (res) {
-      showSnackBar(width, height, widget.lang!.translate('account_successfully_updated'));
+      showSnackBar(widget.lang!.translate('category_successfully_updated'));
       Navigator.pop(context);
       return;
     }
 
-    showSnackBar(width, height, widget.lang!.translate('error_while_updating_user'));
+    showSnackBar(widget.lang!.translate('error_while_updating_category'));
   }
 
-  void showSnackBar(double width, double height, String text) {
+  void showSnackBar(String text) {
     SnackBar feedback = SnackBar(
       dismissDirection: DismissDirection.down,
       content: Center(child: Text(text)),
@@ -1475,5 +1420,15 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
       ),
     );
     ScaffoldMessenger.of(context).showSnackBar(feedback);
+  }
+
+  String createGuestId(Map<String, dynamic> guest) {
+    var rng = Random();
+    String id = "";
+    id += (guest['from'] as DateTime).toString();
+    id += (guest['to'] as DateTime).toString();
+    id += rng.nextInt(100000).toString();
+    id = sha256.convert(utf8.encode(id)).toString();
+    return id;
   }
 }

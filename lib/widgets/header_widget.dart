@@ -1,5 +1,4 @@
 import 'package:diplomski_rad/pages/auth/login.dart';
-import 'package:diplomski_rad/pages/header/home.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/pages/estates/estates.dart';
 import 'package:diplomski_rad/pages/header/users.dart';
@@ -89,38 +88,14 @@ class _HeaderComponentState extends State<HeaderComponent> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Expanded(flex: 1, child: SizedBox()),
-                  Expanded(
-                    flex: 4,
-                    child: InkWell(
-                      onHover: (value) {},
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HomePage(),
-                          ),
-                        );
-                      },
-                      child: SizedBox(
-                        height: height * 0.05,
-                        child: Center(
-                          child: Text(
-                            widget.lang.translate('project_title'),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Expanded(flex: 25, child: SizedBox()),
+                  const Expanded(flex: 30, child: SizedBox()),
                   Expanded(
                     flex: 6,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // if (widget.user is Admin)
+                        if (widget.user is Admin)
                           Expanded(
                             child: InkWell(
                               onTap: () {
@@ -142,7 +117,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                               ),
                             ),
                           ),
-                        // if (widget.user is Customer)
+                        if (widget.user is Customer)
                           Expanded(
                             child: InkWell(
                               onTap: () {
@@ -433,12 +408,12 @@ class _HeaderComponentState extends State<HeaderComponent> {
     bool res = await UserRepository.deleteUser(userId, hashedPassword);
 
     if (!res) {
-      showSnackBar(width, height, widget.lang.translate('error_while_deleting_account'));
+      showSnackBar(widget.lang.translate('error_while_deleting_account'));
       Navigator.pop(context);
       return;
     }
 
-    showSnackBar(width, height, widget.lang.translate('successfull_delete_account'));
+    showSnackBar(widget.lang.translate('successfull_delete_account'));
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -448,17 +423,20 @@ class _HeaderComponentState extends State<HeaderComponent> {
   }
 
   Future<void> changePassword(double width, double height) async {
+    if (widget.newPassword.length < 8) {
+      showSnackBar(widget.lang.translate('new_password_too_short'));
+      return;
+    }
+
     String password = sha256.convert(utf8.encode(widget.oldPassword)).toString();
 
-    if (! (await UserRepository.checkPasswordMatching(widget.user!.id, password))) {
-      showSnackBar(width, height, widget.lang.translate('old_password_does_not_match'));
-      Navigator.pop(context);
+    if (!(await UserRepository.checkPasswordMatching(widget.user!.id, password))) {
+      showSnackBar(widget.lang.translate('old_password_does_not_match'));
       return;
     }
 
     if (widget.newPassword != widget.repeatNewPassword) {
-      showSnackBar(width, height, widget.lang.translate('passwords_do_not_match'));
-      Navigator.pop(context);
+      showSnackBar(widget.lang.translate('passwords_do_not_match'));
       return;
     }
 
@@ -467,12 +445,11 @@ class _HeaderComponentState extends State<HeaderComponent> {
     bool res = await UserRepository.updateUser(widget.user!.id, {"password": password});
 
     if (!res) {
-      showSnackBar(width, height, widget.lang.translate('error_while_updating_password'));
-      Navigator.pop(context);
+      showSnackBar(widget.lang.translate('error_while_updating_password'));
       return;
     }
 
-    showSnackBar(width, height, widget.lang.translate('successfull_changed_password'));
+    showSnackBar(widget.lang.translate('successfull_changed_password'));
     Navigator.pop(context);
     return;
   }
@@ -495,7 +472,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
     return ModalRoute.of(context)!.settings.name;
   }
 
-  void showSnackBar(double width, double height, String text) {
+  void showSnackBar(String text) {
     SnackBar feedback = SnackBar(
       dismissDirection: DismissDirection.down,
       content: Center(child: Text(text)),

@@ -10,6 +10,7 @@ class TimeField extends StatefulWidget {
   TimeOfDay? selectedTime;
   TimeOfDay? tmpTime;
   LanguageService lang;
+  bool readOnly;
 
   TimeField({
     Key? key,
@@ -18,6 +19,7 @@ class TimeField extends StatefulWidget {
     required this.lang,
     this.timeFormat = "yyyy-MM-dd",
     this.selectedTime,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -50,42 +52,44 @@ class _TimeFieldState extends State<TimeField> {
         controller: textController,
         readOnly: true,
         onTap: () async {
-          final TimeOfDay? time = await showTimePicker(
-            context: context,
-            initialTime: widget.selectedTime ?? TimeOfDay.now(),
-            initialEntryMode: TimePickerEntryMode.input,
-            orientation: null,
-            builder: (BuildContext context, Widget? child) {
-              // We just wrap these environmental changes around the
-              // child in this builder so that we can apply the
-              // options selected above. In regular usage, this is
-              // rarely necessary, because the default values are
-              // usually used as-is.
-              return Theme(
-                data: ThemeData.dark().copyWith(
-                  scaffoldBackgroundColor: PalleteCommon.backgroundColor,
-                ),
-                child: Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: MediaQuery(
-                    data: MediaQuery.of(context).copyWith(
-                      alwaysUse24HourFormat: true,
-                    ),
-                    child: child!,
+          if (!widget.readOnly) {
+            final TimeOfDay? time = await showTimePicker(
+              context: context,
+              initialTime: widget.selectedTime ?? TimeOfDay.now(),
+              initialEntryMode: TimePickerEntryMode.input,
+              orientation: null,
+              builder: (BuildContext context, Widget? child) {
+                // We just wrap these environmental changes around the
+                // child in this builder so that we can apply the
+                // options selected above. In regular usage, this is
+                // rarely necessary, because the default values are
+                // usually used as-is.
+                return Theme(
+                  data: ThemeData.dark().copyWith(
+                    scaffoldBackgroundColor: PalleteCommon.backgroundColor,
                   ),
-                ),
-              );
-            },
-          );
+                  child: Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: MediaQuery(
+                      data: MediaQuery.of(context).copyWith(
+                        alwaysUse24HourFormat: true,
+                      ),
+                      child: child!,
+                    ),
+                  ),
+                );
+              },
+            );
 
-          String tmpHour = "0${widget.tmpTime!.hour}";
-          tmpHour = tmpHour.substring(tmpHour.length - 2, tmpHour.length);
-          String tmpMinute = "0${widget.tmpTime!.minute}";
-          tmpMinute = tmpMinute.substring(tmpMinute.length - 2, tmpMinute.length);
-          setState(() {
-            textController.text = "$tmpHour:$tmpMinute";
-            widget.callback(time);
-          });
+            String tmpHour = "0${widget.tmpTime!.hour}";
+            tmpHour = tmpHour.substring(tmpHour.length - 2, tmpHour.length);
+            String tmpMinute = "0${widget.tmpTime!.minute}";
+            tmpMinute = tmpMinute.substring(tmpMinute.length - 2, tmpMinute.length);
+            setState(() {
+              textController.text = "$tmpHour:$tmpMinute";
+              widget.callback(time);
+            });
+          }
         },
         decoration: InputDecoration(
           labelText: widget.labelText,

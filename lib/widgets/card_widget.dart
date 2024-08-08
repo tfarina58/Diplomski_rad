@@ -22,7 +22,10 @@ class CardWidget extends StatefulWidget {
   List<Color> backgroundColors;
   final LatLng? coordinates;
   Function onTap;
-  Function? onSettingsTap;
+  Function? onLeftButtonTap;
+  Function? onRightButtonTap;
+  String leftButtonTitle;
+  String rightButtonTitle;
 
   final bool isEmptyCard;
   final String emptyCardTitle;
@@ -91,7 +94,10 @@ class CardWidget extends StatefulWidget {
     this.estate,
     this.category,
     this.showSettings = false,
-    this.onSettingsTap,
+    this.onLeftButtonTap,
+    this.onRightButtonTap,
+    this.leftButtonTitle = "",
+    this.rightButtonTitle = "",
   }) : super(key: key);
 
   @override
@@ -114,9 +120,10 @@ class _CardWidgetState extends State<CardWidget> {
               children: [
                 Padding(
                   padding: EdgeInsets.only(
-                      left: widget.width * 0.04,
-                      top: widget.width * 0.04,
-                      bottom: widget.width * 0.04),
+                    left: widget.width * 0.04,
+                    top: widget.width * 0.04,
+                    bottom: widget.width * 0.04,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -253,30 +260,32 @@ class _CardWidgetState extends State<CardWidget> {
             width: widget.width * 0.8,
             child: Padding(
               padding: EdgeInsets.fromLTRB(0, 0, 0, widget.height * 0.05),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: GradientButton(
-                      buttonText: widget.lang.translate('edit_category'),
-                      callback: () =>
-                        widget.onSettingsTap != null ?
-                        widget.onSettingsTap!() :
-                        () {}, // () => showImagesDialog(context, false),
-                    ),
+              child: 
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (widget.leftButtonTitle.isNotEmpty && widget.onLeftButtonTap != null)
+                        Expanded(
+                          flex: 3,
+                          child: GradientButton(
+                            buttonText: widget.leftButtonTitle,
+                            callback: () => widget.onLeftButtonTap!(),
+                          ),
+                        ),
+                      const Expanded(child: SizedBox(),),
+                      if (widget.rightButtonTitle.isNotEmpty && widget.onRightButtonTap != null)
+                        Expanded(
+                          flex: 3,
+                          child: GradientButton(
+                            buttonText: widget.rightButtonTitle,
+                            callback: () => widget.onRightButtonTap!(),
+                          ),
+                        ),
+                      if (widget.leftButtonTitle.isEmpty || widget.onLeftButtonTap == null)  
+                        const Expanded(child: SizedBox())
+                    ],
                   ),
-                  const Expanded(child: SizedBox(),),
-                  Expanded(
-                    flex: 3,
-                    child: GradientButton(
-                      buttonText: widget.lang.translate('edit_element'),
-                      callback: () => widget.onTap()
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
