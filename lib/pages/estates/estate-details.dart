@@ -596,10 +596,6 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
   int checkMandatoryValues() {
     bool generalInfoCompleted = 
-      (widget.estate.street.isNotEmpty || widget.estate.zip.isNotEmpty) &&
-      widget.estate.city.isNotEmpty &&
-      widget.estate.country.isNotEmpty &&
-      widget.estate.phone.isNotEmpty &&
       (widget.estate.name['en'] as String).isNotEmpty &&
       (widget.estate.name['de'] as String).isNotEmpty &&
       (widget.estate.name['hr'] as String).isNotEmpty;

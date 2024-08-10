@@ -22,6 +22,6 @@ class UserPreferences {
 
   // Kelvin to Celsius
   static double K2C(double k) {
-    return k - 272.15;
+    return k - 273.15;
   }
 }
