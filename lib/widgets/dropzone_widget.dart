@@ -109,7 +109,7 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
               widget.onDroppedFile(file);
             }
           },
-          buttonText: "Pick file",
+          buttonText: widget.lang.translate('pick_file'),
         ),
       ],
     );

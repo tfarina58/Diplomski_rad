@@ -1,4 +1,3 @@
-import 'dart:html';
 
 import 'package:diplomski_rad/pages/estates/elements.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
@@ -95,13 +94,9 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                 .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator(
-                      color: PalleteCommon.gradient2,
-                      semanticsLabel: widget.lang!.translate('loading'),
-                      backgroundColor: PalleteCommon.backgroundColor,
-                    );
+                    return LoadingBar(dimensionLength: width > height ? height * 0.5 : width * 0.5);
                   } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
+                    return SnapshotErrorField(text: 'Error: ${snapshot.error}');
                   } else {
                     final document = snapshot.data;
                     if (document == null) {
@@ -370,7 +365,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
           flex: 3,
           child: GradientButton(
             buttonText: widget.lang!.translate('save_changes'),
-            callback: updateEstate,
+            callback: () => updateEstate(),
           ),
         ),
         const Expanded(flex: 2, child: SizedBox()),
@@ -382,7 +377,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
           flex: 2,
           child: GradientButton(
             buttonText: widget.lang!.translate('create_estate'),
-            callback: createEstate,
+            callback: () => createEstate(),
           ),
         ),
         const Expanded(flex: 3, child: SizedBox()),
@@ -797,8 +792,8 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     return Padding(
       padding: EdgeInsets.fromLTRB(width * 0.005, 0, width * 0.005, 0),
       child: CardWidget(
-        leftButtonTitle: widget.typeOfUser == "adm" ? widget.lang!.translate('show_category') : widget.lang!.translate('edit_category'),
-        rightButtonTitle: widget.typeOfUser == "adm" ? widget.lang!.translate('show_elements') : widget.lang!.translate('edit_elements'),
+        leftButtonTitle: widget.typeOfUser == "adm" ? widget.lang!.translate('show_category') : widget.lang!.translate('manage_category'),
+        rightButtonTitle: widget.typeOfUser == "adm" ? widget.lang!.translate('show_elements') : widget.lang!.translate('manage_elements'),
         title: widget.categories[index].title[widget.lang!.language]!,
         showSettings: true,
         width: cardSize,
@@ -1260,12 +1255,34 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                       },
                     ),
 
-                  if (widget.typeOfUser != "adm") ...[
+                  if (widget.typeOfUser != "adm") ...[                    
                     SizedBox(height: height * 0.05),
-                    GradientButton(
-                      buttonText: widget.lang!.translate('save_changes'),
-                      callback: () => saveChanges(width, height, index)
-                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(flex: 2, child: SizedBox()),
+                        if (index != -1) ...[
+                          Expanded(
+                            flex: 3,
+                            child: GradientButton(
+                              buttonText: widget.lang!.translate('delete_category'),
+                              callback: () => deleteCategory(widget.categories[index].id)
+                            )
+                          ),
+                          const Expanded(flex: 2, child: SizedBox()),
+                        ],
+                        Expanded(
+                          flex: 3, 
+                          child: GradientButton(
+                            buttonText: widget.lang!.translate('save_changes'),
+                            callback: () => saveChanges(width, height, index)
+                          )
+                        ),
+                        const Expanded(flex: 2, child: SizedBox()),
+                      ],
+                    )
+
                   ]
                 ],
               ),
@@ -1295,9 +1312,14 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     estateMap["ownerId"] = widget.userId;
 
     Estate? res = await EstateRepository.createEstate(estateMap);
-    if (res == null) return;
+    if (res == null) {
+      showSnackBar(widget.lang!.translate('cannot_create_estate'));
+      return;
+    }
 
     UserRepository.getNumOfEstates(widget.userId!);
+
+    showSnackBar(widget.lang!.translate('estate_successfully_created'));
 
     setState(() {
       widget.estate = res;
@@ -1344,12 +1366,14 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     if (res) {
       UserRepository.getNumOfEstates(widget.userId!);
 
+      showSnackBar(widget.lang!.translate('estate_successfully_deleted'));
+
       Navigator.pop(context);
       Navigator.pop(context);
       return;
     }
 
-    // TODO: add failure snackbar
+      showSnackBar(widget.lang!.translate('error_while_deleting_estate'));
   }
 
   Future<void> createCategory() async {
@@ -1368,15 +1392,16 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
         widget.newCategorory.id = newCategory.id;
         newCategory.image = await uploadCategoryImage(widget.newCategorory);
 
-        showSnackBar(widget.lang!.translate('category_successfully_created'));
-
         widget.newCategorory = Category(title: Map.from({"en": "", "de": "", "hr": ""}));
-
-        Navigator.pop(context);
       }
+
+      Navigator.pop(context);
+      showSnackBar(widget.lang!.translate('category_successfully_created'));
+
       return;
     }
-    showSnackBar(widget.lang!.translate('category_successfully_created'));
+
+    showSnackBar(widget.lang!.translate('error_while_creating_category'));
   }
 
   Future<void> saveChanges(double width, double height, int index) async {
@@ -1401,6 +1426,17 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     }
 
     showSnackBar(widget.lang!.translate('error_while_updating_category'));
+  }
+
+  Future<void> deleteCategory(String categoryId) async {
+    bool res = await CategoryRepository.deleteCategory(categoryId);
+    if (!res) {
+      showSnackBar(widget.lang!.translate('error_while_deleting_category'));
+      return;
+    }
+
+    Navigator.pop(context);
+    showSnackBar(widget.lang!.translate('category_successfully_deleted'));
   }
 
   void showSnackBar(String text) {

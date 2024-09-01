@@ -12,6 +12,8 @@ import 'package:diplomski_rad/services/firebase.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
+import 'package:diplomski_rad/widgets/snapshot_error_field.dart';
+import 'package:diplomski_rad/widgets/loading_bar.dart';
 
 class ProfilePage extends StatefulWidget {
   String userId;
@@ -23,6 +25,7 @@ class ProfilePage extends StatefulWidget {
 
   ProfilePage({
     Key? key,
+    this.user,
     this.userId = "",
     required this.enableEditing,
   }) : super(key: key);
@@ -45,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: HeaderComponent(
         currentPage: 'ProfilePage',
         lang: widget.lang!,
-        userId: widget.userId,
+        userId: widget.user != null ? widget.user!.id : widget.userId,
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -57,13 +60,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator(
-                      color: PalleteCommon.gradient2,
-                      semanticsLabel: widget.lang!.translate('loading'),
-                      backgroundColor: PalleteCommon.backgroundColor,
-                    );
+                    return LoadingBar(dimensionLength: width > height ? height * 0.5 : width * 0.5);
                   } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
+                    return SnapshotErrorField(text: 'Error: ${snapshot.error}');
                   } else {
                     final document = snapshot.data;
                     if (document == null) {
@@ -351,8 +350,17 @@ class _ProfilePageState extends State<ProfilePage> {
         dateFormat: widget.user!.preferences.dateFormat,
         selectedDate: (widget.user as Individual).birthday,
         labelText: widget.lang!.translate('date_of_birth'),
-        callback: (DateTime value) =>
-            (widget.user as Individual).birthday = value,
+        callback: (DateTime value) {
+          DateTime now = DateTime.now();
+          DateTime todayBefore18Years = DateTime(now.year - 18, now.month, now.day);
+
+          if (value.compareTo(todayBefore18Years) == 1) {
+            showSnackBar(widget.lang!.translate('cant_register'));
+            return;
+          }
+          
+          (widget.user as Individual).birthday = value;
+        },
         lang: widget.lang!,
       );
     } else if (widget.user is Company) {

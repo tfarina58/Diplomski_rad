@@ -65,4 +65,12 @@ class SharedPreferencesService {
   Future<bool> setTemperaturePreference(String temperaturePreference) async {
     return await sharedPreferences.setString("temperaturePreference", temperaturePreference);
   }
+
+  int getUsersPerPage() {
+    return sharedPreferences.getInt("usersPerPage") ?? 10;
+  }
+
+  Future<bool> setUsersPerPage(int usersPerPage) async {
+    return await sharedPreferences.setInt("usersPerPage", usersPerPage);
+  }
 }

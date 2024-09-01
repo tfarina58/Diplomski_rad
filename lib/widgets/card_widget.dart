@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:diplomski_rad/interfaces/category.dart';
 import 'package:diplomski_rad/interfaces/estate.dart';
 import 'package:diplomski_rad/interfaces/user-preferences.dart';
@@ -11,8 +10,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math';
-import 'package:diplomski_rad/widgets/dropzone_widget.dart';
-import 'package:diplomski_rad/widgets/string_field.dart';
 import 'dart:ui';
 
 class CardWidget extends StatefulWidget {

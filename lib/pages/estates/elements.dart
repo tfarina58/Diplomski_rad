@@ -1,25 +1,21 @@
-import 'dart:html';
-
 import 'package:diplomski_rad/interfaces/category.dart';
 import 'package:diplomski_rad/interfaces/element.dart' as local;
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
 import 'package:diplomski_rad/widgets/dropdown_field.dart';
-import 'package:diplomski_rad/widgets/sequential_field.dart';
 import 'package:flutter/material.dart';
 import 'package:diplomski_rad/widgets/header_widget.dart';
-import 'package:diplomski_rad/widgets/card_widget.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/widgets/time_field.dart';
 import 'package:diplomski_rad/services/language.dart';
 import 'package:diplomski_rad/widgets/images_display_widget.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
 import 'package:diplomski_rad/widgets/dropzone_widget.dart';
-import 'package:diplomski_rad/widgets/calendar_field.dart';
+import 'package:diplomski_rad/widgets/snapshot_error_field.dart';
+import 'package:diplomski_rad/widgets/loading_bar.dart';
 
 class ElementsPage extends StatefulWidget {
 
@@ -78,13 +74,9 @@ class _ElementsPageState extends State<ElementsPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator(
-                    color: PalleteCommon.gradient2,
-                    semanticsLabel: "Loading",
-                    backgroundColor: PalleteCommon.backgroundColor,
-                  );
+                  return LoadingBar(dimensionLength: width > height ? height * 0.5 : width * 0.5);
                 } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
+                  return SnapshotErrorField(text: 'Error: ${snapshot.error}');
                 } else {
                   final document = snapshot.data?.docs;
                   widget.elements = local.Element.setupElementsFromFirebaseDocuments(document);
@@ -1030,9 +1022,9 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
 
     local.Element? element = await ElementRepository.createElement(elementMap);
     if (element == null) {
-      
+      showSnackBar(widget.lang!.translate('error_while_creating_element'));
     } else {
-
+      showSnackBar(widget.lang!.translate('element_successfully_created'));
     }
   }
 
@@ -1042,13 +1034,10 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
 
     bool elementRes = await ElementRepository.updateElement(widget.elements[widget.elementIndex].id, elementMap);
     if (!elementRes) {
-      
+      showSnackBar(widget.lang!.translate('error_while_updating_element'));
     } else {
-
+      showSnackBar(widget.lang!.translate('element_successfully_updated'));
     }
-    
-    // TODO: set failure snackbar
-    // TODO: set success snackbar
   }
 
   void deleteElement() async {
@@ -1057,9 +1046,10 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
 
     bool elementRes = await ElementRepository.deleteElement(widget.elements[widget.elementIndex].id);
     if (!elementRes) {
-      
+      showSnackBar(widget.lang!.translate('error_while_deleting_element'));
     } else {
-
+      Navigator.pop(context);
+      showSnackBar(widget.lang!.translate('element_successfully_deleted'));
     }
   }
 
@@ -1109,6 +1099,21 @@ List<Widget> getDescriptionRow(double width, double height, double cardSize, Sta
         ]
       ],
     );
+  }
+
+  void showSnackBar(String text) {
+    SnackBar feedback = SnackBar(
+      dismissDirection: DismissDirection.down,
+      content: Center(child: Text(text)),
+      backgroundColor: (Colors.white),
+      behavior: SnackBarBehavior.fixed,
+      closeIconColor: PalleteCommon.gradient2,
+      action: SnackBarAction(
+        label: widget.lang!.translate('dismiss'),
+        onPressed: () {},
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(feedback);
   }
 
   String indexToDayOfWeek(int index) {

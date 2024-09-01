@@ -148,6 +148,27 @@ class Element {
       }
     }
 
+    Map<String, dynamic> tmp = {};
+    if ((card.links[0]['title']['en'] as String).isEmpty && (card.links[0]['title']['de'] as String).isEmpty && (card.links[0]['title']['hr'] as String).isEmpty && (card.links[0]['url'] as String).isEmpty) {
+      if ((card.links[1]['title']['en'] as String).isNotEmpty && (card.links[1]['title']['de'] as String).isNotEmpty && (card.links[1]['title']['hr'] as String).isNotEmpty && (card.links[1]['url'] as String).isNotEmpty) {
+        tmp = card.links[1];
+        card.links[1] = card.links[0];
+        card.links[0] = tmp;
+      } else if ((card.links[2]['title']['en'] as String).isNotEmpty && (card.links[2]['title']['de'] as String).isNotEmpty && (card.links[2]['title']['hr'] as String).isNotEmpty && (card.links[2]['url'] as String).isNotEmpty) {
+        tmp = card.links[2];
+        card.links[2] = card.links[0];
+        card.links[0] = tmp;
+      }
+    }
+
+    if ((card.links[1]['title']['en'] as String).isEmpty && (card.links[1]['title']['de'] as String).isEmpty && (card.links[1]['title']['hr'] as String).isEmpty && (card.links[1]['url'] as String).isEmpty) {
+      if ((card.links[2]['title']['en'] as String).isNotEmpty && (card.links[2]['title']['de'] as String).isNotEmpty && (card.links[2]['title']['hr'] as String).isNotEmpty && (card.links[2]['url'] as String).isNotEmpty) {
+        tmp = card.links[1];
+        card.links[1] = card.links[2];
+        card.links[2] = tmp;
+      }
+    }
+
     if (counter != 7) workingHours = card.workingHours;
 
     return {

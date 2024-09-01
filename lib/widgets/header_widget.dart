@@ -154,7 +154,7 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                     ),
                                     alignment: Alignment.topRight,
                                     child: SizedBox(
-                                      height: height * 0.2,
+                                      height: widget.user is! Admin ? height * 0.2: height * 0.15,
                                       width: width * 0.1,
                                       child: ListView(
                                         scrollDirection: Axis.vertical,
@@ -192,47 +192,49 @@ class _HeaderComponentState extends State<HeaderComponent> {
                                               widget.lang.translate('change_password'),
                                             ),
                                           ),
-                                          ListTile(
-                                            textColor: PalleteCommon.gradient2,
-                                            hoverColor: PalleteCommon.highlightColor.withOpacity(0.35),
-                                            tileColor: PalleteCommon.backgroundColor,
-                                            onTap: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (BuildContext context) =>
-                                                    deleteAccountDialog(width, height, context, widget.user!.id),
-                                              );
-                                            },
-                                            leading: const Icon(Icons.gavel),
-                                            title: Text(widget.lang.translate('delete_account')),
-                                          ),
-                                          ListTile(
-                                            textColor: PalleteCommon.gradient2,
-                                            hoverColor: PalleteCommon.highlightColor.withOpacity(0.35),
-                                            tileColor: PalleteCommon.backgroundColor,
-                                            onTap: () async {      
-                                              SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
-                                              await sharedPreferencesService.setUserId("");
-                                              await sharedPreferencesService.setTypeOfUser("");
-                                              await sharedPreferencesService.setLanguage("en");
-                                              await sharedPreferencesService.setKeepLoggedIn(false);
-                                              await sharedPreferencesService.setAvatarImage("");
-                                              await sharedPreferencesService.setDateFormat("");
-          
-                                              Navigator.popUntil(context, (route) => false);
-          
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => LoginPage(),
-                                                ),
-                                              );
-                                            },
-                                            leading: const Icon(Icons.logout),
-                                            title: Text(
-                                              widget.lang.translate('sign_out'),
+                                          if (widget.user is! Admin) Expanded(
+                                            child: ListTile(
+                                              textColor: PalleteCommon.gradient2,
+                                              hoverColor: PalleteCommon.highlightColor.withOpacity(0.35),
+                                              tileColor: PalleteCommon.backgroundColor,
+                                              onTap: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) =>
+                                                      deleteAccountDialog(width, height, context, widget.user!.id),
+                                                );
+                                              },
+                                              leading: const Icon(Icons.gavel),
+                                              title: Text(widget.lang.translate('delete_account')),
                                             ),
-                                          ),
+                                          ) else const SizedBox(),
+                                          ListTile(
+                                              textColor: PalleteCommon.gradient2,
+                                              hoverColor: PalleteCommon.highlightColor.withOpacity(0.35),
+                                              tileColor: PalleteCommon.backgroundColor,
+                                              onTap: () async {      
+                                                SharedPreferencesService sharedPreferencesService = SharedPreferencesService(await SharedPreferences.getInstance());
+                                                await sharedPreferencesService.setUserId("");
+                                                await sharedPreferencesService.setTypeOfUser("");
+                                                await sharedPreferencesService.setLanguage("en");
+                                                await sharedPreferencesService.setKeepLoggedIn(false);
+                                                await sharedPreferencesService.setAvatarImage("");
+                                                await sharedPreferencesService.setDateFormat("");
+                                                    
+                                                Navigator.popUntil(context, (route) => false);
+                                                    
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => LoginPage(),
+                                                  ),
+                                                );
+                                              },
+                                              leading: const Icon(Icons.logout),
+                                              title: Text(
+                                                widget.lang.translate('sign_out'),
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     )),

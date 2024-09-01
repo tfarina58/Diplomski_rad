@@ -14,6 +14,8 @@ import 'package:diplomski_rad/services/language.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/firebase.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
+import 'package:diplomski_rad/widgets/snapshot_error_field.dart';
+import 'package:diplomski_rad/widgets/loading_bar.dart';
 
 class UsersPage extends StatefulWidget {
   User? user;
@@ -724,18 +726,15 @@ class _UsersPageState extends State<UsersPage> {
 
   Widget getRows(double width, double height, AsyncSnapshot<List<Customer>> snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
-      return SizedBox(
-        width: height * 0.15,
-        height: height * 0.15,
-        child: const CircularProgressIndicator(
-          color: PalleteCommon.gradient2,
-          semanticsLabel: "Loading",
-          backgroundColor: PalleteCommon.backgroundColor,
+      return Center(
+        child: SizedBox(
+          width: height * 0.15,
+          height: height * 0.15,
+          child: LoadingBar(dimensionLength: width > height ? height * 0.5 : width * 0.5),
         ),
       );
     } else if (snapshot.hasError) {
-      print(snapshot.error);
-      return Text('Error: ${snapshot.error}');
+      return SnapshotErrorField(text: 'Error: ${snapshot.error}');
     } else {
       if (snapshot.data == null) {
         widget.customers = [];
@@ -747,20 +746,20 @@ class _UsersPageState extends State<UsersPage> {
       if (widget.customers.isEmpty) {
         return SizedBox(
           height: height * 0.4,
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(child: SizedBox()),
+              const Expanded(child: SizedBox()),
               Expanded(
                 child: Center(
                   child: Text(
-                    "No users to display",
-                    style: TextStyle(fontSize: 30),
+                    widget.lang!.translate('no_users_to_display'),
+                    style: const TextStyle(fontSize: 30),
                   ),
                 ),
               ),
-              Expanded(child: SizedBox()),
+              const Expanded(child: SizedBox()),
             ],
           ),
         );
@@ -1168,13 +1167,15 @@ class _UsersPageState extends State<UsersPage> {
 
   void changeBannedValue(Customer customer) async {
     if (customer.banned) return;
-    bool? res = await UserRepository.banUser(customer.id);
+    bool? res = await UserRepository.banUser(customer);
     if (res == null) return; 
     else if (!res) return;
 
     setState(() {
       customer.banned = true;
     });
+
+    Navigator.pop(context);
   }
 
   Widget getNumOfUsersSelection() {
@@ -1387,6 +1388,7 @@ class _UsersPageState extends State<UsersPage> {
                   padding: EdgeInsets.fromLTRB(width * 0.03, 0, width * 0.03, 0),
                   child: Text(
                     "${widget.lang!.translate('ban_user_text_1')}${widget.customers[index].email}${widget.lang!.translate('ban_user_text_2')}",
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 18,
                       color: PalleteCommon.gradient2,

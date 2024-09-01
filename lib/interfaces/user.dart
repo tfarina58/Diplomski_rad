@@ -33,7 +33,7 @@ abstract class User {
         usersPerPage: user['usersPerPage'] ?? 10,
         // estatesPerPage: user['estatesPerPage'] ?? 5,
       );
-      res.birthday = DateTime.fromMillisecondsSinceEpoch((user['birthday'] as Timestamp).millisecondsSinceEpoch);
+      res.birthday = user['birthday'] != null ? DateTime.fromMillisecondsSinceEpoch((user['birthday'] as Timestamp).millisecondsSinceEpoch) : null;
       res.street = user['street'] ?? "";
       res.zip = user['zip'] ?? "";
       res.numOfEstates = user['numOfEstates'] ?? 0;
@@ -117,7 +117,7 @@ abstract class User {
         "firstname": user.firstname,
         "typeOfUser": "ind",
         "lastname": user.lastname,
-        "birthday": Timestamp(user.birthday.millisecondsSinceEpoch ~/ 1000, 0),
+        "birthday": user.birthday != null ? Timestamp(user.birthday!.millisecondsSinceEpoch ~/ 1000, 0) : null,
         "numOfEstates": user.numOfEstates,
       };
     } else if (user is Company) {
@@ -289,7 +289,7 @@ class Individual extends Customer {
 
   String firstname;
   String lastname;
-  DateTime birthday;
+  DateTime? birthday;
 
   Individual({
     this.id = "",

@@ -391,41 +391,39 @@ class UserRepository {
   }
 
   // TODO: comment
-  static Future<bool?> banUser(String id) async {
-    if (id.isEmpty) return false;
+  static Future<bool?> banUser(Customer? customer) async {
+    if (customer == null) return false;
 
     try {
-      DocumentSnapshot<Map<String, dynamic>> res = await users.doc(id).get();
+      FirebaseStorageService fss = FirebaseStorageService();
+      fss.deleteImageForCustomer(customer.id, customer.avatarImage, true);
+      fss.deleteImageForCustomer(customer.id, customer.backgroundImage, false);
+    } catch (err) {
+      print(err);
+    }
+
+    try {
+      QuerySnapshot<Map<String, dynamic>> res = await estates.where("ownerId", isEqualTo: customer.id).get();
+
+      for (int i = 0; i < res.docs.length; ++i) {
+        EstateRepository.deleteEstate(res.docs[i].id);
+      }
+    } catch (err) {
+      print(err);
+    }
+
+    try {
+      DocumentSnapshot<Map<String, dynamic>> res = await users.doc(customer.id).get();
 
       if (res["banned"] == true) {
         return null;
       } else if (res["banned"] == false) {
-        // TODO: test users.doc(id).set()
-        await users.doc(id).update({
-          "avatarImage": "",
-          "backgroundImage": "",
+        await users.doc(customer.id).set({
           "banned": true,
-          "birthday": "",
           "blocked": true,
-          "city": "",
-          "companyName": "",
           "coordinates": null,
-          "country": "",
-          "dateFormat": "",
-          "distance": "",
           "email": res["email"],
-          "firstname": "",
-          "language": "",
-          "lastname": "",
-          "numOfEstates": 0,
-          "ownerFirstname": "",
-          "ownerLastname": "",
-          "password": "",
-          "phone": "",
-          "street": "",
-          "temperature": "",
           "typeOfUser": res["typeOfUser"],
-          "zip": ""
         });
         return true;
       }
