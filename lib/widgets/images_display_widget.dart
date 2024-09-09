@@ -261,83 +261,17 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
                 ),
                 SizedBox(height: height * 0.025),
                 // Body features
-                if (choice)
-                  if (widget.droppedFileBytes == null)
-                    DropzoneWidget(
-                      lang: widget.lang,
-                      onDroppedFile: (Map<String, dynamic>? file) {
-                        if (file == null) return;
+                DropzoneWidget(
+                  lang: widget.lang,
+                  onDroppedFile: (Map<String, dynamic>? file) {
+                    if (file == null) return;
 
-                        setState(() {
-                          widget.droppedFileName = file['name'];
-                          widget.droppedFileBytes = file['bytes'];
-                        });
-                      },
-                    )
-                  else
-                    Row(
-                      children: [
-                        Container(
-                          width: width * 0.5,
-                          height: height * 0.5,
-                          margin: const EdgeInsets.all(8.0),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                          ),
-                          child: Image.memory(widget.droppedFileBytes!),
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            optionSaveImage(width, height, choice),
-                            SizedBox(height: height * 0.08),
-                            optionDiscardImage(width, height),
-                            SizedBox(height: height * 0.08),
-                            optionCancel(width, height),
-                          ],
-                        ),
-                      ],
-                    )
-                else if (!choice)
-                  if (widget.droppedFileBytes == null)
-                    DropzoneWidget(
-                      lang: widget.lang,
-                      onDroppedFile: (Map<String, dynamic>? file) {
-                        if (file == null) return;
+                    widget.droppedFileName = file['name'];
+                    widget.droppedFileBytes = file['bytes'];
 
-                        setState(() {
-                          widget.droppedFileName = file['name'];
-                          widget.droppedFileBytes = file['bytes'];
-                        });
-                      },
-                    )
-                  else
-                    Row(
-                      children: [
-                        Container(
-                          width: width * 0.5,
-                          height: height * 0.5,
-                          margin: const EdgeInsets.all(8.0),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                          ),
-                          // child: Image.network(widget.droppedFile!.path),
-                          child: Image.memory(widget.droppedFileBytes!),
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            optionSaveImage(width, height, choice),
-                            SizedBox(height: height * 0.08),
-                            optionDiscardImage(width, height),
-                            SizedBox(height: height * 0.08),
-                            optionCancel(width, height),
-                          ],
-                        ),
-                      ],
-                    )
+                    optionSaveImage(width, height, choice);
+                  },
+                )
               ],
             ),
           );
@@ -346,30 +280,21 @@ class _ImagesDisplayState extends State<ImagesDisplay> {
     );
   }
 
-  Widget optionSaveImage(double width, double height, bool choice) {
-    return ElevatedButton(
-      style: ButtonStyle(
-        minimumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.08)),
-        maximumSize: MaterialStatePropertyAll(Size(width * 0.25, height * 0.4)),
-        backgroundColor: const MaterialStatePropertyAll(Color.fromARGB(125, 85, 85, 85)),
-      ),
-      onPressed: () async {
-        if (widget.droppedFileBytes == null) return;
+  void optionSaveImage(double width, double height, bool choice) async {
+    if (widget.droppedFileBytes == null) return;
 
-        FirebaseStorageService storage = FirebaseStorageService();
-        if (widget.estate != null) {
-          await storage.uploadImageForEstate(widget.estate as Estate, widget.droppedFileName, widget.droppedFileBytes!);
-        } else if (widget.user != null) {
-          storage.uploadImageForCustomer(widget.user as Customer, widget.droppedFileName, widget.droppedFileBytes!, choice);
-          if (choice) widget.callback();
-        } else if (widget.category != null) {
-          storage.uploadImageForCategory(widget.category as localCategory.Category, widget.droppedFileName, widget.droppedFileBytes!);
-        }
+    FirebaseStorageService storage = FirebaseStorageService();
+    if (widget.estate != null) {
+      // if (widget.estate!.image.isNotEmpty) await storage.deleteImageForEstate(widget.estate!.id, url: widget.estate!.image);
+      await storage.uploadImageForEstate(widget.estate as Estate, widget.droppedFileName, widget.droppedFileBytes!);
+    } else if (widget.user != null) {
+      storage.uploadImageForCustomer(widget.user as Customer, widget.droppedFileName, widget.droppedFileBytes!, choice);
+      if (choice) widget.callback();
+    } else if (widget.category != null) {
+      storage.uploadImageForCategory(widget.category as localCategory.Category, widget.droppedFileName, widget.droppedFileBytes!);
+    }
 
-        Navigator.pop(context);
-      },
-      child: Text(widget.lang.translate('save_image')),
-    );
+    Navigator.pop(context);
   }
 
   Widget optionDiscardImage(double width, double height) {

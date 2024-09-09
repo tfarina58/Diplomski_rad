@@ -58,6 +58,7 @@ class _UsersPageState extends State<UsersPage> {
       String tmpUserId = sharedPreferencesService.getUserId();
       String tmpTypeOfUser = sharedPreferencesService.getTypeOfUser();
       String tmpLanguage = sharedPreferencesService.getLanguage();
+      int usersPerPage = sharedPreferencesService.getUsersPerPage();
 
       if (tmpUserId.isEmpty) return;
       if (tmpTypeOfUser.isEmpty) return;
@@ -70,6 +71,7 @@ class _UsersPageState extends State<UsersPage> {
       setState(() {
         widget.user = User.toUser(userMap);
         widget.lang = tmpLang;
+        widget.user!.preferences.usersPerPage = usersPerPage;
       });
     });
   }
@@ -1184,11 +1186,14 @@ class _UsersPageState extends State<UsersPage> {
       child: DropdownField(
         labelText: widget.lang!.translate('users_per_page'),
         maxWidth: 200,
-        callback: (int value) {
+        callback: (int value) async {
           setState(() {
             widget.user!.preferences.usersPerPage = value;
             widget.currentPage = 0;
           });
+
+          UserRepository.updateUser(widget.user!.id, {"usersPerPage": value});
+          await SharedPreferencesService(await SharedPreferences.getInstance()).setUsersPerPage(value);
         },
         choices: const [5, 10, 15, 25, 50, 100, 200],
         selected: widget.user!.preferences.usersPerPage,

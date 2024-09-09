@@ -15,8 +15,8 @@ class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
 
   bool keepLoggedIn = false;
-  String email = "tfarina58@gmail.com"; // "sandi.ljubic@gmail.com", "";
-  String password = "password"; // ""
+  String email = "";
+  String password = "";
   LanguageService lang = LanguageService.getInstance("en");
 
   @override
@@ -144,6 +144,7 @@ class _LoginPageState extends State<LoginPage> {
           await sharedPreferencesService.setTypeOfUser("com");
         } else if (user is Admin) {
           await sharedPreferencesService.setTypeOfUser("adm");
+          await sharedPreferencesService.setUsersPerPage(user.preferences.usersPerPage);
         }
         await sharedPreferencesService.setDateFormat(user.preferences.dateFormat.isNotEmpty ? user.preferences.dateFormat : "en");
         await sharedPreferencesService.setLanguage(user.preferences.language.isNotEmpty ? user.preferences.language : "en");

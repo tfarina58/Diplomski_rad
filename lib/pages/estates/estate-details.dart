@@ -1267,7 +1267,7 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
                             flex: 3,
                             child: GradientButton(
                               buttonText: widget.lang!.translate('delete_category'),
-                              callback: () => deleteCategory(widget.categories[index].id)
+                              callback: () => deleteCategory(widget.categories[index])
                             )
                           ),
                           const Expanded(flex: 2, child: SizedBox()),
@@ -1412,6 +1412,8 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
 
     if (widget.categories[index].image.isEmpty && widget.categories[index].tmpImageBytes != null) {
       widget.categories[index].image = await uploadCategoryImage(widget.categories[index]);
+    } else {
+      await FirebaseStorageService().deleteImageForCategory(widget.categories[index].id, url: widget.categories[index].image);
     }
 
     Map<String, dynamic>? categoryMap = Category.toJSON(widget.categories[index]);
@@ -1428,8 +1430,8 @@ class _EstateDetailsPageState extends State<EstateDetailsPage> {
     showSnackBar(widget.lang!.translate('error_while_updating_category'));
   }
 
-  Future<void> deleteCategory(String categoryId) async {
-    bool res = await CategoryRepository.deleteCategory(categoryId);
+  Future<void> deleteCategory(Category category) async {
+    bool res = await CategoryRepository.deleteCategory(category);
     if (!res) {
       showSnackBar(widget.lang!.translate('error_while_deleting_category'));
       return;

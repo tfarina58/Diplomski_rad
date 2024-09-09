@@ -31,7 +31,6 @@ abstract class User {
         dateFormat: user['dateFormat'] ?? "yyyy-MM-dd",
         language: user['language'] ?? "en",
         usersPerPage: user['usersPerPage'] ?? 10,
-        // estatesPerPage: user['estatesPerPage'] ?? 5,
       );
       res.birthday = user['birthday'] != null ? DateTime.fromMillisecondsSinceEpoch((user['birthday'] as Timestamp).millisecondsSinceEpoch) : null;
       res.street = user['street'] ?? "";

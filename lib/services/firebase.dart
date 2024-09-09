@@ -482,7 +482,10 @@ class EstateRepository {
       List<QueryDocumentSnapshot<Map<String, dynamic>>> documents = (await categories.where("estateId", isEqualTo: estateId).get()).docs;
 
       for (int i = 0; i < documents.length; ++i) {
-        await CategoryRepository.deleteCategory(documents[i].id);
+        localCategory.Category? tmpCategory = localCategory.Category.toCategory(documents[i].data());
+        if (tmpCategory == null) continue;
+        
+        await CategoryRepository.deleteCategory(tmpCategory);
       }
 
       FirebaseStorageService service = FirebaseStorageService();
@@ -530,20 +533,20 @@ class CategoryRepository {
   }
 
   // TODO: comment
-  static Future<bool> deleteCategory(String categoryId) async {
+  static Future<bool> deleteCategory(localCategory.Category category) async {
     bool success = false;
 
     try {
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> documents = (await elements.where("categoryId", isEqualTo: categoryId).get()).docs;
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> documents = (await elements.where("categoryId", isEqualTo: category.id).get()).docs;
 
       for (int i = 0; i < documents.length; ++i) {
         await ElementRepository.deleteElement(documents[i].id);
       }
 
       FirebaseStorageService service = FirebaseStorageService();
-      service.deleteImageForCategory(categoryId);
+      service.deleteImageForCategory(category.id, url: category.image);
 
-      await categories.doc(categoryId).delete();
+      await categories.doc(category.id).delete();
       success = true;
     } catch (err) {
       success = false;
