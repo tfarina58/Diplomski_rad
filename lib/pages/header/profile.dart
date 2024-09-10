@@ -6,6 +6,7 @@ import 'package:diplomski_rad/interfaces/user.dart';
 import 'package:diplomski_rad/other/pallete.dart';
 import 'package:diplomski_rad/widgets/gradient_button.dart';
 import 'package:diplomski_rad/widgets/string_field.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:diplomski_rad/widgets/calendar_field.dart';
 import 'package:diplomski_rad/widgets/dropdown_field.dart';
 import 'package:diplomski_rad/services/firebase.dart';
@@ -14,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:diplomski_rad/services/shared_preferences.dart';
 import 'package:diplomski_rad/widgets/snapshot_error_field.dart';
 import 'package:diplomski_rad/widgets/loading_bar.dart';
+import 'package:diplomski_rad/services/geocoding.dart';
 
 class ProfilePage extends StatefulWidget {
   String userId;
@@ -525,6 +527,11 @@ class _ProfilePageState extends State<ProfilePage> {
     if (!checkMandatoryValues()) {
       showSnackBar(widget.lang!.translate('first_column_must_be_filled'));
       return;
+    }
+
+    if (widget.user is Customer) {
+      LatLng? coordinates = await Geocoding.geocode((widget.user as Customer).street, (widget.user as Customer).zip, (widget.user as Customer).city, (widget.user as Customer).country);
+      (widget.user as Customer).coordinates = coordinates;
     }
 
     Map<String, dynamic>? userMap = User.toJSON(widget.user);
