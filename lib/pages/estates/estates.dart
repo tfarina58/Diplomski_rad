@@ -189,6 +189,7 @@ class _EstatesPageState extends State<EstatesPage> {
       width: width * 0.8,
       child: MapsWidget(
         estates: widget.estates,
+        customerId: widget.userId,
         lang: widget.lang!,
       ),
     );

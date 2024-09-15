@@ -4,16 +4,21 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:diplomski_rad/interfaces/estate.dart';
+import 'package:diplomski_rad/interfaces/user.dart';
 import 'package:diplomski_rad/pages/estates/estate-details.dart';
 import 'dart:math';
 import 'package:diplomski_rad/services/language.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diplomski_rad/widgets/snapshot_error_field.dart';
+import 'package:diplomski_rad/widgets/loading_bar.dart';
 
 class MapsWidget extends StatefulWidget {
   List<Estate> estates;
   LanguageService lang;
-  // String? customerId;
+  String? customerId;
+  Customer? customer;
 
-  MapsWidget({Key? key, required this.lang, this.estates = const []})
+  MapsWidget({Key? key, required this.lang, this.estates = const [], this.customerId})
       : super(key: key);
 
   @override
@@ -25,8 +30,55 @@ class _MapsWidgetState extends State<MapsWidget> {
   Widget build(BuildContext context) {
     LatLng mapCenter = getMapCenter();
     double zoom = getMapZoom(mapCenter);
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
 
-    return FlutterMap(
+    return widget.customerId != null && widget.customerId!.isNotEmpty ? StreamBuilder(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.customerId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return LoadingBar(dimensionLength: width > height ? height * 0.5 : width * 0.5);
+        } else if (snapshot.hasError) {
+          return SnapshotErrorField(text: widget.lang.translate('error_while_gathering_your_data'));
+        } else {            
+          Map<String, dynamic>? userMap = snapshot.data?.data();
+          if (userMap == null) return const SnapshotErrorField(text: 'error_while_gathering_your_data');
+
+          widget.customer = User.toUser(userMap) as Customer;
+
+          return FlutterMap(
+            options: MapOptions(
+              center: mapCenter,
+              zoom: zoom,
+              maxZoom: 17,
+              minZoom: 1.7,
+            ),
+            nonRotatedChildren: [
+              RichAttributionWidget(
+                attributions: [
+                  TextSourceAttribution(
+                    'OpenStreetMap contributors',
+                    onTap: () =>
+                        launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
+                  ),
+                ],
+              ),
+            ],
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              ),
+              MarkerLayer(
+                markers: getMarkerLayer(),
+              ),
+            ],
+          );
+        }
+      }
+    ) : FlutterMap(
       options: MapOptions(
         center: mapCenter,
         zoom: zoom,
@@ -157,6 +209,52 @@ class _MapsWidgetState extends State<MapsWidget> {
         ),
       );
     }
+
+    if (widget.customer?.coordinates != null) {
+      markerList.add(
+        Marker(
+          point: LatLng(
+            widget.customer!.coordinates!.latitude,
+            widget.customer!.coordinates!.longitude,
+          ),
+          builder: (context) => MouseRegion(
+            cursor: SystemMouseCursors.click,
+              child: Tooltip(
+              decoration: const BoxDecoration(
+                color: PalleteCommon.backgroundColor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(3),
+                ),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: PalleteCommon.gradient2,
+              ),
+              message: (widget.customer is Individual) ?
+                       "${(widget.customer as Individual).firstname} ${(widget.customer as Individual).lastname}" :
+                       "${(widget.customer as Company).ownerFirstname} ${(widget.customer as Company).ownerLastname}",
+              child: Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(3),
+                  color: PalleteCommon.backgroundColor,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.emoji_people,
+                    color: PalleteCommon.gradient3,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return markerList;
   }
 }

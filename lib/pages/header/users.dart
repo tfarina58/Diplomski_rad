@@ -1005,8 +1005,7 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   Stream<List<Customer>> streamQueryBuilder() {
-    CollectionReference<Map<String, dynamic>> users =
-        FirebaseFirestore.instance.collection('users');
+    CollectionReference<Map<String, dynamic>> users = FirebaseFirestore.instance.collection('users');
 
     // Combine the two streams using the merge operator
     Stream<QuerySnapshot<Map<String, dynamic>>> indQuery = users.where("typeOfUser", isEqualTo: "ind").snapshots();
